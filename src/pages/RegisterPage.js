@@ -4,18 +4,30 @@ import { Footer } from "../components/Footer";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import showToast from "../utils/AppUtils";
-import { register } from "../redux/slice/UserSlice";
+import { register, sendOtp } from "../redux/slice/UserSlice";
 
 export const RegisterPage = () => {
     const [userRegister, setUserRegister] = useState({
         username: '0867713557',
         password: "ledonchung",
         fullName: "Le Don Chung",
-        rePassword: "ledonchung"
+        rePassword: "ledonchung",
+        otp: "",
     });
     const error = useSelector(state => state.user.errorResponse);
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    const handlerActionSendOtp = async () => {
+        const phone = userRegister.username;
+        if (!phone) {
+            showToast("Vui lòng nhập số điện thoại.", 'error');
+            return;
+        }
+
+        await dispatch(sendOtp(phone)).unwrap().then((res) => {
+            showToast("Gửi mã OTP thành công.", 'success');
+        }).catch(err => showToast(err.error || "Gửi mã OTP không thành công.", 'error'));
+    };
     const handlerActionRegister = async (e) => {
         e.preventDefault();
         if (userRegister.password !== userRegister.rePassword) {
@@ -26,10 +38,10 @@ export const RegisterPage = () => {
         await dispatch(register(userRegister)).unwrap().then((res) => {
             showToast("Đăng ký thành công.", 'success');
             setTimeout(() => {
-                navigate("/login"); 
+                navigate("/login");
             }, 2000);
         }).catch(err => showToast(err.error || "Đăng ký không thành công.", 'error'));
-        
+
     };
 
     return (
@@ -116,16 +128,20 @@ export const RegisterPage = () => {
                                     className="h-6 w-6"
                                 />
                                 <input
-                                    type="password"
-                                    id="password"
+                                    value={userRegister.otp}
+                                    onChange={(e) => setUserRegister({ ...userRegister, otp: e.target.value })}
+                                    type="text"
+                                    id="otp"
+                                    size={6}
                                     placeholder="Nhập OTP"
                                     className="flex-1 w-full ml-2 py-1 focus:outline-none text-custom-size"
                                 />
-                                <img
-                                    src="/icon/ic_send.png"
-                                    alt="Thera Care Logo"
-                                    className="h-6 w-6 hover:cursor-pointer"
-                                />
+                                <button type="button" onClick={(e) => handlerActionSendOtp()}>
+                                    <img
+                                        src="/icon/ic_send.png"
+                                        alt="Thera Care Logo"
+                                        className="h-6 w-6 hover:cursor-pointer" />
+                                </button>
                             </div>
                         </div>
                         <button type="submit" className="w-full bg-[#005AE0] text-white py-2 rounded-[0.5rem]">

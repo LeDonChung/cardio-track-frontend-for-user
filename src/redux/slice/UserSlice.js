@@ -6,7 +6,7 @@ const inititalState = {
     errorResponse: null
 }
 
-const register = createAsyncThunk('user/register', async (request, {rejectWithValue}) => {
+const register = createAsyncThunk('user/register', async (request, { rejectWithValue }) => {
     try {
         const response = await axiosInstance.post('/api/v1/auth/register', request);
         return response.data;
@@ -16,9 +16,18 @@ const register = createAsyncThunk('user/register', async (request, {rejectWithVa
 })
 
 
-const login = createAsyncThunk('user/login', async (request, {rejectWithValue}) => {
+const login = createAsyncThunk('user/login', async (request, { rejectWithValue }) => {
     try {
-        const response = await axiosInstance.post('http://localhost:8888/api/v1/auth/login', request);
+        const response = await axiosInstance.post('/api/v1/auth/login', request);
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+})
+
+const sendOtp = createAsyncThunk('user/sendOtp', async (request, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/api/v1/auth/generation-otp?phoneNumber=' + request);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data);
@@ -29,7 +38,7 @@ const UserSlice = createSlice({
     name: 'user',
     initialState: inititalState,
     reducers: {
-        
+
     },
     extraReducers: (builder) => {
         // register
@@ -54,10 +63,21 @@ const UserSlice = createSlice({
         builder.addCase(login.rejected, (state, action) => {
             state.errorResponse = action.payload;
         })
+
+        // sendOtp
+        builder.addCase(sendOtp.pending, (state, action) => {
+            state.errorResponse = null;
+        })
+        builder.addCase(sendOtp.fulfilled, (state, action) => {
+            state.errorResponse = null;
+        })
+        builder.addCase(sendOtp.rejected, (state, action) => {
+            state.errorResponse = action.payload;
+        })
     }
 })
 
 
-export const {  } = UserSlice.actions;
-export { register, login };
+export const { } = UserSlice.actions;
+export { register, login, sendOtp };
 export default UserSlice.reducer;
