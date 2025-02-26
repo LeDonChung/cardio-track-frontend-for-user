@@ -7,7 +7,12 @@ import { HomePage } from './pages/HomePage';
 
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       <Routes>
         // Login Page
         <Route path='/login' element={<LoginPage />} />
@@ -16,10 +21,10 @@ function App() {
         // Register Page
         <Route path='/register' element={<RegisterPage />} />
         <Route path="*" element={<h1>404 - Page Not Found</h1>} />
-        
+
       </Routes>
     </BrowserRouter>
-    
+
   );
 }
 
