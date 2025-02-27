@@ -3,11 +3,16 @@ import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
+import {CreatePostPage} from './CreatePostPage';
 export const UserInfoPage = () => {
     const navigate = useNavigate();
     const [activeSection, setActiveSection] = useState("info"); // State to track the active section
     const [searchTerm, setSearchTerm] = useState(""); // State for search input
-
+    
+    const [isModalOpen, setIsModalOpen] = useState(false); // Trạng thái để mở modal
+    const handleCreatePost = () => {
+        setIsModalOpen(true); // Mở modal khi người dùng nhấn nút
+    };
     // Dữ liệu giả lập (không lấy từ backend)
     const userInfo = {
         fullName: "Nguyễn Văn A",
@@ -81,6 +86,19 @@ export const UserInfoPage = () => {
                             <i className="fas fa-credit-card mr-3"></i> Quản lý thanh toán
                             <i className="fas fa-chevron-right ml-2"></i>
                         </li>
+                        <li className={`cursor-pointer ${activeSection === "create-post" ? "bg-blue-400 text-white rounded-lg py-2 px-4" : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"}`} onClick={handleCreatePost}>
+                            <i className="fas fa-pencil-alt mr-3"></i> Tạo bài viết
+                            <i className="fas fa-chevron-right ml-2"></i>
+                        </li>
+                        <li className={`cursor-pointer ${activeSection === "my-post" ? "bg-blue-400 text-white rounded-lg py-2 px-4" : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"}`} onClick={() => handleNavigation("my-post")}>
+                            <i className="fas fa-file-alt mr-3"></i> Bài viết của tôi
+                            <i className="fas fa-chevron-right ml-2"></i>
+                        </li>
+                        <li className={`cursor-pointer ${activeSection === "view-post" ? "bg-blue-400 text-white rounded-lg py-2 px-4" : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"}`} onClick={() => handleNavigation("view-post")}>
+                            <i className="fas fa-newspaper mr-3"></i> Xem tin tức
+                            <i className="fas fa-chevron-right ml-2"></i>
+                        </li>
+
                         <li className={`cursor-pointer text-red-500 ${activeSection === "logout" ? "bg-blue-500 text-white" : "hover:bg-blue-500 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"}`} onClick={() => { localStorage.removeItem('token'); navigate('/login'); }}>
                             <i className="fas fa-sign-out-alt mr-3"></i> Đăng xuất
                             <i className="fas fa-chevron-right ml-2"></i>
@@ -235,6 +253,7 @@ export const UserInfoPage = () => {
                             </div>
                         </div>
                     )}
+                    {/* Quản lý thanh toán */}
                     {activeSection === "payment" && (
                         <div className="text-center flex flex-col justify-between h-full">
                              <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
@@ -246,6 +265,12 @@ export const UserInfoPage = () => {
                             </div>
                             
                         </div>
+                    )}
+
+                    {/* Tạo bài viết */}
+                     {/* Chuyển hướng tới CreatePostPage */}
+                     {isModalOpen && (
+                        <CreatePostPage setIsModalOpen={setIsModalOpen} />
                     )}
                     
                 </div>

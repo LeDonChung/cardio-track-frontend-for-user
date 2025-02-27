@@ -1,87 +1,12 @@
 
-/* Main container styling */
-.bg-gray-100 {
-    background-color: #f7fafc;
-}
-
-/* Card container for the main content */
-.bg-white {
-    background-color: white;
-}
-
-/* Rounded corners for the profile section */
-.rounded-lg {
-    border-radius: 8px;
-}
-
-/* Styling for the border between sections */
-.border-b {
-    border-bottom: 1px solid #e2e8f0;
-}
-
-/* Spacing for items within the profile info */
-.space-y-4 {
-    margin-bottom: 1rem;
-}
-
-/* Spacing between the avatar and text */
-.space-x-4 {
-    margin-right: 1rem;
-}
-
-/* Header styling */
-.text-xl {
-    font-size: 1.25rem;
-}
-
-.font-semibold {
-    font-weight: 600;
-}
-
-.text-blue-600 {
-    color: #3182ce;
-}
-
-.text-center {
-    text-align: center;
-}
-
-/* Button styling */
-.bg-blue-500 {
-    background-color: #3b82f6;
-}
-
-.text-white {
-    color: white;
-}
-
-.cursor-pointer {
-    cursor: pointer;
-}
-
-/* Avatar styling */
-.w-24 {
-    width: 6rem;
-}
-
-.h-24 {
-    height: 6rem;
-}
-
-.rounded-full {
-    border-radius: 9999px;
-}
-
-.border {
-    border: 1px solid #e2e8f0;
-}
-
-.px-6 {
-    padding-left: 1.5rem;
-    padding-right: 1.5rem;
-}
-
-.py-2 {
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+.fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1000; /* Đảm bảo modal nằm trên các thành phần khác */
+    display: flex;
+    align-items: center; /* Căn giữa theo chiều dọc */
+    justify-content: center; /* Căn giữa theo chiều ngang */
 }
