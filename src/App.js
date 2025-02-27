@@ -2,6 +2,8 @@ import './App.css';
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { CartPage } from './pages/CartPage';
+import { OrderPage } from './pages/OrderPage';
 import { ToastContainer } from 'react-toastify';
 import { HomePage } from './pages/HomePage';
 import {UserInfoPage} from './pages/UserInfoPage.js';  
@@ -30,6 +32,10 @@ function App() {
           {/* Create Post Page */}
         <Route path="/create-post" element={<CreatePostPage />} />
         
+        {/* Shopping */}
+        <Route path="/cart" element={<CartPage />} />
+        <Route path="/order" element={<OrderPage />} />
+
           {/* View Post Page */}
         <Route path="/view-post" element={<ViewPostPage />} />
       </Routes>
