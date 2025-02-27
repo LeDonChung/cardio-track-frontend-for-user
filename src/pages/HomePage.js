@@ -5,7 +5,10 @@ import { Banner } from "../components/Banner";
 import { Brand } from "../components/Brand";
 import { useDispatch, useSelector } from "react-redux";
 import { getBrands } from "../redux/slice/BrandSlice";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { getProminents } from "../redux/slice/CategorySlice";
+import { getObject } from "../redux/slice/TagSlice";
+import { TagByObject } from "../components/TagByObject";
 const menus = [
     {
         id: 'menu1',
@@ -45,14 +48,56 @@ const menus = [
     }
 ]
 
+
+const policiesInit = [
+    {
+        id: "policy1",
+        logo: '/policy/ic_policy_1.png',
+        title: 'Thuốc chính hãng',
+        des: "đa dạng và chuyên sâu"
+    },
+    {
+        id: "policy2",
+        logo: '/policy/ic_policy_2.png',
+        title: 'Đổi trả trong 30 ngày',
+        des: "kể từ ngày mua hàng"
+
+    },
+    {
+        id: "policy3",
+        logo: '/policy/ic_policy_3.png', 
+        title: 'Cam kết 100%',
+        des: "chất lượng sản phẩm"
+
+    },
+    {
+        id: "policy4",
+        logo: '/policy/ic_policy_4.png',
+        title: 'Miễn phí vận chuyển',
+        des: "theo chính sách giao hàng"
+
+    }
+]
 export const HomePage = () => {
     const brands = useSelector(state => state.brand.brands);
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const initital = async () => {
         await dispatch(getBrands());
+        await dispatch(getProminents());
+        await dispatch(getObject());
+
+        setSelectedTag(tagsByObject[0]);
     }
- 
+
+    const prominents = useSelector(state => state.category.prominents);
+
+    const tagsByObject = useSelector(state => state.tag.tagsByObject);
+
+    const [selectedTag, setSelectedTag] = useState(tagsByObject[0]);
+
+    const [policies] = useState(policiesInit);
+
 
     useEffect(() => {
         initital();
@@ -109,14 +154,14 @@ export const HomePage = () => {
                 </div>
             </div>
 
-            {/* Brand */}
+            {/* Category */}
             <div>
                 <div className="container mx-auto my-4">
                     <div className="">
                         <div className="flex items-center">
                             <div className="flex items-center">
                                 <img className="mr-2" src="https://cdn.nhathuoclongchau.com.vn/unsafe/28x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/thuong_hieu_yeu_thich_e0c23dded6.png" />
-                                <h2 className="text-[20px] font-semibold">Thương hiệu nổi bật</h2>
+                                <h2 className="text-[20px] font-semibold">Danh mục nổi bật</h2>
                             </div>
                         </div>
                         <div className="w-full my-5">
@@ -138,13 +183,74 @@ export const HomePage = () => {
                                 <h2 className="text-[20px] font-semibold">Danh mục nổi bật</h2>
                             </div>
                         </div>
-                        <div className="w-full my-5">
-                            
+                        <div className="w-full my-5 grid grid-cols-6 gap-4">
+                            {prominents.map((category, index) => (
+                                <div key={index} className="flex flex-col h-[130px] items-center py-3 px-4 justify-between rounded-lg shadow-sm bg-white hover:cursor-pointer" >
+                                    <img src={category.icon} className="w-9 h-9 object-cover" />
+                                    <h2 className="text-custom-size font-medium mt-2 text-center">{category.title}</h2>
+                                    <h3 className="text-gray-400">{category.num} sản phẩm </h3>
+                                </div>
+                            ))}
                         </div>
+
+
                     </div>
                 </div>
 
             </div>
+
+
+            {/* Medicine Object */}
+            <div className="container mx-auto my-4">
+                <div className="">
+                    <div className="flex flex-col">
+                        <div className="flex items-center">
+                            <img className="mr-2" src="https://cdn.nhathuoclongchau.com.vn/unsafe/28x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/danh_muc_noi_bat_d03496597a.png" />
+                            <h2 className="text-[20px] font-semibold">Sản phẩm theo đối tượng</h2>
+                        </div>
+                        <div className="my-5">
+                            <div className="flex space-x-4">
+                                {tagsByObject.map((tag) => (
+                                    <button
+                                        key={tag}
+                                        className={`px-4 py-2 font-medium rounded-full ${selectedTag.id === tag.id ? "bg-blue-600 text-white" : "bg-white"
+                                            }`}
+                                        onClick={() => setSelectedTag(tag)}
+                                    >
+                                        {tag.title}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                    <div className="w-full my-5">
+                        {
+                            selectedTag &&
+                            <TagByObject data={selectedTag.medicines} />
+                        }
+                    </div>
+                </div>
+            </div>
+
+            {/* Policies */}
+            <div className="container mx-auto my-4">
+                <div class="grid grid-cols-4 gap-4">
+                    {policies.map(policy => {
+                        return (
+                            <div key={policy.id} className="flex flex-col items-center">
+                                <img
+                                    src={policy.logo}
+                                    alt="Thera Care Logo"
+                                    className="h-15 w-15"
+                                />
+                                <h2 className="text-custom-size font-semibold mt-2">{policy.title}</h2>
+                                <h3 className="text-gray-400 mt-2 text-center">{policy.des}</h3>
+                            </div>
+                        )
+                    })}
+                </div>
+            </div>
+ 
             <Footer />
         </div>
 
