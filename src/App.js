@@ -9,7 +9,12 @@ import {CreatePostPage} from './pages/CreatePostPage.js';
 import { ViewPostPage } from './pages/ViewPostPage.js';
 function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+      future={{
+        v7_startTransition: true,
+        v7_relativeSplatPath: true
+      }}
+    >
       <Routes>
         {/* Login Page */}
         <Route path='/login' element={<LoginPage />} />
@@ -27,14 +32,9 @@ function App() {
         
           {/* View Post Page */}
         <Route path="/view-post" element={<ViewPostPage />} />
-
-
-        
-
-        
       </Routes>
     </BrowserRouter>
-    
+
   );
 }
 
