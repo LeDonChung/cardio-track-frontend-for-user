@@ -3,6 +3,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { CartPage } from './pages/CartPage';
+import { OrderPage } from './pages/OrderPage';
 import { ToastContainer } from 'react-toastify';
 import { HomePage } from './pages/HomePage';
 
@@ -20,6 +21,7 @@ function App() {
         
         {/* Shopping */}
         <Route path="/cart" element={<CartPage />} />
+        <Route path="/order" element={<OrderPage />} />
 
       </Routes>
     </BrowserRouter>
