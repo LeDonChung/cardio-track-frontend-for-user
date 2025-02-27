@@ -1,11 +1,12 @@
 import React, { useState } from "react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
 
 export const CartPage = () => {
     const [isDiscountOpen, setIsDiscountOpen] = useState(false);
     const [discountCode, setDiscountCode] = useState("");
+    const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState("delivery");
 
     const products = [
         { 
@@ -30,6 +31,7 @@ export const CartPage = () => {
 
     const user = {
         name: "Lê Vũ Phong",
+        avatar: "https://placehold.co/40x40",
         phone: "0999999999",
         address: "300 Phan Văn Trị, Phường 5, Quận Gò Vấp, Hồ Chí Minh"
     };
@@ -40,6 +42,10 @@ export const CartPage = () => {
 
     const handleDiscountCodeChange = (e) => {
         setDiscountCode(e.target.value);
+    };
+
+    const handleDeliveryMethodChange = (method) => {
+        setSelectedDeliveryMethod(method);
     };
 
     return (
@@ -62,34 +68,65 @@ export const CartPage = () => {
                         <div className="bg-white p-4 rounded-md shadow-md mb-4">
                             {products.map((product, index) => (
                                 <div key={index} className="flex justify-between items-center border-b pb-4 mb-4">
-                                    <div className="flex items-center">
+                                    <div className="flex items-center w-full md:w-2/3">
                                         <img
                                             src={product.image}
                                             alt={product.name}
-                                            className="w-20 h-20 mr-4"
+                                            className="w-20 h-20 mr-4 object-cover"
                                         />
                                         <div>
-                                            <p>{product.name}</p>
-                                            <p className="text-gray-500">x{product.quantity} Chai</p>
+                                            <p className="font-medium">{product.name}</p>
                                         </div>
                                     </div>
-                                    <p className="font-bold">{product.price}</p>
+                                    <p className="font-bold text-lg w-1/4 text-right">{product.price}</p>
+                                    <div className="w-1/6 text-right">
+                                        <p className="text-gray-500">x {product.quantity} Chai</p>
+                                    </div>
                                 </div>
                             ))}
                         </div>
+
                         
                         {/* Chọn hình thức nhận hàng */}
-                        <h2 className="text-lg font-bold mb-4">Chọn hình thức nhận hàng</h2>
+                        <div className="flex items-center mb-4 justify-between">
+                            <h2 className="text-lg font-bold">Chọn hình thức nhận hàng</h2>
+                            <div className="flex">
+                                <div className="bg-white rounded-2xl shadow-md">
+                                    <button
+                                        onClick={() => handleDeliveryMethodChange("delivery")}
+                                        className={`px-4 py-2 ${selectedDeliveryMethod === "delivery" ? "bg-blue-200 text-blue-600" : "bg-white text-gray-600"} font-bold rounded-lg hover:bg-blue-300`}
+                                    >
+                                        Giao hàng tận nơi
+                                    </button>
+                                    <button
+                                        onClick={() => handleDeliveryMethodChange("pickup")}
+                                        className={`px-4 py-2 ${selectedDeliveryMethod === "pickup" ? "bg-blue-200 text-blue-600" : "bg-white text-gray-600"} font-bold rounded-lg hover:bg-gray-100`}
+                                    >
+                                        Nhận tại nhà thuốc
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                         <div className="bg-white p-4 rounded-md shadow-md mb-4">
                             <div className="flex justify-between items-center mb-4">
                                 <div>
-                                    <p className="font-bold">Địa chỉ nhận hàng</p>
+                                    <div className="flex items-center space-x-2">
+                                        <MapPin color="blue"/>
+                                        <p className="font-bold">Địa chỉ nhận hàng</p>
+                                    </div>
                                     <p className="pt-4">{user.address}</p>
                                 </div>
                                 <a className=" pt-10 text-blue-600 hover:underline" href="#">Thay đổi</a>
                             </div>
                             <div className="mb-4">
-                                <p className="font-bold mb-5">{user.name} - {user.phone}</p>
+                                <div className="flex items-center space-x-2 mb-5">
+                                    <img
+                                        src={user.avatar}
+                                        alt="avt"
+                                        className="w-8 h-8 rounded-full object-cover"
+                                    />
+                                    <p className="font-bold">{user.name} - {user.phone}</p>
+                                </div>
                                 <textarea
                                     className="w-full p-2 border rounded-md"
                                     placeholder="Ghi chú (không bắt buộc)"
