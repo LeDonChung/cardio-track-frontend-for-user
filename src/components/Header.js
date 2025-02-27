@@ -100,11 +100,11 @@ export const Header = () => {
                                         key={category.id} className=' flex items-center hover:text-[#2261E2] cursor-pointer  hover:border-b-[#2261E2] hover:border-b-2 p-4'>
                                         <a href="#" className="text-custom-size font-medium mr-3"> {category.title} </a>
                                         {
-                                            hoveredCategory != null && hoveredCategory.id == category.id ? (<FontAwesomeIcon icon={faAngleUp} />) : (<FontAwesomeIcon icon={faAngleDown} />)
+                                            hoveredCategory != null && hoveredCategory.id === category.id ? (<FontAwesomeIcon icon={faAngleUp} />) : (<FontAwesomeIcon icon={faAngleDown} />)
                                         }
                                         {
-                                            hoveredCategory != null && hoveredCategory.id == category.id && (
-                                                <main className="absolute container mt-4 top-[2.70rem] left-0">
+                                            hoveredCategory != null && hoveredCategory.id === category.id && (
+                                                <main className="absolute hover:block z-[9999] container mt-4 top-[2.70rem] left-0">
                                                     <div className="bg-white rounded-lg shadow-lg p-4">
                                                         <div className="flex">
                                                             <div className="w-1/4">
