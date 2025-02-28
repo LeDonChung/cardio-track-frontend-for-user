@@ -6,8 +6,9 @@ import { CartPage } from './pages/CartPage';
 import { OrderPage } from './pages/OrderPage';
 import { ToastContainer } from 'react-toastify';
 import { HomePage } from './pages/HomePage';
-import {UserInfoPage} from './pages/UserInfoPage.js';  
-import {CreatePostPage} from './pages/CreatePostPage.js';
+import { ProductDetailPage } from './pages/ProductDetailPage';
+import { UserInfoPage } from './pages/UserInfoPage.js';
+import { CreatePostPage } from './pages/CreatePostPage.js';
 import { ViewPostPage } from './pages/ViewPostPage.js';
 function App() {
   return (
@@ -18,26 +19,29 @@ function App() {
       }}
     >
       <Routes>
+        
         {/* Login Page */}
         <Route path='/login' element={<LoginPage />} />
         <Route path="/" element={<HomePage />} />
 
-          {/* Register Page */}
+        {/* Register Page */}
         <Route path='/register' element={<RegisterPage />} />
         <Route path="*" element={<h1>404 - Page Not Found</h1>} />
-
-          {/* User info page */}
+        {/* User info page */}
         <Route path="/user" element={<UserInfoPage />} />
 
-          {/* Create Post Page */}
+        {/* Create Post Page */}
         <Route path="/create-post" element={<CreatePostPage />} />
-        
+
         {/* Shopping */}
         <Route path="/cart" element={<CartPage />} />
         <Route path="/order" element={<OrderPage />} />
 
-          {/* View Post Page */}
+        {/* View Post Page */}
         <Route path="/view-post" element={<ViewPostPage />} />
+        
+        {/* product detail page */}
+        <Route path="/product/:id" element={<ProductDetailPage />} />
       </Routes>
     </BrowserRouter>
 
