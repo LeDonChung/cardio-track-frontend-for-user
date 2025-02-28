@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 export const OrderPage = () => {
+    const navigate = useNavigate();
 
     const products = [
         { 
@@ -73,6 +75,10 @@ export const OrderPage = () => {
         setDiscountCode(e.target.value);
     };
 
+    const handleGoToHome = () => {
+        navigate('/'); 
+    }
+
     const totalItemsInCart = selectedProducts.length;
     
 
@@ -83,7 +89,7 @@ export const OrderPage = () => {
             <Header />
             <main className="pl-20 pt-4 pr-20">
                 <div className="flex items-center mb-4">
-                    <a className="text-blue-600 hover:underline flex items-center" href="#">
+                    <a className="text-blue-600 hover:underline flex items-center" href="#" onClick={handleGoToHome}>
                         <ChevronLeft className="ml-2"/>
                         Tiếp tục mua sắm
                     </a>

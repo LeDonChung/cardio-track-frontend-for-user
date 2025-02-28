@@ -55,7 +55,6 @@ export const CartPage = () => {
             <main className="pl-20 pt-4 pr-20">
                 <div className="flex items-center mb-4">
                     <a className="text-blue-600 hover:underline flex items-center" href="#">
-                        <i className="fas fa-arrow-left"></i>
                         <ChevronLeft className="ml-2" />
                         Quay lại giỏ hàng
                     </a>
