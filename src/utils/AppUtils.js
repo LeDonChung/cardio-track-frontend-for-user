@@ -9,7 +9,7 @@ const showToast = (message, type = "info", options = {}) => {
     pauseOnHover: true,
     draggable: true,
     theme: "light",
-    ...options, 
+    ...options,
   };
 
   switch (type) {
@@ -31,4 +31,11 @@ const showToast = (message, type = "info", options = {}) => {
   }
 };
 
+ 
+export const formatPrice = (price) => {
+  return price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') + 'đ';
+}
+export const calculateSalePrice = (price, discount) => {
+  return price - (price * discount / 100);
+}
 export default showToast;

@@ -34,6 +34,16 @@ const sendOtp = createAsyncThunk('user/sendOtp', async (request, { rejectWithVal
     }
 })
 
+
+// const fetchUserInfo = createAsyncThunk('user/fetchUserInfo', async (request, { rejectWithValue }) => {
+//     try {
+//         const response = await axiosInstance.get('/api/v1/user/get-by-id/${userId}'+ request);
+//         return response.data;
+//     } catch (error) {
+//         return rejectWithValue(error.response.data);
+//     }
+// })
+
 const UserSlice = createSlice({
     name: 'user',
     initialState: inititalState,
@@ -74,6 +84,18 @@ const UserSlice = createSlice({
         builder.addCase(sendOtp.rejected, (state, action) => {
             state.errorResponse = action.payload;
         })
+
+        // fetchUserInfo
+        // builder.addCase(fetchUserInfo.pending, (state, action) => {
+        //     state.errorResponse = null;
+        // }
+        // )
+        // builder.addCase(fetchUserInfo.fulfilled, (state, action) => {
+        //     state.errorResponse = null;
+        // })
+        // builder.addCase(fetchUserInfo.rejected, (state, action) => {
+        //     state.errorResponse = action.payload;
+        // })
     }
 })
 
