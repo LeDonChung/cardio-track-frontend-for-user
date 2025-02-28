@@ -35,8 +35,13 @@ const cartSlice = createSlice({
         product.quantity = quantity;
       }
     },
+
+    // Cập nhật giỏ hàng
+    updateCart: (state, action) => {
+      state.cart = action.payload
+    },
   },
 });
 
-export const { addToCart, removeFromCart, updateQuantity } = cartSlice.actions;
+export const { addToCart, removeFromCart, updateQuantity, updateCart } = cartSlice.actions;
 export default cartSlice.reducer;
