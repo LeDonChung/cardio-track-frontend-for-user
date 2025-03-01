@@ -1,33 +1,36 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
+import { useSelector } from 'react-redux';
 import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { calculateSalePrice, formatPrice } from "../utils/AppUtils";
+import { useNavigate } from 'react-router-dom';
+import '../css/CartPage.css';
 
 export const CartPage = () => {
+    const navigate = useNavigate();
     const [isDiscountOpen, setIsDiscountOpen] = useState(false);
     const [discountCode, setDiscountCode] = useState("");
     const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState("delivery");
+    const [isInvoiceRequested, setIsInvoiceRequested] = useState(false);
+    const cart = useSelector(state => state.cart.cart);
+    const selectedProducts = cart.filter(product => product.selected);
 
-    const products = [
-        { 
-            name: "Sữa Rửa Mặt Tạo Bọt CeraVe Foaming Cleanser dành cho da thường và da dầu (473ml)", 
-            quantity: 1, 
-            price: "455.000đ", 
-            image: "https://placehold.co/80x80" 
-        },
-        { 
-            name: "Sữa Rửa Mặt Tạo Bọt CeraVe cho da khô (473ml)", 
-            quantity: 1, 
-            price: "475.000đ", 
-            image: "https://placehold.co/80x80" 
-        },
-        { 
-            name: "Sữa Rửa Mặt Tạo Bọt CeraVe cho da nhạy cảm (473ml)", 
-            quantity: 1, 
-            price: "495.000đ", 
-            image: "https://placehold.co/80x80" 
+
+    // Calculate the total price of the products in the cart
+    const totalPrice = cart.reduce((total, product) => total + (product.selected ? product.quantity * product.price : 0), 0);
+
+    const directDiscount = cart.reduce((total, product) => {
+        if (product.selected) {
+            const salePrice = calculateSalePrice(product.price, product.discount);
+            const discountAmount = product.price - salePrice;
+            return total + discountAmount * product.quantity; // Thêm vào tổng giảm giá
         }
-    ];
+        return total;
+    }, 0);
+        
+    // Áp dụng giảm giá trực tiếp nếu có
+     const totalPriceAfterDiscount = totalPrice - directDiscount;
 
     const user = {
         name: "Lê Vũ Phong",
@@ -48,13 +51,18 @@ export const CartPage = () => {
         setSelectedDeliveryMethod(method);
     };
 
+    const handleInvoiceToggle = () => {
+        setIsInvoiceRequested(!isInvoiceRequested);
+    };
+
     return (
         <div className="bg-gray-100 text-gray-900">
             <Header />
             {/* Main Content */}
             <main className="pl-20 pt-4 pr-20">
                 <div className="flex items-center mb-4">
-                    <a className="text-blue-600 hover:underline flex items-center" href="#">
+                    <a className="text-blue-600 hover:underline flex items-center" href=""
+                        onClick={() => navigate('/order')}>
                         <ChevronLeft className="ml-2" />
                         Quay lại giỏ hàng
                     </a>
@@ -65,11 +73,11 @@ export const CartPage = () => {
                         {/* Danh sách sản phẩm */}
                         <h2 className="text-lg font-bold mb-4">Danh sách sản phẩm</h2>
                         <div className="bg-white p-4 rounded-md shadow-md mb-4">
-                            {products.map((product, index) => (
+                            {selectedProducts.map((product, index) => (
                                 <div key={index} className="flex justify-between items-center border-b pb-4 mb-4">
                                     <div className="flex items-center w-full md:w-2/3">
                                         <img
-                                            src={product.image}
+                                            src={product.primaryImage}
                                             alt={product.name}
                                             className="w-20 h-20 mr-4 object-cover"
                                         />
@@ -77,7 +85,16 @@ export const CartPage = () => {
                                             <p className="font-medium">{product.name}</p>
                                         </div>
                                     </div>
-                                    <p className="font-bold text-lg w-1/4 text-right">{product.price}</p>
+                                    <div>
+                                        {product.discount > 0 ?(
+                                            <>
+                                                <span className="text-xl text-blue-600">{formatPrice(calculateSalePrice(product.price, product.discount))}</span>
+                                                <span className="text-xs text-gray-600 line-through ml-2">{formatPrice(product.price)}</span>
+                                            </>
+                                        ) : (
+                                            <span className="text-xs text-blue-600">{formatPrice(product.price)}</span>
+                                        )}
+                                    </div>
                                     <div className="w-1/6 text-right">
                                         <p className="text-gray-500">x {product.quantity} Chai</p>
                                     </div>
@@ -107,36 +124,45 @@ export const CartPage = () => {
                             </div>
                         </div>
                         <div className="bg-white p-4 rounded-md shadow-md mb-4">
-                            <div className="flex justify-between items-center mb-4">
-                                <div>
-                                    <div className="flex items-center space-x-2">
-                                        <MapPin color="blue"/>
-                                        <p className="font-bold">Địa chỉ nhận hàng</p>
-                                    </div>
-                                    <p className="pt-4">{user.address}</p>
-                                </div>
-                                <a className=" pt-10 text-blue-600 hover:underline" href="#">Thay đổi</a>
+                        <h3 className="font-bold mb-4">Thông tin người đặt</h3>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <input type="text" placeholder="Họ và tên người đặt" className="border p-2 rounded-md w-full" />
+                                <input type="text" placeholder="Số điện thoại" className="border p-2 rounded-md w-full" />
                             </div>
-                            <div className="mb-4">
-                                <div className="flex items-center space-x-2 mb-5">
-                                    <img
-                                        src={user.avatar}
-                                        alt="avt"
-                                        className="w-8 h-8 rounded-full object-cover"
-                                    />
-                                    <p className="font-bold">{user.name} - {user.phone}</p>
-                                </div>
-                                <textarea
-                                    className="w-full p-2 border rounded-md"
-                                    placeholder="Ghi chú (không bắt buộc)"
-                                ></textarea>
+                            <input type="email" placeholder="Email (không bắt buộc)" className="border p-2 rounded-md w-full mb-4" />
+                            
+                            <h3 className="font-bold mb-4">Địa chỉ nhận hàng</h3>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <input type="text" placeholder="Họ và tên người nhận" className="border p-2 rounded-md w-full" />
+                                <input type="text" placeholder="Số điện thoại" className="border p-2 rounded-md w-full" />
                             </div>
-                            <div className="mb-4">
-                                <label className="flex items-center">
-                                    <input type="checkbox" className="mr-2" />
-                                    <span>Yêu cầu xuất hóa đơn điện tử</span>
+                            <div className="grid grid-cols-2 gap-4 mb-4">
+                                <select className="border p-2 rounded-md w-full">
+                                    <option>Chọn tỉnh/thành phố</option>
+                                </select>
+                                <select className="border p-2 rounded-md w-full">
+                                    <option>Chọn quận/huyện</option>
+                                </select>
+                            </div>
+                            <select className="border p-2 rounded-md w-full mb-4">
+                                <option>Chọn phường/xã</option>
+                            </select>
+                            <input type="text" placeholder="Nhập địa chỉ cụ thể" className="border p-2 rounded-md w-full mb-4" />
+                            <textarea className="w-full p-2 border rounded-md" placeholder="Ghi chú (không bắt buộc)"></textarea>
+                            
+                            <div className="flex justify-between items-center mt-4">
+                                <p className="text-body2 text-text-primary md:text-body1">Yêu cầu xuất hóa đơn điện tử</p>
+                                <input 
+                                    type="checkbox" 
+                                    id="invoice" 
+                                    checked={isInvoiceRequested}
+                                    onChange={handleInvoiceToggle}
+                                    className="toggle-checkbox hidden"
+                                />
+                                <label htmlFor="invoice" className="toggle-label block w-12 h-6 rounded-full bg-gray-300 cursor-pointer relative">
+                                    <span className="toggle-circle absolute left-0 top-0 w-6 h-6 bg-white rounded-full shadow-md transition-transform transform translate-x-0"></span>
                                 </label>
-                            </div>    
+                            </div>
                         </div>
 
                         {/* Chọn phương thức thanh toán */}
@@ -256,21 +282,33 @@ export const CartPage = () => {
                             )}
 
                             <div className="border-t pt-4">
-                                <div className="flex justify-between mb-2">
+                                <div className="flex justify-between py-2">
                                     <span>Tổng tiền</span>
-                                    <span>1.425.000đ</span>
+                                    <span className="text-black-600 font-bold">{totalPrice.toLocaleString()}đ</span>
                                 </div>
-                                <div className="flex justify-between mb-2">
+
+                                <div className="flex justify-between py-2">
                                     <span>Giảm giá trực tiếp</span>
-                                    <span>0đ</span>
+                                    <span className="text-orange-600 font-bold" style={{color: '#f79009'}}>{directDiscount !== 0 &&(<span>-</span>)}{directDiscount.toLocaleString()}đ</span>
                                 </div>
-                                <div className="flex justify-between mb-4">
+
+                                <div className="flex justify-between py-2">
                                     <span>Giảm giá voucher</span>
-                                    <span>0đ</span>
+                                    <span className="text-orange-600 font-bold" style={{color: '#f79009'}}>0đ</span>
                                 </div>
-                                <div className="flex justify-between font-bold text-lg">
-                                    <span>Thành tiền</span>
-                                    <span>1.425.000đ</span>
+
+                                <div className="flex justify-between py-2">
+                                    <span>Tiết kiệm được</span>
+                                    <span className="text-orange-600 font-bold" style={{color: '#f79009'}}>{directDiscount.toLocaleString()}đ</span>
+                                </div>
+                                <div className="flex justify-between py-2">
+                                    <span className="text-xl font-bold">Thành tiền</span>
+                                    <div>
+                                        {totalPrice !== 0 &&(
+                                            <span className="text-2xs text-gray-600 line-through mr-3">{totalPrice.toLocaleString()}đ</span>
+                                        )}
+                                        <span className="text-xl text-blue-600 font-bold">{totalPriceAfterDiscount.toLocaleString()}đ</span>
+                                    </div>
                                 </div>
                                 <button className="bg-blue-600 text-white w-full p-2 rounded-md mt-4">Mua hàng</button>
                             </div>

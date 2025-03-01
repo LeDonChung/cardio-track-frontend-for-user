@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { removeFromCart, updateQuantity, updateCart } from '../redux/slice/CartSlice'; 
 import { calculateSalePrice, formatPrice } from "../utils/AppUtils";
+import showToast from "../utils/AppUtils";
 
 export const OrderPage = () => {
     const navigate = useNavigate();
@@ -90,6 +91,17 @@ export const OrderPage = () => {
     
     // Áp dụng giảm giá trực tiếp nếu có
     const totalPriceAfterDiscount = totalPrice - directDiscount;
+
+    const handleBuy = () => {
+        // Kiểm tra nếu không có sản phẩm nào được chọn
+        const selectedProducts = cart.filter(product => product.selected);
+        if (selectedProducts.length === 0) {
+            showToast("Vui lòng chọn ít nhất một sản phẩm để mua!", 'error'); // Hiển thị thông báo lỗi
+        } else {
+            // Tiến hành mua hàng (chuyển hướng đến trang thanh toán, v.v.)
+            navigate('/cart'); // Ví dụ: chuyển đến trang thanh toán
+        }
+    };
 
     return (
         <div className="bg-white text-gray-900">
@@ -252,7 +264,7 @@ export const OrderPage = () => {
                             </div>
 
                             <div className="flex justify-between py-2">
-                                <span className="font-bold">Thành tiền</span>
+                                <span className="text-xl font-bold">Thành tiền</span>
                                 <div>
                                     {totalPrice !== 0 &&(
                                         <span className="text-2xs text-gray-600 line-through mr-3">{totalPrice.toLocaleString()}đ</span>
@@ -262,7 +274,8 @@ export const OrderPage = () => {
                             </div>
 
                             <div className="flex justify-center py-4">
-                                <button className="bg-blue-600 text-white px-4 py-2 rounded-md w-full">
+                                <button className="bg-blue-600 text-white px-4 py-2 rounded-md w-full transition transform active:scale-95 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                    onClick={handleBuy}>
                                     Mua hàng
                                 </button>
                             </div>

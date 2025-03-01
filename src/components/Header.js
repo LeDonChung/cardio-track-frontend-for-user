@@ -113,50 +113,53 @@ export const Header = () => {
                         </button>
                         {/* Hiển thị giỏ hàng khi rê chuột */}
                         {isHovered && cart.length > 0 && (
-                            <div className="absolute bg-white shadow-lg p-4 right-0 rounded-lg w-96">
-                                <div className=''>
-                                </div>   
-                                <h3 className="text-lg font-semibold mb-2">Giỏ hàng</h3>
-                                <div className='max-h-96 overflow-y-auto'>
-                                    <ul>
-                                        {cart.map(item => (
-                                            <li key={item.id} className="flex justify-between items-center mt-2 space-x-7 pb-1">
-                                                <div className="w-1/7 border border-gray-200 rounded-lg">
-                                                    <img src={item.primaryImage} alt={item.name} className="h-16 w-full object-cover p-2" />
-                                                </div>
-                                                
-                                                <div className="flex flex-col w-3/5">
-                                                    <span className="text-sm font-medium line-clamp-2 overflow-hidden" title={item.name}>
-                                                        {item.name}
-                                                    </span>
-                                                    <div className='justify-between items-center flex'>
-                                                        <div>
-                                                            {item.discount > 0 ? (
-                                                                <>
-                                                                    <span className="text-xs text-blue-600">{formatPrice(calculateSalePrice(item.price, item.discount))}</span>
-                                                                    <span className="text-xs text-gray-600 line-through ml-2">{formatPrice(item.price)}</span>
-                                                                </>
-                                                            ) : (
-                                                                <span className="text-xs text-blue-600">{formatPrice(item.price)}</span>
-                                                            )}
-                                                        </div>
-                                                        <span className='text-xs'>x{item.quantity} {item.init}</span>
+                            <div>
+                                <div class="absolute bottom--20 right-8 transform -translate-y-1/2 w-4 h-4 bg-white rotate-45"></div>
+                                <div className="absolute bg-white shadow-lg p-4 right-0 rounded-lg w-96">
+                                    <div className=''>
+                                    </div>   
+                                    <h3 className="text-lg font-semibold mb-2">Giỏ hàng</h3>
+                                    <div className='max-h-96 overflow-y-auto'>
+                                        <ul>
+                                            {cart.map(item => (
+                                                <li key={item.id} className="flex justify-between items-center mt-2 space-x-7 pb-1">
+                                                    <div className="w-1/7 border border-gray-200 rounded-lg">
+                                                        <img src={item.primaryImage} alt={item.name} className="h-16 w-full object-cover p-2" />
                                                     </div>
-                                                </div>
+                                                    
+                                                    <div className="flex flex-col w-3/5">
+                                                        <span className="text-sm font-medium line-clamp-2 overflow-hidden" title={item.name}>
+                                                            {item.name}
+                                                        </span>
+                                                        <div className='justify-between items-center flex'>
+                                                            <div>
+                                                                {item.discount > 0 ? (
+                                                                    <>
+                                                                        <span className="text-xs text-blue-600">{formatPrice(calculateSalePrice(item.price, item.discount))}</span>
+                                                                        <span className="text-xs text-gray-600 line-through ml-2">{formatPrice(item.price)}</span>
+                                                                    </>
+                                                                ) : (
+                                                                    <span className="text-xs text-blue-600">{formatPrice(item.price)}</span>
+                                                                )}
+                                                            </div>
+                                                            <span className='text-xs'>x{item.quantity} {item.init}</span>
+                                                        </div>
+                                                    </div>
 
-                                                <div className="w-1/7 text-center cursor-pointer" >
-                                                    <Trash2 onClick={() => handleRemoveItem(item.id)}/>
-                                                </div>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
+                                                    <div className="w-1/7 text-center cursor-pointer" >
+                                                        <Trash2 onClick={() => handleRemoveItem(item.id)}/>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
 
-                                <div className='flex justify-between items-center mt-4'>
-                                    <span className="text-xs">{getCartTotal()} sản phẩm</span>
-                                    <button className='bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700' onClick={handleGoToCart}>
-                                        Xem giỏ hàng
-                                    </button>
+                                    <div className='flex justify-between items-center mt-4'>
+                                        <span className="text-xs">{getCartTotal()} sản phẩm</span>
+                                        <button className='bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition transform active:scale-95' onClick={handleGoToCart}>
+                                            Xem giỏ hàng
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         )}
