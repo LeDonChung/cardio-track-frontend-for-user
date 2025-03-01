@@ -3,7 +3,7 @@ import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "../redux/slice/UserSlice";
+import { login,fetchUserInfo } from "../redux/slice/UserSlice";
 import showToast from "../utils/AppUtils";
 
 export const LoginPage = () => {
@@ -15,14 +15,25 @@ export const LoginPage = () => {
     const error = useSelector(state => state.user.errorResponse);
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const handlerActionLogin =  async (e) => {
-        // chan action mac dinh cua form
+    const handlerActionLogin = async (e) => {
         e.preventDefault();
-        
-        await dispatch(login(userLogin)).unwrap().then((res) => {
-            navigate("/");
-        }).catch(err => showToast("Tài khoản hoặc mật khẩu không chính xác.", 'error'));
-    }
+
+        try {
+            await dispatch(login(userLogin)).unwrap().then(async (res) => {
+                await dispatch(fetchUserInfo());
+                navigate("/");
+
+            }).catch(err => showToast("Tài khoản hoặc mật khẩu không chính xác.", 'error'));
+            
+        } catch (error) {
+            console.error("❌ Lỗi đăng nhập:", error);
+            showToast("Tài khoản hoặc mật khẩu không chính xác.", "error");
+        }
+    };
+    
+    
+    
+    
 
     return (
         <div className="bg-white text-gray-900">
@@ -83,4 +94,3 @@ export const LoginPage = () => {
         </div>
     );
 };
-

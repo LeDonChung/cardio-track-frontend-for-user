@@ -1,31 +1,48 @@
-import { useState } from "react"; 
+import { useState, useEffect } from "react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import '@fortawesome/fontawesome-free/css/all.min.css';
-import {CreatePostPage} from './CreatePostPage';
+import { CreatePostPage } from './CreatePostPage';
+import { useDispatch, useSelector } from "react-redux";
+import { fetchUserInfo } from '../redux/slice/UserSlice';
+
 export const UserInfoPage = () => {
     const navigate = useNavigate();
-    const [activeSection, setActiveSection] = useState("info"); // State to track the active section
-    const [searchTerm, setSearchTerm] = useState(""); // State for search input
+    const dispatch = useDispatch();
     
-    const [isModalOpen, setIsModalOpen] = useState(false); // Trạng thái để mở modal
+        // ✅ Lấy dữ liệu user từ localStorage khi load trang
+        const [userInfo, setUserInfo] = useState(() => {
+            const storedUser = localStorage.getItem("userInfo");
+            return storedUser ? JSON.parse(storedUser) : null;
+        });
+ 
+//userInfo đã dc get fullfill rồi chỉ cần gọi ra là đc
+useEffect(() => {
+    dispatch(fetchUserInfo()).then((res) => {
+        console.log("✅ API trả về:", res.payload);
+        if (res.payload) {
+            setUserInfo(res.payload.data);
+            localStorage.setItem("userInfo", JSON.stringify(res.payload.data)); // Lưu lại nếu cần
+        }
+    });
+}, [dispatch]);
+
+
+    const [activeSection, setActiveSection] = useState("info");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const handleCreatePost = () => {
-        setIsModalOpen(true); // Mở modal khi người dùng nhấn nút
+        setIsModalOpen(true);
     };
-    // Dữ liệu giả lập (không lấy từ backend)
-    const userInfo = {
-        fullName: "Nguyễn Văn A",
-        username: "0123456789",
-        gender: "Nam",
-        dob: "01-01-1990",
+
+    const addressInfo = {
+        name: "Mai Chiến Nở",
+        phone: "0967439320",
+        address: "2/13 hẻm 2 Bạch Đằng, Phường 2, Quận Tân Bình, Hồ Chí Minh"
     };
- // Sample Address Data
- const addressInfo = {
-    name: "Mai Chiến Nở",
-    phone: "0967439320",
-    address: "2/13 hẻm 2 Bạch Đằng, Phường 2, Quận Tân Bình, Hồ Chí Minh"
-};
+
     const orders = [
         {
             id: "31749",
@@ -50,7 +67,7 @@ export const UserInfoPage = () => {
     ];
 
     const handleNavigation = (section) => {
-        setActiveSection(section); // Update the active section
+        setActiveSection(section);
     };
 
     const filteredOrders = orders.filter((order) => {
@@ -63,7 +80,6 @@ export const UserInfoPage = () => {
         <div className="bg-gray-100 min-h-screen">
             <Header />
             <div className="container mx-auto mt-8 flex gap-6">
-                {/* Sidebar */}
                 <div className="w-1/4 bg-white p-6 rounded-lg shadow flex flex-col items-start justify-start">
                     <ul className="space-y-6 text-xl font-bold w-full">
                         <li className={`cursor-pointer ${activeSection === "info" ? "bg-blue-400 text-white rounded-lg py-2 px-4" : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"}`} onClick={() => handleNavigation("info")}>
@@ -98,7 +114,6 @@ export const UserInfoPage = () => {
                             <i className="fas fa-newspaper mr-3"></i> Xem tin tức
                             <i className="fas fa-chevron-right ml-2"></i>
                         </li>
-
                         <li className={`cursor-pointer text-red-500 ${activeSection === "logout" ? "bg-blue-500 text-white" : "hover:bg-blue-500 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"}`} onClick={() => { localStorage.removeItem('token'); navigate('/login'); }}>
                             <i className="fas fa-sign-out-alt mr-3"></i> Đăng xuất
                             <i className="fas fa-chevron-right ml-2"></i>
@@ -106,7 +121,6 @@ export const UserInfoPage = () => {
                     </ul>
                 </div>
 
-                {/* Main Content - thông tin người dùng - hình avatar */}
                 <div className="flex-1 bg-white p-6 rounded-lg shadow">
                     {activeSection === "info" && (
                         <div className="flex items-center justify-center border-b pb-4 mb-4">
@@ -119,27 +133,30 @@ export const UserInfoPage = () => {
                         </div>
                     )}
 
-                    {/* Personal Information nội dung */}
-                    {activeSection === "info" && (
-                        <div className="space-y-4 w-3/4 mx-auto">
-                            <div className="flex justify-between border-b pb-2">
-                                <span className="font-medium">Họ và tên</span>
-                                <span>{userInfo.fullName}</span>
+                    <div className="flex-1 bg-white p-6 rounded-lg shadow">
+                        {activeSection === "info" && userInfo ? (
+                            <div className="space-y-4 w-3/4 mx-auto">
+                                <div className="flex justify-between border-b pb-2">
+                                    <span className="font-medium">Họ và tên</span>
+                                    <span>{userInfo.fullName || "Chưa có thông tin"}</span>
+                                </div>
+                                <div className="flex justify-between border-b pb-2">
+                                    <span className="font-medium">Số điện thoại</span>
+                                    <span>{userInfo.username || "Chưa có thông tin"}</span>
+                                </div>
+                                <div className="flex justify-between border-b pb-2">
+                                    <span className="font-medium">Giới tính</span>
+                                    <span>{userInfo.gender || <span className="text-blue-600 cursor-pointer">Thêm thông tin</span>}</span>
+                                </div>
+                                <div className="flex justify-between border-b pb-2">
+                                    <span className="font-medium">Ngày sinh</span>
+                                    <span>{userInfo.dob || <span className="text-blue-600 cursor-pointer">Thêm thông tin</span>}</span>
+                                </div>
                             </div>
-                            <div className="flex justify-between border-b pb-2">
-                                <span className="font-medium">Số điện thoại</span>
-                                <span>{userInfo.username}</span>
-                            </div>
-                            <div className="flex justify-between border-b pb-2">
-                                <span className="font-medium">Giới tính</span>
-                                <span>{userInfo.gender || <span className="text-blue-600 cursor-pointer">Thêm thông tin</span>}</span>
-                            </div>
-                            <div className="flex justify-between border-b pb-2">
-                                <span className="font-medium">Ngày sinh</span>
-                                <span>{userInfo.dob || <span className="text-blue-600 cursor-pointer">Thêm thông tin</span>}</span>
-                            </div>
-                        </div>
-                    )}
+                        ) : (
+                            <p>Đang tải thông tin người dùng...</p>
+                        )}
+                    </div>
 
                     {activeSection === "info" && (
                         <div className="mt-6 text-center">
@@ -149,15 +166,11 @@ export const UserInfoPage = () => {
                         </div>
                     )}
 
-                    {/* Đơn thuốc của tôi */}
                     {activeSection === "orders" && (
                         <div>
-                             <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
-                             <h3 className="text-xl font-bold">Đơn thuốc của tôi</h3>
+                            <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
+                                <h3 className="text-xl font-bold">Đơn thuốc của tôi</h3>
                             </div>
-                           
-                            
-                            {/* Thanh tìm kiếm */}
                             <div className="flex gap-4 mb-4 items-center">
                                 <input
                                     type="text"
@@ -168,9 +181,6 @@ export const UserInfoPage = () => {
                                 />
                                 <i className="fas fa-search text-gray-500 ml-2"></i>
                             </div>
-
-                            {/* Thanh trạng thái */}
-                            
                             <div className="flex gap-4 mb-4">
                                 <button className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center">
                                     <i className="fas fa-box mr-2"></i> Tất cả
@@ -188,9 +198,6 @@ export const UserInfoPage = () => {
                                     <i className="fas fa-undo mr-2"></i> Trả hàng
                                 </button>
                             </div>
-
-
-                            {/* Các đơn hàng */}
                             <div className="overflow-y-auto max-h-[400px]">
                                 {filteredOrders.map((order) => (
                                     <div key={order.id} className="border-b pb-4 mb-4">
@@ -198,21 +205,15 @@ export const UserInfoPage = () => {
                                             <span className="font-medium">{order.date}</span>
                                             <span className="text-gray-500">Mã đơn: {order.id}</span>
                                         </div>
-                                        
-                                        {/* Hình minh họa sản phẩm */}
                                         <div className="flex items-center gap-4 mb-2">
                                             <img src={order.image} alt="Product" className="w-20 h-20 object-cover" />
                                             <div className="text-blue-600">{order.item}</div>
                                         </div>
-
                                         <div className="text-gray-600">Số lượng: {order.quantity}</div>
                                         <div className="text-gray-600">Địa chỉ: {order.address}</div>
-                                        
-                                        {/* Thanh trạng thái của đơn hàng */}
                                         <div className="mt-2">
                                             <span className="text-sm text-gray-600">{order.status}</span>
                                         </div>
-
                                         <div className="flex justify-between items-center mt-2">
                                             <span className="font-medium">{order.price}</span>
                                             <button className="bg-blue-500 text-white px-4 py-2 rounded-lg">Mua lại</button>
@@ -225,14 +226,13 @@ export const UserInfoPage = () => {
 
                     {activeSection === "qr" && (
                         <div className="text-center">
-                             <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg">
-                             <h3 className="text-xl font-bold">Mã QR của tôi</h3>
+                            <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg">
+                                <h3 className="text-xl font-bold">Mã QR của tôi</h3>
                             </div>
-                           
                             <img src="./UserInfo/QR.jpg" alt="QR" className="w-65 h-60 mx-auto mt-4" />
                         </div>
                     )}
-                    {/* Quản lý địa chỉ */}
+
                     {activeSection === "address" && (
                         <div className="flex flex-col justify-between h-full">
                             <div>
@@ -241,11 +241,10 @@ export const UserInfoPage = () => {
                                 </div>
                                 <div className="flex items-center justify-between mb-4">
                                     <div style={{ margin: "10px" }}>
-                                        <p style={{fontWeight:'bold',fontSize:22}}>{addressInfo.name} </p>
-                                        <p style={{fontSize:17}}>{addressInfo.phone} | {addressInfo.address}</p>
-                                     
+                                        <p style={{ fontWeight: 'bold', fontSize: 22 }}>{addressInfo.name} </p>
+                                        <p style={{ fontSize: 17 }}>{addressInfo.phone} | {addressInfo.address}</p>
                                     </div>
-                                    <button className="text-blue-500 font-semibold" style={{fontSize:20}}>Sửa</button>
+                                    <button className="text-blue-500 font-semibold" style={{ fontSize: 20 }}>Sửa</button>
                                 </div>
                             </div>
                             <div className="flex justify-center mt-auto mb-4">
@@ -253,29 +252,23 @@ export const UserInfoPage = () => {
                             </div>
                         </div>
                     )}
-                    {/* Quản lý thanh toán */}
+
                     {activeSection === "payment" && (
                         <div className="text-center flex flex-col justify-between h-full">
-                             <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
+                            <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
                                 <h3 className="text-xl font-bold">Quản lý thanh toán</h3>
                             </div>
-                            
                             <div className="flex justify-center mt-auto mb-4">
                                 <button className="bg-blue-500 text-white px-4 py-2 mt-4 rounded-lg">Cập nhật thông tin thanh toán</button>
                             </div>
-                            
                         </div>
                     )}
 
-                    {/* Tạo bài viết */}
-                     {/* Chuyển hướng tới CreatePostPage */}
-                     {isModalOpen && (
+                    {isModalOpen && (
                         <CreatePostPage setIsModalOpen={setIsModalOpen} />
                     )}
-                    
                 </div>
             </div>
-
             <Footer />
         </div>
     );

@@ -23,7 +23,7 @@ function App() {
         <Route path="/user" element={<UserInfoPage />} />
 
           {/* Create Post Page */}
-        <Route path="/create-post" element={<CreatePostPage />} />
+        
         
           {/* View Post Page */}
         <Route path="/view-post" element={<ViewPostPage />} />
