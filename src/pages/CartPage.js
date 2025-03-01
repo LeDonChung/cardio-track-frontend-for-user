@@ -8,6 +8,7 @@ import { useDispatch } from 'react-redux';
 import { clearSelectedProducts } from '../redux/slice/CartSlice';
 import { useNavigate } from 'react-router-dom';
 import '../css/CartPage.css';
+import Select from 'react-select';
 
 export const CartPage = () => {
     const dispatch = useDispatch();
@@ -30,6 +31,22 @@ export const CartPage = () => {
     const [street, setStreet] = useState('');
     const [note, setNote] = useState('');
 
+    // Map options for react-select
+    const provinceOptions = provinces.map(province => ({
+        value: province.code,
+        label: province.name,
+    }));
+
+    const districtOptions = districts.map(district => ({
+        value: district.code,
+        label: district.name,
+    }));
+
+    const wardOptions = wards.map(ward => ({
+        value: ward.code,
+        label: ward.name,
+    }));
+
     useEffect(() => {
         // Fetch provinces when component mounts
         fetch("https://provinces.open-api.vn/api/p/")
@@ -38,30 +55,28 @@ export const CartPage = () => {
     }, []);
 
     const handleProvinceChange = (e) => {
-        const provinceCode = e.target.value;
-        setSelectedProvince(provinceCode);
+        setSelectedProvince(e);
         setSelectedDistrict("");
         setSelectedWard("");
 
         // Fetch districts when province is selected
-        fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+        fetch(`https://provinces.open-api.vn/api/p/${e.value}?depth=2`)
             .then(response => response.json())
             .then(data => setDistricts(data.districts));
     };
 
     const handleDistrictChange = (e) => {
-        const districtCode = e.target.value;
-        setSelectedDistrict(districtCode);
+        setSelectedDistrict(e);
         setSelectedWard("");
 
         // Fetch wards when district is selected
-        fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+        fetch(`https://provinces.open-api.vn/api/d/${e.value}?depth=2`)
             .then(response => response.json())
             .then(data => setWards(data.wards));
     };
 
     const handleWardChange = (e) => {
-        setSelectedWard(e.target.value);
+        setSelectedWard(e);
     }
 
     // Calculate the total price of the products in the cart
@@ -166,9 +181,9 @@ export const CartPage = () => {
             feeShip: feeShip,
             customer: user.id,
             addressDetail: {
-                district: districts.find(district => district.code === Number(selectedDistrict)).name,
-                province: provinces.find(province => province.code === Number(selectedProvince)).name,
-                ward: wards.find(ward => ward.code === Number(selectedWard)).name,
+                district: districts.find(district => district.code === Number(selectedDistrict.value)).name,
+                province: provinces.find(province => province.code === Number(selectedProvince.value)).name,
+                ward: wards.find(ward => ward.code === Number(selectedWard.value)).name,
                 street: street, 
                 addressType: null,
                 fullName: fullName, 
@@ -197,6 +212,25 @@ export const CartPage = () => {
         .catch(error => {
             console.error("Có lỗi xảy ra khi lưu đơn hàng:", error);
         });
+    };
+
+    const customSelectStyles = {
+        control: (base) => ({
+            ...base,
+            width: '100%', 
+            height: '42px',
+            padding: '0 10px',
+            borderRadius: '5px',
+            fontSize: '16px',
+        }),
+        option: (base) => ({
+            ...base,
+            fontSize: '16px',
+        }),
+        menu: (base) => ({
+            ...base,
+            fontSize: '16px',
+        }),
     };
     
 
@@ -288,39 +322,34 @@ export const CartPage = () => {
                                 />
                             </div>
                             <div className="grid grid-cols-2 gap-4 mb-4">
-                                <select 
-                                    className="border p-2 rounded-md w-full"
-                                    value={selectedProvince}
+                                <Select
+                                    options={provinceOptions}
                                     onChange={handleProvinceChange}
-                                >
-                                    {!selectedProvince && <option>Chọn tỉnh/thành phố</option>}
-                                    {provinces.map(province => (
-                                        <option key={province.code} value={province.code}>{province.name}</option>
-                                    ))}
-                                </select>
-                                <select 
-                                    className={`border p-2 rounded-md w-full ${!selectedProvince ? 'bg-gray-200 cursor-not-allowed' : ''}`}
-                                    value={selectedDistrict}
+                                    value={selectedProvince}
+                                    placeholder="Chọn tỉnh/thành phố"
+                                    className="custom-select"
+                                    styles={customSelectStyles}
+                                />
+                                <Select
+                                    options={districtOptions}
                                     onChange={handleDistrictChange}
-                                    disabled={!selectedProvince}
-                                >
-                                    {!selectedDistrict && <option>Chọn quận/huyện</option>}
-                                    {districts.map(district => (
-                                        <option key={district.code} value={district.code}>{district.name}</option>
-                                    ))}
-                                </select>
+                                    value={selectedDistrict}
+                                    placeholder="Chọn quận/huyện"
+                                    className="custom-select"
+                                    isDisabled={!selectedProvince}
+                                    styles={customSelectStyles}
+                                />    
                             </div>
-                            <select 
-                                className={`border p-2 rounded-md w-full mb-4 ${!selectedDistrict ? 'bg-gray-200 cursor-not-allowed' : ''}`}
-                                value={selectedWard}
+                            <Select
+                                options={wardOptions}
                                 onChange={handleWardChange}
-                                disabled={!selectedDistrict}
-                            >
-                                {!selectedWard && <option>Chọn phường/xã</option>}
-                                {wards.map(ward => (
-                                    <option key={ward.code} value={ward.code}>{ward.name}</option>
-                                ))}
-                            </select>
+                                value={selectedWard}
+                                placeholder="Chọn phường/xã"
+                                className="custom-select mb-4"  
+                                isDisabled={!selectedDistrict}
+                                styles={customSelectStyles}
+                            />
+                            
                             <input type="text" placeholder="Nhập địa chỉ cụ thể" className="border p-2 rounded-md w-full mb-4" 
                                 value={street}
                                 onChange={handleStreetChange}
