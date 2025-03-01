@@ -40,8 +40,13 @@ const cartSlice = createSlice({
     updateCart: (state, action) => {
       state.cart = action.payload
     },
+
+    // Xóa các sản phẩm đã chọn khỏi giỏ hàng
+    clearSelectedProducts: (state) => {
+      state.cart = state.cart.filter(item => !item.isSelected);
+    },
   },
 });
 
-export const { addToCart, removeFromCart, updateQuantity, updateCart } = cartSlice.actions;
+export const { addToCart, removeFromCart, updateQuantity, updateCart, clearSelectedProducts } = cartSlice.actions;
 export default cartSlice.reducer;
