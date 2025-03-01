@@ -1,4 +1,4 @@
-import React, { use, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { useSelector } from 'react-redux';
@@ -15,7 +15,41 @@ export const CartPage = () => {
     const [isInvoiceRequested, setIsInvoiceRequested] = useState(false);
     const cart = useSelector(state => state.cart.cart);
     const selectedProducts = cart.filter(product => product.selected);
+    const [provinces, setProvinces] = useState([]);
+    const [districts, setDistricts] = useState([]);
+    const [wards, setWards] = useState([]);
+    const [selectedProvince, setSelectedProvince] = useState("");
+    const [selectedDistrict, setSelectedDistrict] = useState("");
+    const [selectedWard, setSelectedWard] = useState("");
 
+    useEffect(() => {
+        // Fetch provinces when component mounts
+        fetch("https://provinces.open-api.vn/api/p/")
+            .then(response => response.json())
+            .then(data => setProvinces(data));
+    }, []);
+
+    const handleProvinceChange = (e) => {
+        const provinceCode = e.target.value;
+        setSelectedProvince(provinceCode);
+        // Fetch districts when province is selected
+        fetch(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`)
+            .then(response => response.json())
+            .then(data => setDistricts(data.districts));
+    };
+
+    const handleDistrictChange = (e) => {
+        const districtCode = e.target.value;
+        setSelectedDistrict(districtCode);
+        // Fetch wards when district is selected
+        fetch(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`)
+            .then(response => response.json())
+            .then(data => setWards(data.wards));
+    };
+
+    const handleWardChange = (e) => {
+        setSelectedWard(e.target.value);
+    }
 
     // Calculate the total price of the products in the cart
     const totalPrice = cart.reduce((total, product) => total + (product.selected ? product.quantity * product.price : 0), 0);
@@ -137,15 +171,38 @@ export const CartPage = () => {
                                 <input type="text" placeholder="Số điện thoại" className="border p-2 rounded-md w-full" />
                             </div>
                             <div className="grid grid-cols-2 gap-4 mb-4">
-                                <select className="border p-2 rounded-md w-full">
-                                    <option>Chọn tỉnh/thành phố</option>
+                                <select 
+                                    className="border p-2 rounded-md w-full"
+                                    value={selectedProvince}
+                                    onChange={handleProvinceChange}
+                                >
+                                    {!selectedProvince && <option>Chọn tỉnh/thành phố</option>}
+                                    {provinces.map(province => (
+                                        <option key={province.code} value={province.code}>{province.name}</option>
+                                    ))}
                                 </select>
-                                <select className="border p-2 rounded-md w-full">
-                                    <option>Chọn quận/huyện</option>
+                                <select 
+                                    className={`border p-2 rounded-md w-full ${!selectedProvince ? 'bg-gray-200 cursor-not-allowed' : ''}`}
+                                    value={selectedDistrict}
+                                    onChange={handleDistrictChange}
+                                    disabled={!selectedProvince}
+                                >
+                                    {!selectedDistrict && <option>Chọn quận/huyện</option>}
+                                    {districts.map(district => (
+                                        <option key={district.code} value={district.code}>{district.name}</option>
+                                    ))}
                                 </select>
                             </div>
-                            <select className="border p-2 rounded-md w-full mb-4">
-                                <option>Chọn phường/xã</option>
+                            <select 
+                                className={`border p-2 rounded-md w-full mb-4 ${!selectedDistrict ? 'bg-gray-200 cursor-not-allowed' : ''}`}
+                                value={selectedWard}
+                                onChange={handleWardChange}
+                                disabled={!selectedDistrict}
+                            >
+                                {!selectedWard && <option>Chọn phường/xã</option>}
+                                {wards.map(ward => (
+                                    <option key={ward.code} value={ward.code}>{ward.name}</option>
+                                ))}
                             </select>
                             <input type="text" placeholder="Nhập địa chỉ cụ thể" className="border p-2 rounded-md w-full mb-4" />
                             <textarea className="w-full p-2 border rounded-md" placeholder="Ghi chú (không bắt buộc)"></textarea>
