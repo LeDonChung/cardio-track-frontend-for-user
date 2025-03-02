@@ -9,6 +9,7 @@ import { clearSelectedProducts } from '../redux/slice/CartSlice';
 import { useNavigate } from 'react-router-dom';
 import '../css/CartPage.css';
 import Select from 'react-select';
+import showToast from "../utils/AppUtils";
 
 export const CartPage = () => {
     const dispatch = useDispatch();
@@ -203,11 +204,11 @@ export const CartPage = () => {
         })
         .then(response => response.json())
         .then(data => {
-            alert("Đặt hàng thành công");
+            showToast("Đặt hàng thành công", "success");
             console.log("Đơn hàng đã được lưu thành công:", data);
 
             dispatch(clearSelectedProducts());
-            navigate('/order-success');
+            navigate('/');
         })
         .catch(error => {
             console.error("Có lỗi xảy ra khi lưu đơn hàng:", error);

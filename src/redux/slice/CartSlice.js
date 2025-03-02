@@ -43,7 +43,7 @@ const cartSlice = createSlice({
 
     // Xóa các sản phẩm đã chọn khỏi giỏ hàng
     clearSelectedProducts: (state) => {
-      state.cart = state.cart.filter(item => !item.isSelected);
+      state.cart = state.cart.filter(product => !product.selected);
     },
   },
 });
