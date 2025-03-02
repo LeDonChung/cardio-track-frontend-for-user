@@ -36,6 +36,7 @@ export const CartPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
+    const [addressType, setAddressType] = useState("");
 
     const user = {
         id: 1,
@@ -60,9 +61,10 @@ export const CartPage = () => {
         setFullName(address.fullName);
         setPhoneNumber(address.phoneNumber);
         setStreet(address.street);
-        setSelectedProvince(address.province);
-        setSelectedDistrict(address.district);
-        setSelectedWard(address.ward);
+        setAddressType(address.addressType);
+        setSelectedProvince("");
+        setSelectedDistrict("");
+        setSelectedWard("");
         closeModal();
     };
 
@@ -107,6 +109,7 @@ export const CartPage = () => {
         setSelectedProvince(e);
         setSelectedDistrict("");
         setSelectedWard("");
+        setSelectedAddress("");
 
         // Fetch districts when province is selected
         fetch(`https://provinces.open-api.vn/api/p/${e.value}?depth=2`)
@@ -189,17 +192,17 @@ export const CartPage = () => {
             return;
         }
 
-        if (!selectedProvince) {
+        if (!selectedProvince && !selectedAddress.province) {
             alert("Vui lòng chọn tỉnh/thành phố");
             return;
         }
 
-        if (!selectedDistrict) {
+        if (!selectedDistrict && !selectedAddress.district) {
             alert("Vui lòng chọn quận/huyện");
             return;
         }
 
-        if (!selectedWard) {
+        if (!selectedWard && !selectedAddress.ward) {
             alert("Vui lòng chọn phường/xã");
             return;
         }
@@ -227,12 +230,14 @@ export const CartPage = () => {
                 province: selectedAddress ? selectedAddress.province : provinces.find(province => province.code === Number(selectedProvince.value)).name,
                 ward: selectedAddress ? selectedAddress.ward : wards.find(ward => ward.code === Number(selectedWard.value)).name,
                 street: street, 
-                addressType: null,
+                addressType: selectedAddress ? selectedAddress.addressType : null,
                 fullName: fullName, 
                 phoneNumber: phoneNumber,
             },
             orderDetails: orderDetails,
         };
+
+        console.log("Đơn hàng sẽ được lưu:", orderData);
     
         // Gửi API lưu đơn hàng
         fetch("http://localhost:8888/api/v1/order", {
@@ -375,11 +380,11 @@ export const CartPage = () => {
                             </div>
                             <div className="grid grid-cols-2 gap-4 mb-4">
                                 <input type="text" placeholder="Họ và tên người nhận" className="border p-2 rounded-md w-full" 
-                                    value={selectedAddress ? selectedAddress.fullName : fullName}
+                                    value={fullName}
                                     onChange={handleFullNameChange}
                                 />
                                 <input type="text" placeholder="Số điện thoại" className="border p-2 rounded-md w-full" 
-                                    value={selectedAddress ? selectedAddress.phoneNumber : phoneNumber}
+                                    value={phoneNumber}
                                     onChange={handlePhoneNumberChange}
                                 />
                             </div>
@@ -387,7 +392,7 @@ export const CartPage = () => {
                                 <Select
                                     options={provinceOptions}
                                     onChange={handleProvinceChange}
-                                    value={selectedProvince ? { value: selectedProvince, label: selectedProvince } : ""}
+                                    value={selectedProvince ? selectedProvince : selectedAddress ? {value: "", label: selectedAddress.province} : ""}
                                     placeholder="Chọn tỉnh/thành phố"
                                     className="custom-select"
                                     styles={customSelectStyles}
@@ -395,7 +400,7 @@ export const CartPage = () => {
                                 <Select
                                     options={districtOptions}
                                     onChange={handleDistrictChange}
-                                    value={selectedDistrict ? { value: selectedDistrict, label: selectedDistrict } : ""}
+                                    value={selectedDistrict ? selectedDistrict : selectedAddress ? {value: "", label: selectedAddress.district} : ""}
                                     placeholder="Chọn quận/huyện"
                                     className="custom-select"
                                     isDisabled={!selectedProvince}
@@ -405,7 +410,7 @@ export const CartPage = () => {
                             <Select
                                 options={wardOptions}
                                 onChange={handleWardChange}
-                                value={selectedWard ? { value: selectedWard, label: selectedWard } : ""}
+                                value={selectedProvince ? selectedWard : selectedAddress ? {value: "", label: selectedAddress.ward} : ""}
                                 placeholder="Chọn phường/xã"
                                 className="custom-select mb-4"  
                                 isDisabled={!selectedDistrict}
