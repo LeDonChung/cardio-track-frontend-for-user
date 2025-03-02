@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { useSelector } from 'react-redux';
-import { ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { ChevronLeft, ChevronRight, MapPin, User } from "lucide-react";
 import { calculateSalePrice, formatPrice } from "../utils/AppUtils";
 import { useDispatch } from 'react-redux';
 import { clearSelectedProducts } from '../redux/slice/CartSlice';
@@ -10,6 +10,8 @@ import { useNavigate } from 'react-router-dom';
 import '../css/CartPage.css';
 import Select from 'react-select';
 import showToast from "../utils/AppUtils";
+import SavedAddressModal from '../components/SavedAddressModal';
+import axios from 'axios';
 
 export const CartPage = () => {
     const dispatch = useDispatch();
@@ -31,6 +33,52 @@ export const CartPage = () => {
     const [phoneNumber, setPhoneNumber] = useState('');
     const [street, setStreet] = useState('');
     const [note, setNote] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [addresses, setAddresses] = useState([]);
+    const [selectedAddress, setSelectedAddress] = useState(null);
+
+    const user = {
+        id: 1,
+        name: "Lê Vũ Phong",
+        avatar: "https://placehold.co/40x40",
+        phone: "0999999999",
+        address: "300 Phan Văn Trị, Phường 5, Quận Gò Vấp, Hồ Chí Minh"
+    };
+
+    const openModal = () => {
+        setIsModalOpen(true);
+    };
+
+    // Đóng modal
+    const closeModal = () => {
+        setIsModalOpen(false);
+    };
+
+    // Chọn địa chỉ đã lưu
+    const handleSelectAddress = (address) => {
+        setSelectedAddress(address);
+        setFullName(address.fullName);
+        setPhoneNumber(address.phoneNumber);
+        setStreet(address.street);
+        setSelectedProvince(address.province);
+        setSelectedDistrict(address.district);
+        setSelectedWard(address.ward);
+        closeModal();
+    };
+
+    useEffect(() => {
+        axios.get(`http://localhost:8888/api/v1/address/${user.id}`)
+            .then(response => {
+                if (response.data && response.data.data) {
+                    setAddresses(response.data.data);
+                } else {
+                    console.error('Không có địa chỉ nào được trả về từ API');
+                }
+            })
+            .catch(error => {
+                console.error('Lỗi khi lấy địa chỉ:', error);
+            });
+    }, [user.id]);    
 
     // Map options for react-select
     const provinceOptions = provinces.map(province => ({
@@ -95,14 +143,7 @@ export const CartPage = () => {
     // Áp dụng giảm giá trực tiếp nếu có
     const totalPriceAfterDiscount = totalPrice - directDiscount;
 
-    const user = {
-        id: 1,
-        name: "Lê Vũ Phong",
-        avatar: "https://placehold.co/40x40",
-        phone: "0999999999",
-        address: "300 Phan Văn Trị, Phường 5, Quận Gò Vấp, Hồ Chí Minh"
-    };
-
+    
     const handleDiscountClick = () => {
         setIsDiscountOpen(!isDiscountOpen);
     };
@@ -182,9 +223,9 @@ export const CartPage = () => {
             feeShip: feeShip,
             customer: user.id,
             addressDetail: {
-                district: districts.find(district => district.code === Number(selectedDistrict.value)).name,
-                province: provinces.find(province => province.code === Number(selectedProvince.value)).name,
-                ward: wards.find(ward => ward.code === Number(selectedWard.value)).name,
+                district: selectedAddress ? selectedAddress.district : districts.find(district => district.code === Number(selectedDistrict.value)).name,
+                province: selectedAddress ? selectedAddress.province : provinces.find(province => province.code === Number(selectedProvince.value)).name,
+                ward: selectedAddress ? selectedAddress.ward : wards.find(ward => ward.code === Number(selectedWard.value)).name,
                 street: street, 
                 addressType: null,
                 fullName: fullName, 
@@ -304,21 +345,41 @@ export const CartPage = () => {
                             </div>
                         </div>
                         <div className="bg-white p-4 rounded-md shadow-md mb-4">
-                        <h3 className="font-bold mb-4">Thông tin người đặt</h3>
+                            <div className="flex items-center mb-4 space-x-4">
+                                <User
+                                    size={30}
+                                    className="text-blue-600"
+                                />
+                                <h3 className="font-bold">Thông tin người đặt</h3>
+                            </div>
                             <div className="grid grid-cols-2 gap-4 mb-4">
                                 <input type="text" placeholder="Họ và tên người đặt" className="border p-2 rounded-md w-full" disabled value={user.name}/>
                                 <input type="text" placeholder="Số điện thoại" className="border p-2 rounded-md w-full" disabled value={user.phone} />
                             </div>
                             <input type="email" placeholder="Email (không bắt buộc)" className="border p-2 rounded-md w-full mb-4" />
                             
-                            <h3 className="font-bold mb-4">Địa chỉ nhận hàng</h3>
+                            <div className="flex items-center mb-4 justify-between">
+                                <div className="flex items-center space-x-4">
+                                    <MapPin
+                                        size={28}
+                                        className="text-blue-600"
+                                    />
+                                    <h3 className="font-bold">Thông tin nhận hàng</h3>
+                                </div>
+                                <button 
+                                    onClick={openModal} 
+                                    className="text-2xs font-bold text-blue-500"
+                                >
+                                    Chọn địa chỉ đã lưu
+                                </button>
+                            </div>
                             <div className="grid grid-cols-2 gap-4 mb-4">
                                 <input type="text" placeholder="Họ và tên người nhận" className="border p-2 rounded-md w-full" 
-                                    value={fullName}
+                                    value={selectedAddress ? selectedAddress.fullName : fullName}
                                     onChange={handleFullNameChange}
                                 />
                                 <input type="text" placeholder="Số điện thoại" className="border p-2 rounded-md w-full" 
-                                    value={phoneNumber}
+                                    value={selectedAddress ? selectedAddress.phoneNumber : phoneNumber}
                                     onChange={handlePhoneNumberChange}
                                 />
                             </div>
@@ -326,7 +387,7 @@ export const CartPage = () => {
                                 <Select
                                     options={provinceOptions}
                                     onChange={handleProvinceChange}
-                                    value={selectedProvince}
+                                    value={selectedProvince ? { value: selectedProvince, label: selectedProvince } : ""}
                                     placeholder="Chọn tỉnh/thành phố"
                                     className="custom-select"
                                     styles={customSelectStyles}
@@ -334,7 +395,7 @@ export const CartPage = () => {
                                 <Select
                                     options={districtOptions}
                                     onChange={handleDistrictChange}
-                                    value={selectedDistrict}
+                                    value={selectedDistrict ? { value: selectedDistrict, label: selectedDistrict } : ""}
                                     placeholder="Chọn quận/huyện"
                                     className="custom-select"
                                     isDisabled={!selectedProvince}
@@ -344,7 +405,7 @@ export const CartPage = () => {
                             <Select
                                 options={wardOptions}
                                 onChange={handleWardChange}
-                                value={selectedWard}
+                                value={selectedWard ? { value: selectedWard, label: selectedWard } : ""}
                                 placeholder="Chọn phường/xã"
                                 className="custom-select mb-4"  
                                 isDisabled={!selectedDistrict}
@@ -538,6 +599,15 @@ export const CartPage = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Modal chọn địa chỉ đã lưu */}
+            <SavedAddressModal
+                isOpen={isModalOpen}
+                onClose={closeModal}
+                addresses={addresses}
+                onSelect={handleSelectAddress}
+            />
+
             <Footer />
         </div>
     );

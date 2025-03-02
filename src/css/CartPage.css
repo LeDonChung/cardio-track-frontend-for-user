@@ -2,5 +2,5 @@
     transform: translateX(100%);
 }
 .toggle-checkbox:checked + .toggle-label {
-    background-color: #4CAF50;
+    background-color: #005cc8;
 }
