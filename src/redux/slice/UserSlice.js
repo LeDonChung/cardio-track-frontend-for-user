@@ -4,6 +4,7 @@ import axios from "axios";
 
 
 const inititalState = {
+    userAddresses: [],
     errorResponse: null
 }
 
@@ -14,29 +15,24 @@ const inititalState = {
 const fetchUserInfo = createAsyncThunk('user/fetchUserInfo', async (_, { rejectWithValue }) => {
     try {
         const token = localStorage.getItem("token");
-
-        if (!token) {
-            return rejectWithValue("Không có token.");
-        }
-
         const response = await axiosInstance.get(`/api/v1/user/info?token=${token}`);
-
         return response.data; // Trả về dữ liệu người dùng
     } catch (error) {
         return rejectWithValue(error.response?.data || "Lỗi API không lấy được thông tin user.");
     }
 });
-//địa chỉ user
-// ✅ Thunk để fetch danh sách địa chỉ của user
-export const fetchUserAddresses = createAsyncThunk(
+
+// getdanh sách địa chỉ của user
+const fetchUserAddresses = createAsyncThunk(
     "user/fetchUserAddresses",
-    async (userId, { rejectWithValue }) => {
+    async (_, { rejectWithValue }) => {
         try {
-            const response = await axiosInstance.get(`/api/v1/user/addresses/${userId}`);
-            console.log("✅ Địa chỉ user:", response.data);
-            return response.data.data; // Chỉ lấy `data` từ API
+            // Lấy thông tin user từ localStorage
+            const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+            // Sử dụng userId để lấy danh sách địa chỉ của người dùng
+            const response = await axiosInstance.get(`/api/v1/address/get-by-user-id/${userInfo.id}`);
+            return response.data; // Trả về danh sách địa chỉ
         } catch (error) {
-            console.error("❌ Lỗi API fetchUserAddresses:", error.response?.data || error.message);
             return rejectWithValue(error.response?.data || "Lỗi API không lấy được danh sách địa chỉ.");
         }
     }
@@ -126,8 +122,6 @@ const UserSlice = createSlice({
             state.errorResponse = null;
         });
         builder.addCase(fetchUserInfo.fulfilled, (state, action) => {
-            // 
-            console.log("Full: ", action.payload.data);
             localStorage.setItem("userInfo", JSON.stringify(action.payload.data));
             state.errorResponse = null;
         });
@@ -135,6 +129,20 @@ const UserSlice = createSlice({
             state.errorResponse = action.payload;
         });
         
+        // fetchUserAddresses
+        builder.addCase(fetchUserAddresses.pending, (state) => {
+            state.errorResponse = null;
+        });
+        builder.addCase(fetchUserAddresses.fulfilled, (state, action) => {
+            state.userAddresses = action.payload.data; // Cập nhật danh sách địa chỉ vào Redux store
+            localStorage.setItem("userAddress", JSON.stringify(action.payload.data));
+            state.errorResponse = null;
+        });
+        builder.addCase(fetchUserAddresses.rejected, (state, action) => {
+            state.errorResponse = action.payload;
+            console.log(action.payload)
+
+        });
         
 
     }
@@ -142,5 +150,5 @@ const UserSlice = createSlice({
 
 
 export const { } = UserSlice.actions;
-export { register, login, sendOtp, fetchUserInfo };
+export { register, login, sendOtp, fetchUserInfo, fetchUserAddresses };
 export default UserSlice.reducer;
