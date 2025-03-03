@@ -5,11 +5,16 @@ import { faAngleDown, faAngleUp } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getCategories } from '../redux/slice/CategorySlice';
+import { Trash2 } from "lucide-react";
+import { removeFromCart } from '../redux/slice/CartSlice';
+import { calculateSalePrice, formatPrice } from "../utils/AppUtils"
 
 export const Header = () => {
     const [hoveredCategory, setHoveredCategory] = useState(null);
     const [hoveredChildCategory, setHoveredChildCategory] = useState(null);
     const categories = useSelector((state) => state.category.categories);
+    const cart = useSelector(state => state.cart.cart);
+    const [isHovered, setIsHovered] = useState(false);
 
 
     const navigate = useNavigate();
@@ -32,6 +37,18 @@ export const Header = () => {
 
     const [key, setKey] = useState('');
 
+    const getCartTotal = () => {
+        return cart.length;
+    };
+
+    const handleRemoveItem = (id) => {
+        dispatch(removeFromCart(id)); 
+    };
+
+    const handleGoToCart = () => {
+        navigate('/order'); 
+    };
+    
     return (
         <header className="bg-blue-600">
             <div className="bg-blue-600 container mx-auto flex justify-between items-center  p-4">
@@ -61,7 +78,7 @@ export const Header = () => {
                             onChange={(e) => setKey(e.target.value)}
                             type="text"
                             placeholder="Tìm tên thuốc, bệnh lý, thực phẩm chức năng..."
-                            className="p-2 rounded-full w-[48rem] pl-10" // Thêm padding bên trái để tránh chồng lên biểu tượng
+                            className="p-2 rounded-full w-[48rem] pl-10"
                         />
                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                             <FontAwesomeIcon icon={faMagnifyingGlass} />
@@ -94,10 +111,71 @@ export const Header = () => {
                             )
                     }
 
-                    <button className="bg-[#002AFF] text-blue-600 ml-4 px-4 py-2 rounded-full">
-                        <FontAwesomeIcon icon={faCartShopping} className='mr-1' color='#fff' />
-                        <span className='text-white'>Giỏ hàng</span>
-                    </button>
+                    {/* Hiển thị giỏ hàng */}
+                    <div className='relative z-20'
+                        onMouseEnter={() => setIsHovered(true)}
+                        onMouseLeave={() => setIsHovered(false)}>
+                        <button className='bg-[#002AFF] text-blue-600 ml-4 px-4 py-2 rounded-full mt-2 mb-2'>
+                            <FontAwesomeIcon icon={faCartShopping} className="mr-1" color="#fff" onClick={handleGoToCart}/>
+                            <span className="absolute top-0 left-10 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                                {getCartTotal()}
+                            </span>
+                            <span className="text-white">Giỏ hàng</span>
+                        </button>
+                        {/* Hiển thị giỏ hàng khi rê chuột */}
+                        {isHovered && cart.length > 0 && (
+                            <div>
+                                <div class="absolute bottom--20 right-8 transform -translate-y-1/2 w-4 h-4 bg-white rotate-45"></div>
+                                <div className="absolute bg-white shadow-lg p-4 right-0 rounded-lg w-96">
+                                    <div className=''>
+                                    </div>   
+                                    <h3 className="text-lg font-semibold mb-2">Giỏ hàng</h3>
+                                    <div className='max-h-96 overflow-y-auto'>
+                                        <ul>
+                                            {cart.map(item => (
+                                                <li key={item.id} className="flex justify-between items-center mt-2 space-x-7 pb-1">
+                                                    <div className="w-1/7 border border-gray-200 rounded-lg">
+                                                        <img src={item.primaryImage} alt={item.name} className="h-16 w-full object-cover p-2" />
+                                                    </div>
+                                                    
+                                                    <div className="flex flex-col w-3/5">
+                                                        <span className="text-sm font-medium line-clamp-2 overflow-hidden" title={item.name}>
+                                                            {item.name}
+                                                        </span>
+                                                        <div className='justify-between items-center flex'>
+                                                            <div>
+                                                                {item.discount > 0 ? (
+                                                                    <>
+                                                                        <span className="text-xs text-blue-600">{formatPrice(calculateSalePrice(item.price, item.discount))}</span>
+                                                                        <span className="text-xs text-gray-600 line-through ml-2">{formatPrice(item.price)}</span>
+                                                                    </>
+                                                                ) : (
+                                                                    <span className="text-xs text-blue-600">{formatPrice(item.price)}</span>
+                                                                )}
+                                                            </div>
+                                                            <span className='text-xs'>x{item.quantity} {item.init}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="w-1/7 text-center cursor-pointer" >
+                                                        <Trash2 onClick={() => handleRemoveItem(item.id)}/>
+                                                    </div>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+
+                                    <div className='flex justify-between items-center mt-4'>
+                                        <span className="text-xs">{getCartTotal()} sản phẩm</span>
+                                        <button className='bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition transform active:scale-95' onClick={handleGoToCart}>
+                                            Xem giỏ hàng
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
                 </div>
             </div>
             <div className="bg-white">
