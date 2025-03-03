@@ -7,6 +7,8 @@ import { HomePage } from './pages/HomePage';
 import {UserInfoPage} from './pages/UserInfoPage.js';  
 import {CreatePostPage} from './pages/CreatePostPage.js';
 import { ViewPostPage } from './pages/ViewPostPage.js';
+import {AddressModal} from './pages/AddressModal.js';
+import{UpdateUserModal} from './pages/UpdateUserModal.js';
 function App() {
   return (
     <BrowserRouter

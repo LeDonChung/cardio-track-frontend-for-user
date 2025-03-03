@@ -4,8 +4,10 @@ import { Footer } from "../components/Footer";
 import { useNavigate } from "react-router-dom";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import { CreatePostPage } from "./CreatePostPage";
+import UpdateUserModal from "./UpdateUserModal";
+import AddressModal from "./AddressModal";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserInfo, fetchUserAddresses } from "../redux/slice/UserSlice";
+import { fetchUserInfo, fetchUserAddresses, updateUserInfo,addAddress,updateAddress,deleteAddress} from "../redux/slice/UserSlice";
 
 export const UserInfoPage = () => {
   const navigate = useNavigate();
@@ -33,19 +35,86 @@ export const UserInfoPage = () => {
     dispatch(fetchUserAddresses());
   }, [dispatch]);
 
+  //hàm cập nhật user theo id
+  const [isEditing, setIsEditing] = useState(false);  // Trạng thái để điều khiển việc hiển thị nút
+  const [editUserInfo, setEditUserInfo] = useState(userInfo);
+  const [isModalOpenUpdateUser, setIsModalOpenUpdateUser] = useState(false);
+
+  const handleOpenModalUpdateUser = () => {
+    setIsModalOpenUpdateUser(true);
+  };
+
+  const handleCloseModalUpdateUser = () => {
+    setIsModalOpenUpdateUser(false);
+  };
+  const handleSaveUserInfo = (updatedUserInfo) => {
+    // Gửi yêu cầu cập nhật thông tin người dùng
+    dispatch(updateUserInfo(updatedUserInfo)).then(() => {
+      // Gọi lại API để lấy thông tin mới nhất của người dùng
+      dispatch(fetchUserInfo()).then((res) => {
+        if (res.payload) {
+          // Cập nhật lại thông tin người dùng vào state
+          setUserInfo(res.payload.data);
+          localStorage.setItem("userInfo", JSON.stringify(res.payload.data)); // Lưu lại vào localStorage
+          setIsModalOpenUpdateUser(false); // Đóng modal
+        }
+      });
+    });
+  };
+
+
   const [activeSection, setActiveSection] = useState("info");
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
   const handleCreatePost = () => {
     setIsModalOpen(true);
   };
 
-  const addressInfo = {
-    name: "Mai Chiến Nở",
-    phone: "0967439320",
-    address: "2/13 hẻm 2 Bạch Đằng, Phường 2, Quận Tân Bình, Hồ Chí Minh",
+  //mở model add/update địa chỉ
+  const [addressToEdit, setAddressToEdit] = useState(null); // Địa chỉ đang chỉnh sửa
+
+  const handleAddAddress = () => {
+    setAddressToEdit(null); // Không có địa chỉ nào để chỉnh sửa
+    setIsAddressModalOpen(true); // Mở modal
   };
+
+  const handleEditAddress = (address) => {
+    setAddressToEdit(address); // Đặt địa chỉ cần chỉnh sửa
+    setIsAddressModalOpen(true); // Mở modal
+  };
+  const closeAddressModal = () => {
+    setIsAddressModalOpen(false);
+  };
+  
+  const handleSaveAddress = (newAddress) => {
+    if (addressToEdit) {
+      // Truyền đúng đối tượng newAddress vào
+      newAddress.id = addressToEdit.id;  // Đảm bảo id được truyền
+      dispatch(updateAddress(newAddress)).then(() => {
+        dispatch(fetchUserAddresses()); // Gọi lại fetchUserAddresses sau khi cập nhật thành công
+      });
+    } else {
+      // Nếu là thêm mới địa chỉ
+      dispatch(addAddress(newAddress)).then(() => {
+        dispatch(fetchUserAddresses()); // Gọi lại fetchUserAddresses sau khi thêm mới thành công
+      });
+    }
+    setIsAddressModalOpen(false); // Đóng modal
+  };
+
+
+  //hàm xóa address
+  const handleDeleteAddress = (address) => {
+    // Xác nhận trước khi xóa
+    if (window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
+      dispatch(deleteAddress(address)).then(() => {
+        dispatch(fetchUserAddresses()); // Gọi lại fetchUserAddresses sau khi xóa thành công
+      });
+    }
+  };
+  
 
   const orders = [
     {
@@ -213,53 +282,51 @@ export const UserInfoPage = () => {
               </div>
             </div>
           )}
+            <div className="flex-1 bg-white p-1 rounded-lg shadow">
+            {activeSection === "info" && (
+                userInfo ? (
+                <div className="space-y-4 w-3/4 mx-auto">
+                    <div className="flex justify-between border-b pb-2">
+                    <span className="font-medium">Họ và tên</span>
+                    <span>{userInfo.fullName || "Chưa có thông tin"}</span>
+                    </div>
+                    <div className="flex justify-between border-b pb-2">
+                    <span className="font-medium">Số điện thoại</span>
+                    <span>{userInfo.username || "Chưa có thông tin"}</span>
+                    </div>
+                    <div className="flex justify-between border-b pb-2">
+                    <span className="font-medium">Giới tính</span>
+                    <span>{userInfo.gender || "Chưa có thông tin"}</span>
+                    </div>
+                    <div className="flex justify-between border-b pb-2">
+                    <span className="font-medium">Ngày sinh</span>
+                    <span>{userInfo.dob || "Chưa có thông tin"}</span>
+                    </div>
 
-          <div className="flex-1 bg-white p-1 rounded-lg shadow">
-            {activeSection === "info" ? 
-            ( userInfo ? (
-              <div className="space-y-4 w-3/4 mx-auto">
-                <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium">Họ và tên</span>
-                  <span>{userInfo.fullName || "Chưa có thông tin"}</span>
+                    {/* Nút Chỉnh sửa sẽ mở Modal */}
+                    <button
+                    onClick={() => handleOpenModalUpdateUser(true)}  // Mở modal chỉnh sửa
+                    className="px-6 py-2 bg-blue-500 font-semibold text-white rounded-xl w-full hover:bg-blue-600 mt-4"
+                    >
+                    Chỉnh sửa thông tin
+                    </button>
                 </div>
-                <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium">Số điện thoại</span>
-                  <span>{userInfo.username || "Chưa có thông tin"}</span>
-                </div>
-                <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium">Giới tính</span>
-                  <span>
-                    {userInfo.gender || (
-                      <span className="text-blue-600 cursor-pointer">
-                        Thêm thông tin
-                      </span>
-                    )}
-                  </span>
-                </div>
-                <div className="flex justify-between border-b pb-2">
-                  <span className="font-medium">Ngày sinh</span>
-                  <span>
-                    {userInfo.dob || (
-                      <span className="text-blue-600 cursor-pointer">
-                        Thêm thông tin
-                      </span>
-                    )}
-                  </span>
-                </div>
-              </div>
-            ) : (
-                <p style={{paddingTop:"20px",fontSize:"16px",textAlign:'center'}}>Đang tải thông tin người dùng...</p>
-              )
-            ) : null}
-          </div>
-
-          {activeSection === "info" && (
-            <div className="mt-6 text-center">
-              <button className="px-6 py-2 bg-gray-400 font-semibold text-white rounded-xl w-2/4 hover:bg-blue-500">
-                Chỉnh sửa thông tin
-              </button>
+                ) : (
+                <p style={{ paddingTop: "20px", fontSize: "16px", textAlign: "center" }}>
+                    Đang tải thông tin người dùng...
+                </p>
+                )
+            )}
             </div>
-          )}
+
+            {/* Modal Update User Info */}
+            <UpdateUserModal
+            isOpen={isModalOpenUpdateUser}
+            onClose={() => setIsModalOpenUpdateUser(false)}
+            userInfo={userInfo}
+            onSave={handleSaveUserInfo}
+            />
+
 
           {activeSection === "orders" && (
             <div>
@@ -344,42 +411,64 @@ export const UserInfoPage = () => {
             </div>
           )}
 
-          {activeSection === "address" && (
-            <div className="flex flex-col justify-between h-full">
-              <div>
-                <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
-                  <h3 className="text-xl font-bold">Quản lý địa chỉ</h3>
-                </div>
-                {userAddresses.map((address) => (
-                  <div
-                    key={address.id}
-                    className="flex items-center justify-between mb-4"
-                  >
-                    <div style={{ margin: "10px" }}>
-                      <p style={{ fontWeight: "bold", fontSize: 22 }}>
-                        {address.fullName}
-                      </p>
-                      <p style={{ fontSize: 17 }}>
-                        {address.phoneNumber} | {address.street}, {address.ward}
-                        , {address.district}, {address.province}
-                      </p>
-                    </div>
-                    <button
-                      className="text-blue-500 font-semibold"
-                      style={{ fontSize: 20 }}
-                    >
-                      Sửa
-                    </button>
+{activeSection === "address" && (
+          <div className="flex flex-col justify-between h-full">
+            <div>
+              <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
+                <h3 className="text-xl font-bold">Quản lý địa chỉ</h3>
+              </div>
+              {Array.isArray(userAddresses) && userAddresses.length > 0 ? (
+              userAddresses.map((address) => (
+                <div
+                  key={address.id}
+                  className="flex items-center justify-between mb-4"
+                >
+                  <div style={{ margin: "10px" }}>
+                    <p style={{ fontWeight: "bold", fontSize: 22 }}>
+                      {address.fullName}
+                    </p>
+                    <p style={{ fontSize: 17 }}>
+                      {address.phoneNumber} | {address.street}, {address.ward}
+                      , {address.district}, {address.province}
+                    </p>
                   </div>
-                ))}
-              </div>
-              <div className="flex justify-center mt-auto mb-4">
-                <button className="bg-blue-500 text-white px-4 py-2 rounded-lg">
-                  Thêm địa chỉ mới
+                  <div className="flex items-center space-x-4">
+                <button
+                    className="text-blue-500 font-semibold"
+                    style={{ fontSize: 20 }}
+                    onClick={() => handleEditAddress(address)} // Mở modal chỉnh sửa
+                >
+                    Sửa
                 </button>
-              </div>
+                <button
+                    className="text-red-500 font-semibold"
+                    style={{ fontSize: 20 }}
+                    onClick={() => handleDeleteAddress(address)} // Mở modal xóa
+                >
+                    Xóa
+                </button>
+                </div>
+                </div>
+              ))) : (
+                <p>Không có địa chỉ nào.</p>
+              )}
             </div>
-          )}
+            <div className="flex justify-center mt-auto mb-4">
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                onClick={handleAddAddress} // Mở modal thêm mới địa chỉ
+              >
+                Thêm địa chỉ mới
+              </button>
+            </div>
+          </div>
+        )}{/* Modal Add/Edit Address */}
+    <AddressModal
+  isOpen={isAddressModalOpen}
+  onClose={() => setIsAddressModalOpen(false)}  
+  addressToEdit={addressToEdit}
+  onSave={handleSaveAddress}
+/>
 
           {activeSection === "payment" && (
             <div className="text-center flex flex-col justify-between h-full">
