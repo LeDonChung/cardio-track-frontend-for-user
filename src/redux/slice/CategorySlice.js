@@ -25,6 +25,16 @@ const getProminents = createAsyncThunk('category/getProminents', async (_, { rej
     }
 })
 
+const getCategoriesByLevel = createAsyncThunk('category/getCategoriesByLevel', async (level, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/api/v1/category/get-by-level?level=${level}`);
+        console.log(response.data.data);        
+        return response.data.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+});
+
 const CategorySlice = createSlice({
     name: 'category',
     initialState: inititalState,
@@ -52,10 +62,20 @@ const CategorySlice = createSlice({
         builder.addCase(getProminents.rejected, (state, action) => {
             state.prominents = [];
         });
+
+        builder.addCase(getCategoriesByLevel.pending, (state, action) => {
+            state.categories = [];
+        });
+        builder.addCase(getCategoriesByLevel.fulfilled, (state, action) => {
+            state.categories = action.payload.data;
+        });
+        builder.addCase(getCategoriesByLevel.rejected, (state, action) => {
+            state.categories = [];
+        });
     }
 })
 
 
 export const { } = CategorySlice.actions;
-export { getCategories, getProminents };
+export { getCategories, getProminents, getCategoriesByLevel };
 export default CategorySlice.reducer; 

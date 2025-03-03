@@ -10,6 +10,7 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { UserInfoPage } from './pages/UserInfoPage.js';
 import { CreatePostPage } from './pages/CreatePostPage.js';
 import { ViewPostPage } from './pages/ViewPostPage.js';
+import { FilterProductPage } from './pages/FilterProductPage.js';
 function App() {
   return (
     <BrowserRouter
@@ -42,6 +43,9 @@ function App() {
         
         {/* product detail page */}
         <Route path="/product/:id" element={<ProductDetailPage />} />
+
+        {/* filter product page */}
+        <Route path="/filter-product" element={<FilterProductPage />} />
       </Routes>
     </BrowserRouter>
 
