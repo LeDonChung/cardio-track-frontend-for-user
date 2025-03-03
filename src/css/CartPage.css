@@ -1,0 +1,6 @@
+.toggle-checkbox:checked + .toggle-label .toggle-circle {
+    transform: translateX(100%);
+}
+.toggle-checkbox:checked + .toggle-label {
+    background-color: #005cc8;
+}

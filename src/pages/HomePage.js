@@ -65,7 +65,7 @@ const policiesInit = [
     },
     {
         id: "policy3",
-        logo: '/policy/ic_policy_3.png', 
+        logo: '/policy/ic_policy_3.png',
         title: 'Cam kết 100%',
         des: "chất lượng sản phẩm"
 
@@ -80,7 +80,6 @@ const policiesInit = [
 ]
 export const HomePage = () => {
     const brands = useSelector(state => state.brand.brands);
-    const navigate = useNavigate();
     const dispatch = useDispatch();
     const initital = async () => {
         await dispatch(getBrands());
@@ -101,7 +100,9 @@ export const HomePage = () => {
 
     useEffect(() => {
         initital();
-    }, [])
+    }, [dispatch])
+
+    
 
     return (
         <div className="bg-[#EDF0F3] text-gray-900">
@@ -142,7 +143,7 @@ export const HomePage = () => {
             <div className="container mx-auto my-4">
                 <div className="flex items-center justify-between">
                     {
-                        menus.map(menu => {
+                        menus && menus.map(menu => {
                             return (
                                 <div key={menu.id} className="flex bg-white items-center px-6 py-2 cursor-pointer rounded-lg">
                                     <img src={menu.icon} alt="Thera Care Logo" className="h-10 w-10 mr-2" />
@@ -154,23 +155,27 @@ export const HomePage = () => {
                 </div>
             </div>
 
-            {/* Category */}
-            <div>
-                <div className="container mx-auto my-4">
-                    <div className="">
-                        <div className="flex items-center">
-                            <div className="flex items-center">
-                                <img className="mr-2" src="https://cdn.nhathuoclongchau.com.vn/unsafe/28x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/thuong_hieu_yeu_thich_e0c23dded6.png" />
-                                <h2 className="text-[20px] font-semibold">Danh mục nổi bật</h2>
+            {/* Brand */}
+            {
+                brands && (
+                    <div>
+                        <div className="container mx-auto my-4">
+                            <div className="">
+                                <div className="flex items-center">
+                                    <div className="flex items-center">
+                                        <img className="mr-2" src="https://cdn.nhathuoclongchau.com.vn/unsafe/28x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/thuong_hieu_yeu_thich_e0c23dded6.png" />
+                                        <h2 className="text-[20px] font-semibold">Thương hiệu nổi bật</h2>
+                                    </div>
+                                </div>
+                                <div className="w-full my-5">
+                                    <Brand data={brands} />
+                                </div>
                             </div>
                         </div>
-                        <div className="w-full my-5">
-                            <Brand data={brands} />
-                        </div>
-                    </div>
-                </div>
 
-            </div>
+                    </div>
+                )
+            }
 
 
             {/* Category Outstanding */}
@@ -184,7 +189,7 @@ export const HomePage = () => {
                             </div>
                         </div>
                         <div className="w-full my-5 grid grid-cols-6 gap-4">
-                            {prominents.map((category, index) => (
+                            {prominents && prominents.map((category, index) => (
                                 <div key={index} className="flex flex-col h-[130px] items-center py-3 px-4 justify-between rounded-lg shadow-sm bg-white hover:cursor-pointer" >
                                     <img src={category.icon} className="w-9 h-9 object-cover" />
                                     <h2 className="text-custom-size font-medium mt-2 text-center">{category.title}</h2>
@@ -210,10 +215,10 @@ export const HomePage = () => {
                         </div>
                         <div className="my-5">
                             <div className="flex space-x-4">
-                                {tagsByObject.map((tag) => (
+                                {tagsByObject && tagsByObject.map((tag) => (
                                     <button
                                         key={tag}
-                                        className={`px-4 py-2 font-medium rounded-full ${selectedTag.id === tag.id ? "bg-blue-600 text-white" : "bg-white"
+                                        className={`px-4 py-2 font-medium rounded-full ${selectedTag && selectedTag.id === tag.id ? "bg-blue-600 text-white" : "bg-white"
                                             }`}
                                         onClick={() => setSelectedTag(tag)}
                                     >
@@ -232,7 +237,7 @@ export const HomePage = () => {
                 </div>
             </div>
 
-            {/* Policies */}
+            {/* Policies */} 
             <div className="container mx-auto my-4">
                 <div class="grid grid-cols-4 gap-4">
                     {policies.map(policy => {
@@ -250,7 +255,7 @@ export const HomePage = () => {
                     })}
                 </div>
             </div>
- 
+
             <Footer />
         </div>
 
