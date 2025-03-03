@@ -5,13 +5,12 @@ import { useSelector } from 'react-redux';
 import { ChevronLeft, ChevronRight, MapPin, User } from "lucide-react";
 import { calculateSalePrice, formatPrice } from "../utils/AppUtils";
 import { useDispatch } from 'react-redux';
-import { clearSelectedProducts } from '../redux/slice/CartSlice';
+import { clearSelectedProducts, fetchAddressesThunk, submitOrderThunk } from '../redux/slice/CartSlice';
 import { useNavigate } from 'react-router-dom';
 import '../css/CartPage.css';
 import Select from 'react-select';
 import showToast from "../utils/AppUtils";
 import SavedAddressModal from '../components/SavedAddressModal';
-import axios from 'axios';
 
 export const CartPage = () => {
     const dispatch = useDispatch();
@@ -36,7 +35,6 @@ export const CartPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
-    const [addressType, setAddressType] = useState("");
 
     const user = {
         id: 1,
@@ -61,7 +59,6 @@ export const CartPage = () => {
         setFullName(address.fullName);
         setPhoneNumber(address.phoneNumber);
         setStreet(address.street);
-        setAddressType(address.addressType);
         setSelectedProvince("");
         setSelectedDistrict("");
         setSelectedWard("");
@@ -69,18 +66,16 @@ export const CartPage = () => {
     };
 
     useEffect(() => {
-        axios.get(`http://localhost:8888/api/v1/address/${user.id}`)
-            .then(response => {
-                if (response.data && response.data.data) {
-                    setAddresses(response.data.data);
-                } else {
-                    console.error('Không có địa chỉ nào được trả về từ API');
-                }
-            })
-            .catch(error => {
-                console.error('Lỗi khi lấy địa chỉ:', error);
-            });
-    }, [user.id]);    
+        console.log("user id", user.id);
+        dispatch(fetchAddressesThunk(user.id))
+        .then(response => {
+            if (response.payload && response.payload.data) {
+                setAddresses(response.payload.data);
+            } else {
+                console.error('Không có địa chỉ nào được trả về từ API');
+            }
+        })
+    }, [dispatch, user.id]);    
 
     // Map options for react-select
     const provinceOptions = provinces.map(province => ({
@@ -237,27 +232,14 @@ export const CartPage = () => {
             orderDetails: orderDetails,
         };
 
-        console.log("Đơn hàng sẽ được lưu:", orderData);
-    
-        // Gửi API lưu đơn hàng
-        fetch("http://localhost:8888/api/v1/order", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`, // Thêm token vào header Authorization
-            },
-            body: JSON.stringify(orderData),
-        })
-        .then(response => response.json())
-        .then(data => {
+        dispatch(submitOrderThunk({orderData, token: token}))
+        .then(()=>{
             showToast("Đặt hàng thành công", "success");
-            console.log("Đơn hàng đã được lưu thành công:", data);
-
             dispatch(clearSelectedProducts());
             navigate('/');
         })
-        .catch(error => {
-            console.error("Có lỗi xảy ra khi lưu đơn hàng:", error);
+        .catch(()=>{
+            showToast("Đặt hàng thất bại", "error");
         });
     };
 
@@ -287,7 +269,7 @@ export const CartPage = () => {
             {/* Main Content */}
             <main className="pl-20 pt-4 pr-20">
                 <div className="flex items-center mb-4">
-                    <a className="text-blue-600 hover:underline flex items-center" href=""
+                    <a className="text-blue-600 hover:underline flex items-center" href="#"
                         onClick={() => navigate('/order')}>
                         <ChevronLeft className="ml-2" />
                         Quay lại giỏ hàng
