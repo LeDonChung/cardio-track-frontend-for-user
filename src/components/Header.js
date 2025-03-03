@@ -29,10 +29,15 @@ export const Header = () => {
     useEffect(() => {
         initital()
     }, []);
+
+    const [key, setKey] = useState('');
+
     return (
         <header className="bg-blue-600">
             <div className="bg-blue-600 container mx-auto flex justify-between items-center  p-4">
-                <div className="flex items-center">
+                <div className="flex items-center cursor-pointer" onClick={() => {
+                    navigate('/')
+                }}>
                     <img
                         src="/logo/logo_90_90 1.png"
                         alt="Thera Care Logo"
@@ -47,6 +52,13 @@ export const Header = () => {
                 <div className="flex items-center space-x-4">
                     <div className="relative">
                         <input
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    navigate(`/filter-product?key=${key}`)
+                                }
+                            }}
+                            value={key}
+                            onChange={(e) => setKey(e.target.value)}
                             type="text"
                             placeholder="Tìm tên thuốc, bệnh lý, thực phẩm chức năng..."
                             className="p-2 rounded-full w-[48rem] pl-10" // Thêm padding bên trái để tránh chồng lên biểu tượng
@@ -127,10 +139,10 @@ export const Header = () => {
                                                                     {
                                                                         hoveredChildCategory && hoveredChildCategory.children.map((child) => {
                                                                             return (
-                                                                                <div className="bg-white p-4 rounded-lg flex items-center">
+                                                                                <a className="bg-white p-4 rounded-lg flex items-center" href={`/filter-product?category=${child.id}`}>
                                                                                     <img src={child.icon} alt="Sinh lý nam" className="h-12" />
                                                                                     <span className="ml-2">{child.title}</span>
-                                                                                </div>
+                                                                                </a>
                                                                             )
                                                                         })
                                                                     }

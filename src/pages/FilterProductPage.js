@@ -6,15 +6,27 @@ import { faFilter, faAngleDown, faAngleUp, faSearch, faCircleDot } from "@fortaw
 import { useDispatch, useSelector } from "react-redux";
 import { getBrandFilter, getCategoryByLevelFilter, getTagByObjectFilter, searchData, setFilter, setPageData } from "../redux/slice/FilterSlice";
 import { ProductPreview } from "../components/ProductPreview";
+import { useParams, useSearchParams } from "react-router-dom";
 
 export const FilterProductPage = () => {
+    const [searchParams] = useSearchParams();
+
+    const key = searchParams.get("key");
+    const category = searchParams.get("category");
+
+
     const dispatch = useDispatch();
 
     const [showCategory, setShowCategory] = useState(false);
     const [showObject, setShowObject] = useState(false);
     const [showBrand, setShowBrand] = useState(false);
 
-    const [categorySelected, setCategorySelected] = useState([{ id: 0, title: "Tất cả" }]);
+    const [categorySelected, setCategorySelected] = useState(() => {
+        if (category) {
+            return [{ id: parseInt(category), title: "Tất cả" }];
+        }
+        return [{ id: 0, title: "Tất cả" }];
+    });
     const [brandSelected, setBrandSelected] = useState([{ id: 0, title: "Tất cả" }]);
     const [objectSelected, setObjectSelected] = useState([{ id: 0, title: "Tất cả" }]);
 
@@ -40,18 +52,7 @@ export const FilterProductPage = () => {
     const salePrices = [{ id: 0, title: "Dưới 100.000đ" }, { id: 1, title: "100.000đ đến 300.000đ" }, { id: 2, title: "300.000đ đến 500.000đ" }, { id: 3, title: "Trên 500.000đ" }];
     const [salePriceSelected, setSalePriceSelected] = useState(salePrices[0]);
 
-    useEffect(() => {
-        dispatch(getCategoryByLevelFilter());
-        dispatch(getTagByObjectFilter());
-        dispatch(getBrandFilter());
-        dispatch(searchData({
-            page: pageData.page,
-            size: pageData.size,
-            sortBy: pageData.sortBy,
-            sortName: pageData.sortName,
-            searchData: search
-        }));
-    }, []);
+    
 
 
     const handlerActionSearch = async () => {
@@ -86,6 +87,7 @@ export const FilterProductPage = () => {
         XbrandSelected = brandSelected.filter(item => item.id !== 0);
 
         const searchX = {
+            key: key ? key : "",
             categories: XcategorySelected.map(item => item.id),
             brands: XbrandSelected.map(item => item.id),
             objects: XobjectSelected.map(item => item.id),
@@ -106,6 +108,13 @@ export const FilterProductPage = () => {
     useEffect(() => {
         handlerActionSearch();
     }, [categorySelected, objectSelected, brandSelected, priceSelected, salePriceSelected, pageData.size]);
+
+    // tôi muốn đứng ở trang này gọi lại đúng trang này sẽ load lại dữ liệu
+    useEffect(() => {
+        dispatch(getCategoryByLevelFilter());
+        dispatch(getBrandFilter());
+        dispatch(getTagByObjectFilter());
+    }, []);
 
     const toggleSelection = (value, setFunction, selectedValues) => {
         if (value.id === 0) {
@@ -308,7 +317,7 @@ export const FilterProductPage = () => {
                         </div>
                         <div>
                             {
-                                 pageData.totalPage > 1 ? (
+                                pageData.totalPage > 1 ? (
                                     <button className="flex items-center py-4 my-4 justify-center w-full" onClick={() => {
                                         dispatch(setPageData({ ...pageData, size: pageData.size + 16 }));
                                     }}>
@@ -317,7 +326,7 @@ export const FilterProductPage = () => {
                                     </button>
                                 ) : (
                                     <p className="flex items-center py-4 my-4 justify-center w-full" onClick={() => {
-                                        
+
                                     }}>
                                         Bạn đã xem hết danh sách
                                     </p>

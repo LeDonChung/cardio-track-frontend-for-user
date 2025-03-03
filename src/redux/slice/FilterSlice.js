@@ -6,11 +6,12 @@ const inititalState = {
     filterBrands: [],
     filterObjects: [],
     search: {
+        key: '',
         categories: [],
         brands: [],
         objects: [],
         priceFrom: 0, // từ 100
-        priceTo: 1000000, // đến 1000000
+        priceTo: 100000, // đến 1000000\
     },
     pageData: {
         page: 0,
@@ -54,7 +55,6 @@ const getTagByObjectFilter = createAsyncThunk('filter/getTagByObjectFilter', asy
 
 const searchData = createAsyncThunk('filter/searchData', async ({ page, size, sortBy, sortName, searchData }, { rejectWithValue }) => {
     try {
-        console.log("Search data: ", searchData);
         const response = await axiosInstance.post(`/api/v1/medicine/search?page=${page}&size=${size}&sortBy=${sortBy}&sortName=${sortName}`, searchData);
         return response.data;
     } catch (error) {
@@ -121,7 +121,6 @@ const FilterSlice = createSlice({
                 sortName: res.sortName,
                 totalPage: res.totalPage
             }
-            console.log("total page: ", state.pageData.totalPage);
         });
         builder.addCase(searchData.rejected, (state, action) => {
         });
