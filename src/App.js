@@ -10,6 +10,8 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { UserInfoPage } from './pages/UserInfoPage.js';
 import { CreatePostPage } from './pages/CreatePostPage.js';
 import { ViewPostPage } from './pages/ViewPostPage.js';
+import {AddressModal} from './pages/AddressModal.js';
+import{UpdateUserModal} from './pages/UpdateUserModal.js';
 import { FilterProductPage } from './pages/FilterProductPage.js';
 function App() {
   return (
@@ -30,7 +32,7 @@ function App() {
         <Route path="*" element={<h1>404 - Page Not Found</h1>} />
         {/* User info page */}
         <Route path="/user" element={<UserInfoPage />} />
-
+        
         {/* Create Post Page */}
         <Route path="/create-post" element={<CreatePostPage />} />
 
