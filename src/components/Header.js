@@ -49,6 +49,7 @@ export const Header = () => {
         navigate('/order'); 
     };
     
+    const user = JSON.parse(localStorage.getItem('userInfo'));
     return (
         <header className="bg-blue-600">
             <div className="bg-blue-600 container mx-auto flex justify-between items-center  p-4">
@@ -89,14 +90,25 @@ export const Header = () => {
                     {
                         localStorage.getItem('token') ?
                             (
-                                <button className="text-white flex justify-between items-center" onClick={e => handlerActionLogout()}>
+
+                                <a className="text-white flex justify-between items-center" href='/user'>
                                     <img
                                         src="/icon/ic_user.png"
                                         alt="Thera Care Logo"
                                         className="h-10 w-10 mx-1"
                                     />
-                                    Đăng xuất
-                                </button>
+                                    {user.fullName}
+                                </a>
+
+                                // <button className="text-white flex justify-between items-center" onClick={e => handlerActionLogout()}>
+                                //     <img
+                                //         src="/icon/ic_user.png"
+                                //         alt="Thera Care Logo"
+                                //         className="h-10 w-10 mx-1"
+                                //     />
+                                //     Đăng xuất
+                                // </button>
+                                
                             )
                             :
                             (

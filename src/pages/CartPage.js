@@ -15,6 +15,12 @@ import SavedAddressModal from '../components/SavedAddressModal';
 export const CartPage = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
+    
+    const [user, setUser] = useState(() => {
+        const user = JSON.parse(localStorage.getItem('userInfo'));
+        return user;
+    });
+
     const [isDiscountOpen, setIsDiscountOpen] = useState(false);
     const [discountCode, setDiscountCode] = useState("");
     const [selectedDeliveryMethod, setSelectedDeliveryMethod] = useState("delivery");
@@ -28,22 +34,27 @@ export const CartPage = () => {
     const [selectedDistrict, setSelectedDistrict] = useState("");
     const [selectedWard, setSelectedWard] = useState("");
     const [feeShip, setFeeShip] = useState(0);
-    const [fullName, setFullName] = useState('');
-    const [phoneNumber, setPhoneNumber] = useState('');
+    const [fullName, setFullName] = useState(user.fullName || '');
+    const [phoneNumber, setPhoneNumber] = useState(user.username || '');
     const [street, setStreet] = useState('');
     const [note, setNote] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState(null);
 
-    const user = {
-        id: 1,
-        name: "Lê Vũ Phong",
-        avatar: "https://placehold.co/40x40",
-        phone: "0999999999",
-        address: "300 Phan Văn Trị, Phường 5, Quận Gò Vấp, Hồ Chí Minh"
-    };
 
+    useEffect(() => {
+        if (!localStorage.getItem("token")) {
+            showToast("Vui lòng đăng nhập để tiếp tục", "error");
+            navigate("/login");
+            return;
+        }
+
+        if(cart.length === 0) {
+            showToast("Vui lòng chọn thêm thuốc vào giỏ hàng", "error");
+            navigate("/");
+        }
+    }, []);
     const openModal = () => {
         setIsModalOpen(true);
     };
@@ -66,16 +77,15 @@ export const CartPage = () => {
     };
 
     useEffect(() => {
-        console.log("user id", user.id);
         dispatch(fetchAddressesThunk(user.id))
-        .then(response => {
-            if (response.payload && response.payload.data) {
-                setAddresses(response.payload.data);
-            } else {
-                console.error('Không có địa chỉ nào được trả về từ API');
-            }
-        })
-    }, [dispatch, user.id]);    
+            .then(response => {
+                if (response.payload && response.payload.data) {
+                    setAddresses(response.payload.data);
+                } else {
+                    console.error('Không có địa chỉ nào được trả về từ API');
+                }
+            })
+    }, [dispatch, user.id]);
 
     // Map options for react-select
     const provinceOptions = provinces.map(province => ({
@@ -137,11 +147,11 @@ export const CartPage = () => {
         }
         return total;
     }, 0);
-        
+
     // Áp dụng giảm giá trực tiếp nếu có
     const totalPriceAfterDiscount = totalPrice - directDiscount;
 
-    
+
     const handleDiscountClick = () => {
         setIsDiscountOpen(!isDiscountOpen);
     };
@@ -214,7 +224,7 @@ export const CartPage = () => {
             quantity: product.quantity,
             medicine: product.id, // Bạn cần thay 'medicine' bằng id sản phẩm hoặc một thuộc tính tương tự
         }));
-    
+
         const orderData = {
             note: note,
             exportInvoice: isInvoiceRequested,
@@ -224,29 +234,29 @@ export const CartPage = () => {
                 district: selectedAddress ? selectedAddress.district : districts.find(district => district.code === Number(selectedDistrict.value)).name,
                 province: selectedAddress ? selectedAddress.province : provinces.find(province => province.code === Number(selectedProvince.value)).name,
                 ward: selectedAddress ? selectedAddress.ward : wards.find(ward => ward.code === Number(selectedWard.value)).name,
-                street: street, 
+                street: street,
                 addressType: selectedAddress ? selectedAddress.addressType : null,
-                fullName: fullName, 
+                fullName: fullName,
                 phoneNumber: phoneNumber,
             },
             orderDetails: orderDetails,
         };
 
-        dispatch(submitOrderThunk({orderData, token: token}))
-        .then(()=>{
-            showToast("Đặt hàng thành công", "success");
-            dispatch(clearSelectedProducts());
-            navigate('/');
-        })
-        .catch(()=>{
-            showToast("Đặt hàng thất bại", "error");
-        });
+        dispatch(submitOrderThunk({ orderData, token: token }))
+            .then(() => {
+                showToast("Đặt hàng thành công", "success");
+                dispatch(clearSelectedProducts());
+                navigate('/');
+            })
+            .catch(() => {
+                showToast("Đặt hàng thất bại", "error");
+            });
     };
 
     const customSelectStyles = {
         control: (base) => ({
             ...base,
-            width: '100%', 
+            width: '100%',
             height: '42px',
             padding: '0 10px',
             borderRadius: '5px',
@@ -261,7 +271,7 @@ export const CartPage = () => {
             fontSize: '16px',
         }),
     };
-    
+
 
     return (
         <div className="bg-gray-100 text-gray-900">
@@ -294,7 +304,7 @@ export const CartPage = () => {
                                         </div>
                                     </div>
                                     <div>
-                                        {product.discount > 0 ?(
+                                        {product.discount > 0 ? (
                                             <>
                                                 <span className="text-xl text-blue-600">{formatPrice(calculateSalePrice(product.price, product.discount))}</span>
                                                 <span className="text-xs text-gray-600 line-through ml-2">{formatPrice(product.price)}</span>
@@ -310,7 +320,7 @@ export const CartPage = () => {
                             ))}
                         </div>
 
-                        
+
                         {/* Chọn hình thức nhận hàng */}
                         <div className="flex items-center mb-4 justify-between">
                             <h2 className="text-lg font-bold">Chọn hình thức nhận hàng</h2>
@@ -340,11 +350,10 @@ export const CartPage = () => {
                                 <h3 className="font-bold">Thông tin người đặt</h3>
                             </div>
                             <div className="grid grid-cols-2 gap-4 mb-4">
-                                <input type="text" placeholder="Họ và tên người đặt" className="border p-2 rounded-md w-full" disabled value={user.name}/>
-                                <input type="text" placeholder="Số điện thoại" className="border p-2 rounded-md w-full" disabled value={user.phone} />
+                                <input type="text" placeholder="Họ và tên người đặt" className="border p-2 rounded-md w-full" disabled value={user.fullName} />
+                                <input type="text" placeholder="Số điện thoại" className="border p-2 rounded-md w-full" disabled value={user.username} />
                             </div>
-                            <input type="email" placeholder="Email (không bắt buộc)" className="border p-2 rounded-md w-full mb-4" />
-                            
+
                             <div className="flex items-center mb-4 justify-between">
                                 <div className="flex items-center space-x-4">
                                     <MapPin
@@ -353,19 +362,19 @@ export const CartPage = () => {
                                     />
                                     <h3 className="font-bold">Thông tin nhận hàng</h3>
                                 </div>
-                                <button 
-                                    onClick={openModal} 
+                                <button
+                                    onClick={openModal}
                                     className="text-2xs font-bold text-blue-500"
                                 >
                                     Chọn địa chỉ đã lưu
                                 </button>
                             </div>
                             <div className="grid grid-cols-2 gap-4 mb-4">
-                                <input type="text" placeholder="Họ và tên người nhận" className="border p-2 rounded-md w-full" 
+                                <input type="text" placeholder="Họ và tên người nhận" className="border p-2 rounded-md w-full"
                                     value={fullName}
                                     onChange={handleFullNameChange}
                                 />
-                                <input type="text" placeholder="Số điện thoại" className="border p-2 rounded-md w-full" 
+                                <input type="text" placeholder="Số điện thoại" className="border p-2 rounded-md w-full"
                                     value={phoneNumber}
                                     onChange={handlePhoneNumberChange}
                                 />
@@ -374,7 +383,7 @@ export const CartPage = () => {
                                 <Select
                                     options={provinceOptions}
                                     onChange={handleProvinceChange}
-                                    value={selectedProvince ? selectedProvince : selectedAddress ? {value: "", label: selectedAddress.province} : ""}
+                                    value={selectedProvince ? selectedProvince : selectedAddress ? { value: "", label: selectedAddress.province } : ""}
                                     placeholder="Chọn tỉnh/thành phố"
                                     className="custom-select"
                                     styles={customSelectStyles}
@@ -382,24 +391,24 @@ export const CartPage = () => {
                                 <Select
                                     options={districtOptions}
                                     onChange={handleDistrictChange}
-                                    value={selectedDistrict ? selectedDistrict : selectedAddress ? {value: "", label: selectedAddress.district} : ""}
+                                    value={selectedDistrict ? selectedDistrict : selectedAddress ? { value: "", label: selectedAddress.district } : ""}
                                     placeholder="Chọn quận/huyện"
                                     className="custom-select"
                                     isDisabled={!selectedProvince}
                                     styles={customSelectStyles}
-                                />    
+                                />
                             </div>
                             <Select
                                 options={wardOptions}
                                 onChange={handleWardChange}
-                                value={selectedProvince ? selectedWard : selectedAddress ? {value: "", label: selectedAddress.ward} : ""}
+                                value={selectedProvince ? selectedWard : selectedAddress ? { value: "", label: selectedAddress.ward } : ""}
                                 placeholder="Chọn phường/xã"
-                                className="custom-select mb-4"  
+                                className="custom-select mb-4"
                                 isDisabled={!selectedDistrict}
                                 styles={customSelectStyles}
                             />
-                            
-                            <input type="text" placeholder="Nhập địa chỉ cụ thể" className="border p-2 rounded-md w-full mb-4" 
+
+                            <input type="text" placeholder="Nhập địa chỉ cụ thể" className="border p-2 rounded-md w-full mb-4"
                                 value={street}
                                 onChange={handleStreetChange}
                             />
@@ -407,12 +416,12 @@ export const CartPage = () => {
                                 value={note}
                                 onChange={handleNoteChange}
                             ></textarea>
-                            
+
                             <div className="flex justify-between items-center mt-4">
                                 <p className="text-body2 text-text-primary md:text-body1">Yêu cầu xuất hóa đơn điện tử</p>
-                                <input 
-                                    type="checkbox" 
-                                    id="invoice" 
+                                <input
+                                    type="checkbox"
+                                    id="invoice"
                                     checked={isInvoiceRequested}
                                     onChange={handleInvoiceToggle}
                                     className="toggle-checkbox hidden"
@@ -511,8 +520,8 @@ export const CartPage = () => {
                                     <div className="bg-white p-6 rounded-md w-96 shadow-lg">
                                         <div className="flex justify-between items-center">
                                             <h3 className="text-xl font-bold flex-grow text-center">Nhập mã giảm giá</h3>
-                                            <button 
-                                                onClick={() => setIsDiscountOpen(false)} 
+                                            <button
+                                                onClick={() => setIsDiscountOpen(false)}
                                                 className="text-3xl text-gray-600"
                                             >
                                                 &times;
@@ -547,30 +556,30 @@ export const CartPage = () => {
 
                                 <div className="flex justify-between py-2">
                                     <span>Giảm giá trực tiếp</span>
-                                    <span className="text-orange-600 font-bold" style={{color: '#f79009'}}>{directDiscount !== 0 &&(<span>-</span>)}{directDiscount.toLocaleString()}đ</span>
+                                    <span className="text-orange-600 font-bold" style={{ color: '#f79009' }}>{directDiscount !== 0 && (<span>-</span>)}{directDiscount.toLocaleString()}đ</span>
                                 </div>
 
                                 <div className="flex justify-between py-2">
                                     <span>Giảm giá voucher</span>
-                                    <span className="text-orange-600 font-bold" style={{color: '#f79009'}}>0đ</span>
+                                    <span className="text-orange-600 font-bold" style={{ color: '#f79009' }}>0đ</span>
                                 </div>
 
                                 <div className="flex justify-between py-2">
                                     <span>Tiết kiệm được</span>
-                                    <span className="text-orange-600 font-bold" style={{color: '#f79009'}}>{directDiscount.toLocaleString()}đ</span>
+                                    <span className="text-orange-600 font-bold" style={{ color: '#f79009' }}>{directDiscount.toLocaleString()}đ</span>
                                 </div>
                                 <div className="flex justify-between py-2">
                                     <span>Phí vận chuyển</span>
                                     {feeShip === 0 ? (
                                         <span className="text-blue-600 font-bold">Miễn phí</span>
                                     ) : (
-                                        <span className="text-orange-600 font-bold" style={{color: '#f79009'}}>{feeShip.toLocaleString()}đ</span>
+                                        <span className="text-orange-600 font-bold" style={{ color: '#f79009' }}>{feeShip.toLocaleString()}đ</span>
                                     )}
                                 </div>
                                 <div className="flex justify-between py-2">
                                     <span className="text-xl font-bold">Thành tiền</span>
                                     <div>
-                                        {totalPrice !== 0 &&(
+                                        {totalPrice !== 0 && (
                                             <span className="text-2xs text-gray-600 line-through mr-3">{totalPrice.toLocaleString()}đ</span>
                                         )}
                                         <span className="text-xl text-blue-600 font-bold">{totalPriceAfterDiscount.toLocaleString()}đ</span>

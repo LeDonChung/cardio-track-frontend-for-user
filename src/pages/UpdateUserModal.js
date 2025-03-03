@@ -1,13 +1,13 @@
 // UpdateUserModal.js
 import React, { useState } from "react";
-
+import { showToast } from "../utils/AppUtils";
 const UpdateUserModal = ({ isOpen, onClose, onSave }) => {
 
 
-    const userInfo = JSON.parse(localStorage.getItem("userInfo"));
-    
+  const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+
   const [editUserInfo, setEditUserInfo] = useState({
-     gender: userInfo.gender || "Male",
+    gender: userInfo.gender || "Male",
     dob: userInfo.dob || "",
     fullName: userInfo.fullName || "",
     username: userInfo.username || "",
@@ -43,6 +43,7 @@ const UpdateUserModal = ({ isOpen, onClose, onSave }) => {
             <input
               type="text"
               name="username"
+              disabled
               value={editUserInfo.username || ""}
               onChange={handleChange}
               className="w-full border p-2 rounded"

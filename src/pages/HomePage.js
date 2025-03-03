@@ -239,7 +239,7 @@ export const HomePage = () => {
 
             {/* Policies */} 
             <div className="container mx-auto my-4">
-                <div class="grid grid-cols-4 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                     {policies.map(policy => {
                         return (
                             <div key={policy.id} className="flex flex-col items-center">

@@ -1,10 +1,10 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { removeFromCart, updateQuantity, updateCart } from '../redux/slice/CartSlice'; 
+import { removeFromCart, updateQuantity, updateCart } from '../redux/slice/CartSlice';
 import { calculateSalePrice, formatPrice } from "../utils/AppUtils";
 import showToast from "../utils/AppUtils";
 
@@ -13,6 +13,12 @@ export const OrderPage = () => {
     const dispatch = useDispatch();
     const cart = useSelector(state => state.cart.cart);
 
+    useEffect(() => {
+        if (cart.length === 0) {
+            showToast("Vui lòng chọn thêm thuốc vào giỏ hàng", "error");
+            navigate("/");
+        }
+    }, []);
     const [selectAll, setSelectAll] = useState(false);
     const [isDiscountOpen, setIsDiscountOpen] = useState(false);
     const [discountCode, setDiscountCode] = useState("");
@@ -34,13 +40,13 @@ export const OrderPage = () => {
     const handleSelectAll = () => {
         const newSelectAll = !selectAll;
         setSelectAll(newSelectAll);
-        
+
         // Cập nhật trạng thái chọn tất cả sản phẩm
         const updatedCart = cart.map(product => ({
             ...product,
             selected: newSelectAll
         }));
-    
+
         // Dispatch action để cập nhật giỏ hàng với trạng thái mới
         dispatch(updateCart(updatedCart));
     };
@@ -51,17 +57,17 @@ export const OrderPage = () => {
             ...updatedCart[index],
             selected: !updatedCart[index].selected
         };
-        
+
         // Kiểm tra xem có sản phẩm nào chưa được chọn không
         const allSelected = updatedCart.every(product => product.selected);
-    
+
         // Cập nhật trạng thái "Chọn tất cả"
         setSelectAll(allSelected);
-    
+
         // Dispatch action để cập nhật trạng thái chọn sản phẩm
         dispatch(updateCart(updatedCart));
     };
-    
+
 
     const handleDiscountClick = () => {
         setIsDiscountOpen(!isDiscountOpen);
@@ -72,14 +78,14 @@ export const OrderPage = () => {
     };
 
     const handleGoToHome = () => {
-        navigate('/'); 
+        navigate('/');
     };
 
     const totalItemsInCart = cart.length;
-    
+
     // Tính tổng tiền trước giảm giá
     const totalPrice = cart.reduce((total, product) => total + (product.selected ? product.quantity * product.price : 0), 0);
-    
+
     const directDiscount = cart.reduce((total, product) => {
         if (product.selected) {
             const salePrice = calculateSalePrice(product.price, product.discount);
@@ -88,7 +94,7 @@ export const OrderPage = () => {
         }
         return total;
     }, 0);
-    
+
     // Áp dụng giảm giá trực tiếp nếu có
     const totalPriceAfterDiscount = totalPrice - directDiscount;
 
@@ -98,7 +104,12 @@ export const OrderPage = () => {
         if (selectedProducts.length === 0) {
             showToast("Vui lòng chọn ít nhất một sản phẩm để mua!", 'error'); // Hiển thị thông báo lỗi
         } else {
-            // const userLogin = JSON.parse(localStorage.getItem('userLogin'));
+            const userInfo = JSON.parse(localStorage.getItem('userInfo'));
+            if (!userInfo) {
+                showToast("Vui lòng đăng nhập để mua hàng!", 'error'); // Hiển thị thông báo lỗi
+                navigate('/login'); // Ví dụ: chuyển đến trang đăng nhập
+                return;
+            }
             // Tiến hành mua hàng (chuyển hướng đến trang thanh toán, v.v.)
             navigate('/cart'); // Ví dụ: chuyển đến trang thanh toán
         }
@@ -110,7 +121,7 @@ export const OrderPage = () => {
             <main className="pl-20 pt-4 pr-20">
                 <div className="flex items-center mb-4">
                     <a className="text-blue-600 hover:underline flex items-center" href="#" onClick={handleGoToHome}>
-                        <ChevronLeft className="ml-2"/>
+                        <ChevronLeft className="ml-2" />
                         <span className="ml-2">Tiếp tục mua sắm</span>
                     </a>
                 </div>
@@ -122,9 +133,9 @@ export const OrderPage = () => {
                                 <thead>
                                     <tr className="w-full bg-gray-100 border-b">
                                         <th className="py-3 px-4 text-left">
-                                            <input 
-                                                type="checkbox" 
-                                                className="form-checkbox h-5 w-5 text-blue-600" 
+                                            <input
+                                                type="checkbox"
+                                                className="form-checkbox h-5 w-5 text-blue-600"
                                                 checked={selectAll}
                                                 onChange={handleSelectAll}
                                             />
@@ -140,13 +151,13 @@ export const OrderPage = () => {
                                     {cart.map((product, index) => (
                                         <tr key={index} className="border-b">
                                             <td className="py-4 px-4 flex items-center">
-                                                <input 
-                                                    type="checkbox" 
-                                                    className="form-checkbox text-blue-600" 
+                                                <input
+                                                    type="checkbox"
+                                                    className="form-checkbox text-blue-600"
                                                     checked={product.selected || false}
                                                     onChange={() => handleSelectProduct(index)}
                                                 />
-                                                <img src={product.primaryImage} alt={`Image of ${product.name}`} className="ml-4 w-12 h-12 object-cover"/>
+                                                <img src={product.primaryImage} alt={`Image of ${product.name}`} className="ml-4 w-12 h-12 object-cover" />
                                                 <span className="ml-4">{product.name}</span>
                                             </td>
                                             <td className="py-4 px-4">
@@ -155,26 +166,26 @@ export const OrderPage = () => {
                                                         <>
                                                             <span className="text-xl text-blue-600">{formatPrice(calculateSalePrice(product.price, product.discount))}</span>
                                                             <span className="text-xs text-gray-600 line-through ml-2">{formatPrice(product.price)}</span>
-                                                            </> 
+                                                        </>
                                                     ) : (
                                                         <span className="text-xs text-blue-600">{formatPrice(product.price)}</span>
                                                     )}
                                                 </div>
                                             </td>
                                             <td className="py-4 px-4 flex items-center">
-                                                <button 
+                                                <button
                                                     className="bg-gray-200 text-gray-600 px-2 py-1 rounded-l"
                                                     onClick={() => handleQuantityChange(index, 'decrease')}
                                                 >
                                                     -
                                                 </button>
-                                                <input 
-                                                    type="text" 
-                                                    value={product.quantity} 
+                                                <input
+                                                    type="text"
+                                                    value={product.quantity}
                                                     className="pt-1 w-12 text-center border-t border-b border-gray-200"
                                                     readOnly
                                                 />
-                                                <button 
+                                                <button
                                                     className="bg-gray-200 text-gray-600 px-2 py-1 rounded-r"
                                                     onClick={() => handleQuantityChange(index, 'increase')}
                                                 >
@@ -190,7 +201,7 @@ export const OrderPage = () => {
                                             </td>
                                             <td>
                                                 <button className="mr-4 ml-4 mt-2 text-gray-600 hover:text-gray-800">
-                                                    <Trash2 size={20} onClick={() => handleDeleteProduct(index)}/>
+                                                    <Trash2 size={20} onClick={() => handleDeleteProduct(index)} />
                                                 </button>
                                             </td>
                                         </tr>
@@ -216,8 +227,8 @@ export const OrderPage = () => {
                                     <div className="bg-white p-6 rounded-md w-96 shadow-lg">
                                         <div className="flex justify-between items-center">
                                             <h3 className="text-xl font-bold flex-grow text-center">Nhập mã giảm giá</h3>
-                                            <button 
-                                                onClick={() => setIsDiscountOpen(false)} 
+                                            <button
+                                                onClick={() => setIsDiscountOpen(false)}
                                                 className="text-3xl text-gray-600"
                                             >
                                                 &times;
@@ -251,23 +262,23 @@ export const OrderPage = () => {
 
                             <div className="flex justify-between py-2">
                                 <span>Giảm giá trực tiếp</span>
-                                <span className="text-orange-600 font-bold" style={{color: '#f79009'}}>{directDiscount !== 0 &&(<span>-</span>)}{directDiscount.toLocaleString()}đ</span>
+                                <span className="text-orange-600 font-bold" style={{ color: '#f79009' }}>{directDiscount !== 0 && (<span>-</span>)}{directDiscount.toLocaleString()}đ</span>
                             </div>
 
                             <div className="flex justify-between py-2">
                                 <span>Giảm giá voucher</span>
-                                <span className="text-orange-600 font-bold" style={{color: '#f79009'}}>0đ</span>
+                                <span className="text-orange-600 font-bold" style={{ color: '#f79009' }}>0đ</span>
                             </div>
 
                             <div className="flex justify-between py-2">
                                 <span>Tiết kiệm được</span>
-                                <span className="text-orange-600 font-bold" style={{color: '#f79009'}}>{directDiscount.toLocaleString()}đ</span>
+                                <span className="text-orange-600 font-bold" style={{ color: '#f79009' }}>{directDiscount.toLocaleString()}đ</span>
                             </div>
 
                             <div className="flex justify-between py-2">
                                 <span className="text-xl font-bold">Thành tiền</span>
                                 <div>
-                                    {totalPrice !== 0 &&(
+                                    {totalPrice !== 0 && (
                                         <span className="text-2xs text-gray-600 line-through mr-3">{totalPrice.toLocaleString()}đ</span>
                                     )}
                                     <span className="text-xl text-blue-600 font-bold">{totalPriceAfterDiscount.toLocaleString()}đ</span>

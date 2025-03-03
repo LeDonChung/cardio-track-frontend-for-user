@@ -7,9 +7,11 @@ import { CreatePostPage } from "./CreatePostPage";
 import UpdateUserModal from "./UpdateUserModal";
 import AddressModal from "./AddressModal";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserInfo, fetchUserAddresses, updateUserInfo,addAddress,updateAddress,deleteAddress} from "../redux/slice/UserSlice";
+import { fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress, deleteAddress } from "../redux/slice/UserSlice";
+import showToast from "../utils/AppUtils";
 
 export const UserInfoPage = () => {
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const userAddresses = useSelector((state) => state.user.userAddresses);
@@ -35,6 +37,15 @@ export const UserInfoPage = () => {
     dispatch(fetchUserAddresses());
   }, [dispatch]);
 
+  useEffect(() => {
+    // kiểm tra đã login chưa
+    if (!localStorage.getItem("token")) {
+      navigate("/login");
+    } else {
+      setIsLoading(true);
+    }
+  }, []);
+
   //hàm cập nhật user theo id
   const [isEditing, setIsEditing] = useState(false);  // Trạng thái để điều khiển việc hiển thị nút
   const [editUserInfo, setEditUserInfo] = useState(userInfo);
@@ -50,6 +61,7 @@ export const UserInfoPage = () => {
   const handleSaveUserInfo = (updatedUserInfo) => {
     // Gửi yêu cầu cập nhật thông tin người dùng
     dispatch(updateUserInfo(updatedUserInfo)).then(() => {
+      showToast("Cập nhật thông tin thành công!", "success");
       // Gọi lại API để lấy thông tin mới nhất của người dùng
       dispatch(fetchUserInfo()).then((res) => {
         if (res.payload) {
@@ -87,7 +99,7 @@ export const UserInfoPage = () => {
   const closeAddressModal = () => {
     setIsAddressModalOpen(false);
   };
-  
+
   const handleSaveAddress = (newAddress) => {
     if (addressToEdit) {
       // Truyền đúng đối tượng newAddress vào
@@ -114,7 +126,7 @@ export const UserInfoPage = () => {
       });
     }
   };
-  
+
 
   const orders = [
     {
@@ -157,335 +169,311 @@ export const UserInfoPage = () => {
   return (
     <div className="bg-gray-100 min-h-screen">
       <Header />
-      <div className="container mx-auto mt-8 flex gap-6">
-        <div className="w-1/4 bg-white p-6 rounded-lg shadow flex flex-col items-start justify-start">
-          <ul className="space-y-6 text-xl font-bold w-full">
-            <li
-              className={`cursor-pointer ${
-                activeSection === "info"
-                  ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                  : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-              }`}
-              onClick={() => handleNavigation("info")}
-            >
-              <i className="fas fa-user mr-3"></i> Thông tin cá nhân
-              <i className="fas fa-chevron-right ml-2"></i>
-            </li>
-            <li
-              className={`cursor-pointer ${
-                activeSection === "qr"
-                  ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                  : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-              }`}
-              onClick={() => handleNavigation("qr")}
-            >
-              <i className="fas fa-qrcode mr-3"></i> Mã QR của tôi
-              <i className="fas fa-chevron-right ml-2"></i>
-            </li>
-            <li
-              className={`cursor-pointer ${
-                activeSection === "orders"
-                  ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                  : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-              }`}
-              onClick={() => handleNavigation("orders")}
-            >
-              <i className="fas fa-box mr-3"></i> Đơn thuốc của tôi
-              <i className="fas fa-chevron-right ml-2"></i>
-            </li>
-            <li
-              className={`cursor-pointer ${
-                activeSection === "address"
-                  ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                  : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-              }`}
-              onClick={() => handleNavigation("address")}
-            >
-              <i className="fas fa-map-marker-alt mr-3"></i> Quản lý địa chỉ
-              <i className="fas fa-chevron-right ml-2"></i>
-            </li>
-            <li
-              className={`cursor-pointer ${
-                activeSection === "payment"
-                  ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                  : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-              }`}
-              onClick={() => handleNavigation("payment")}
-            >
-              <i className="fas fa-credit-card mr-3"></i> Quản lý thanh toán
-              <i className="fas fa-chevron-right ml-2"></i>
-            </li>
-            <li
-              className={`cursor-pointer ${
-                activeSection === "create-post"
-                  ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                  : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-              }`}
-              onClick={handleCreatePost}
-            >
-              <i className="fas fa-pencil-alt mr-3"></i> Tạo bài viết
-              <i className="fas fa-chevron-right ml-2"></i>
-            </li>
-            <li
-              className={`cursor-pointer ${
-                activeSection === "my-post"
-                  ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                  : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-              }`}
-              onClick={() => handleNavigation("my-post")}
-            >
-              <i className="fas fa-file-alt mr-3"></i> Bài viết của tôi
-              <i className="fas fa-chevron-right ml-2"></i>
-            </li>
-            <li
-              className={`cursor-pointer ${
-                activeSection === "view-post"
-                  ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                  : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-              }`}
-              onClick={() => handleNavigation("view-post")}
-            >
-              <i className="fas fa-newspaper mr-3"></i> Xem tin tức
-              <i className="fas fa-chevron-right ml-2"></i>
-            </li>
-            <li
-              className={`cursor-pointer text-red-500 ${
-                activeSection === "logout"
-                  ? "bg-blue-500 text-white"
-                  : "hover:bg-blue-500 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-              }`}
-              onClick={() => {
-                localStorage.removeItem("token");
-                navigate("/login");
-              }}
-            >
-              <i className="fas fa-sign-out-alt mr-3"></i> Đăng xuất
-              <i className="fas fa-chevron-right ml-2"></i>
-            </li>
-          </ul>
-        </div>
+      {
+        isLoading && (
+          <div className="container mx-auto mt-8 flex gap-6">
+            <div className="w-1/4 bg-white p-6 rounded-lg shadow flex flex-col items-start justify-start">
+              <ul className="space-y-6 text-xl font-bold w-full">
+                <li
+                  className={`cursor-pointer ${activeSection === "info"
+                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
+                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
+                    }`}
+                  onClick={() => handleNavigation("info")}
+                >
+                  <i className="fas fa-user mr-3"></i> Thông tin cá nhân
+                  <i className="fas fa-chevron-right ml-2"></i>
+                </li>
 
-        <div className="flex-1 bg-white p-6 rounded-lg shadow">
-          {activeSection === "info" && (
-            <div className="flex items-center justify-center border-b pb-4 mb-4">
-              <div className="flex items-center space-x-4 flex-col">
-                <img
-                  src="./UserInfo/userinfo.png"
-                  alt="Avatar"
-                  className="w-30 h-25 rounded-full border border-gray-300"
-                />
-                <div>
-                  <p className="text-blue-600 font-semibold cursor-pointer mt-1">
-                    Thay đổi ảnh đại diện
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-            <div className="flex-1 bg-white p-1 rounded-lg shadow">
-            {activeSection === "info" && (
-                userInfo ? (
-                <div className="space-y-4 w-3/4 mx-auto">
-                    <div className="flex justify-between border-b pb-2">
-                    <span className="font-medium">Họ và tên</span>
-                    <span>{userInfo.fullName || "Chưa có thông tin"}</span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                    <span className="font-medium">Số điện thoại</span>
-                    <span>{userInfo.username || "Chưa có thông tin"}</span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                    <span className="font-medium">Giới tính</span>
-                    <span>{userInfo.gender || "Chưa có thông tin"}</span>
-                    </div>
-                    <div className="flex justify-between border-b pb-2">
-                    <span className="font-medium">Ngày sinh</span>
-                    <span>{userInfo.dob || "Chưa có thông tin"}</span>
-                    </div>
+                <li
+                  className={`cursor-pointer ${activeSection === "orders"
+                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
+                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
+                    }`}
+                  onClick={() => handleNavigation("orders")}
+                >
+                  <i className="fas fa-box mr-3"></i> Đơn thuốc của tôi
+                  <i className="fas fa-chevron-right ml-2"></i>
+                </li>
+                <li
+                  className={`cursor-pointer ${activeSection === "address"
+                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
+                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
+                    }`}
+                  onClick={() => handleNavigation("address")}
+                >
+                  <i className="fas fa-map-marker-alt mr-3"></i> Quản lý địa chỉ
+                  <i className="fas fa-chevron-right ml-2"></i>
+                </li>
 
-                    {/* Nút Chỉnh sửa sẽ mở Modal */}
-                    <button
-                    onClick={() => handleOpenModalUpdateUser(true)}  // Mở modal chỉnh sửa
-                    className="px-6 py-2 bg-blue-500 font-semibold text-white rounded-xl w-full hover:bg-blue-600 mt-4"
-                    >
-                    Chỉnh sửa thông tin
-                    </button>
-                </div>
-                ) : (
-                <p style={{ paddingTop: "20px", fontSize: "16px", textAlign: "center" }}>
-                    Đang tải thông tin người dùng...
-                </p>
-                )
-            )}
+                <li
+                  className={`cursor-pointer ${activeSection === "create-post"
+                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
+                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
+                    }`}
+                  onClick={handleCreatePost}
+                >
+                  <i className="fas fa-pencil-alt mr-3"></i> Tạo bài viết
+                  <i className="fas fa-chevron-right ml-2"></i>
+                </li>
+                <li
+                  className={`cursor-pointer ${activeSection === "my-post"
+                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
+                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
+                    }`}
+                  onClick={() => handleNavigation("my-post")}
+                >
+                  <i className="fas fa-file-alt mr-3"></i> Bài viết của tôi
+                  <i className="fas fa-chevron-right ml-2"></i>
+                </li>
+                <li
+                  className={`cursor-pointer ${activeSection === "view-post"
+                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
+                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
+                    }`}
+                  onClick={() => handleNavigation("view-post")}
+                >
+                  <i className="fas fa-newspaper mr-3"></i> Xem tin tức
+                  <i className="fas fa-chevron-right ml-2"></i>
+                </li>
+                <li
+                  className={`cursor-pointer text-red-500 ${activeSection === "logout"
+                    ? "bg-blue-500 text-white"
+                    : "hover:bg-blue-500 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
+                    }`}
+                  onClick={() => {
+                    if (localStorage.getItem('token')) {
+                      localStorage.removeItem('token');
+                      localStorage.removeItem('userInfo');
+                    }
+
+                    navigate('/login')
+                  }}
+                >
+                  <i className="fas fa-sign-out-alt mr-3"></i> Đăng xuất
+                  <i className="fas fa-chevron-right ml-2"></i>
+                </li>
+              </ul>
             </div>
 
-            {/* Modal Update User Info */}
-            <UpdateUserModal
-            isOpen={isModalOpenUpdateUser}
-            onClose={() => setIsModalOpenUpdateUser(false)}
-            userInfo={userInfo}
-            onSave={handleSaveUserInfo}
-            />
+            <div className="flex-1 bg-white p-6 rounded-lg shadow">
+              {activeSection === "info" && (
+                <div className="flex items-center justify-center border-b pb-4 mb-4">
+                  <div className="flex items-center space-x-4 flex-col">
+                    <img
+                      src="./UserInfo/userinfo.png"
+                      alt="Avatar" 
+                      className="w-30 h-30 rounded-full border border-gray-300"
+                    />
+                  </div>
+                </div>
+              )}
+              <div className="flex-1 bg-white p-1 rounded-lg shadow">
+                {activeSection === "info" && (
+                  userInfo ? (
+                    <div className="space-y-4 w-3/4 mx-auto">
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="font-medium">Họ và tên</span>
+                        <span>{userInfo.fullName || "Chưa có thông tin"}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="font-medium">Số điện thoại</span>
+                        <span>{userInfo.username || "Chưa có thông tin"}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="font-medium">Giới tính</span>
+                        <span>{userInfo.gender || "Chưa có thông tin"}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                        <span className="font-medium">Ngày sinh</span>
+                        <span>{userInfo.dob || "Chưa có thông tin"}</span>
+                      </div>
 
-
-          {activeSection === "orders" && (
-            <div>
-              <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
-                <h3 className="text-xl font-bold">Đơn thuốc của tôi</h3>
-              </div>
-              <div className="flex gap-4 mb-4 items-center">
-                <input
-                  type="text"
-                  placeholder="Tìm theo mã đơn, tên sản phẩm..."
-                  className="border p-2 rounded-lg w-full"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-                <i className="fas fa-search text-gray-500 ml-2"></i>
-              </div>
-              <div className="flex gap-4 mb-4">
-                <button className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center">
-                  <i className="fas fa-box mr-2"></i> Tất cả
-                </button>
-                <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
-                  <i className="fas fa-truck mr-2"></i> Đang giao
-                </button>
-                <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
-                  <i className="fas fa-check mr-2"></i> Đã giao
-                </button>
-                <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
-                  <i className="fas fa-trash-alt mr-2"></i> Đã hủy
-                </button>
-                <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
-                  <i className="fas fa-undo mr-2"></i> Trả hàng
-                </button>
-              </div>
-              <div className="overflow-y-auto max-h-[400px]">
-                {filteredOrders.map((order) => (
-                  <div key={order.id} className="border-b pb-4 mb-4">
-                    <div className="flex justify-between">
-                      <span className="font-medium">{order.date}</span>
-                      <span className="text-gray-500">Mã đơn: {order.id}</span>
-                    </div>
-                    <div className="flex items-center gap-4 mb-2">
-                      <img
-                        src={order.image}
-                        alt="Product"
-                        className="w-20 h-20 object-cover"
-                      />
-                      <div className="text-blue-600">{order.item}</div>
-                    </div>
-                    <div className="text-gray-600">
-                      Số lượng: {order.quantity}
-                    </div>
-                    <div className="text-gray-600">
-                      Địa chỉ: {order.address}
-                    </div>
-                    <div className="mt-2">
-                      <span className="text-sm text-gray-600">
-                        {order.status}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center mt-2">
-                      <span className="font-medium">{order.price}</span>
-                      <button className="bg-blue-500 text-white px-4 py-2 rounded-lg">
-                        Mua lại
+                      {/* Nút Chỉnh sửa sẽ mở Modal */}
+                      <button
+                        onClick={() => handleOpenModalUpdateUser(true)}  // Mở modal chỉnh sửa
+                        className="px-6 py-2 bg-blue-500 font-semibold text-white rounded-xl w-full hover:bg-blue-600 mt-4"
+                      >
+                        Chỉnh sửa thông tin
                       </button>
                     </div>
-                  </div>
-                ))}
+                  ) : (
+                    <p style={{ paddingTop: "20px", fontSize: "16px", textAlign: "center" }}>
+                      Đang tải thông tin người dùng...
+                    </p>
+                  )
+                )}
               </div>
-            </div>
-          )}
 
-          {activeSection === "qr" && (
-            <div className="text-center">
-              <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg">
-                <h3 className="text-xl font-bold">Mã QR của tôi</h3>
-              </div>
-              <img
-                src="./UserInfo/QR.jpg"
-                alt="QR"
-                className="w-65 h-60 mx-auto mt-4"
+              {/* Modal Update User Info */}
+              <UpdateUserModal
+                isOpen={isModalOpenUpdateUser}
+                onClose={() => setIsModalOpenUpdateUser(false)}
+                userInfo={userInfo}
+                onSave={handleSaveUserInfo}
               />
-            </div>
-          )}
 
-{activeSection === "address" && (
-          <div className="flex flex-col justify-between h-full">
-            <div>
-              <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
-                <h3 className="text-xl font-bold">Quản lý địa chỉ</h3>
-              </div>
-              {Array.isArray(userAddresses) && userAddresses.length > 0 ? (
-              userAddresses.map((address) => (
-                <div
-                  key={address.id}
-                  className="flex items-center justify-between mb-4"
-                >
-                  <div style={{ margin: "10px" }}>
-                    <p style={{ fontWeight: "bold", fontSize: 22 }}>
-                      {address.fullName}
-                    </p>
-                    <p style={{ fontSize: 17 }}>
-                      {address.phoneNumber} | {address.street}, {address.ward}
-                      , {address.district}, {address.province}
-                    </p>
+
+              {activeSection === "orders" && (
+                <div>
+                  <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
+                    <h3 className="text-xl font-bold">Đơn thuốc của tôi</h3>
                   </div>
-                  <div className="flex items-center space-x-4">
-                <button
-                    className="text-blue-500 font-semibold"
-                    style={{ fontSize: 20 }}
-                    onClick={() => handleEditAddress(address)} // Mở modal chỉnh sửa
-                >
-                    Sửa
-                </button>
-                <button
-                    className="text-red-500 font-semibold"
-                    style={{ fontSize: 20 }}
-                    onClick={() => handleDeleteAddress(address)} // Mở modal xóa
-                >
-                    Xóa
-                </button>
+                  <div className="flex gap-4 mb-4 items-center">
+                    <input
+                      type="text"
+                      placeholder="Tìm theo mã đơn, tên sản phẩm..."
+                      className="border p-2 rounded-lg w-full"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <i className="fas fa-search text-gray-500 ml-2"></i>
+                  </div>
+                  <div className="flex gap-4 mb-4">
+                    <button className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center">
+                      <i className="fas fa-box mr-2"></i> Tất cả
+                    </button>
+                    <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
+                      <i className="fas fa-truck mr-2"></i> Đang giao
+                    </button>
+                    <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
+                      <i className="fas fa-check mr-2"></i> Đã giao
+                    </button>
+                    <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
+                      <i className="fas fa-trash-alt mr-2"></i> Đã hủy
+                    </button>
+                    <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
+                      <i className="fas fa-undo mr-2"></i> Trả hàng
+                    </button>
+                  </div>
+                  <div className="overflow-y-auto max-h-[400px]">
+                    {filteredOrders.map((order) => (
+                      <div key={order.id} className="border-b pb-4 mb-4">
+                        <div className="flex justify-between">
+                          <span className="font-medium">{order.date}</span>
+                          <span className="text-gray-500">Mã đơn: {order.id}</span>
+                        </div>
+                        <div className="flex items-center gap-4 mb-2">
+                          <img
+                            src={order.image}
+                            alt="Product"
+                            className="w-20 h-20 object-cover"
+                          />
+                          <div className="text-blue-600">{order.item}</div>
+                        </div>
+                        <div className="text-gray-600">
+                          Số lượng: {order.quantity}
+                        </div>
+                        <div className="text-gray-600">
+                          Địa chỉ: {order.address}
+                        </div>
+                        <div className="mt-2">
+                          <span className="text-sm text-gray-600">
+                            {order.status}
+                          </span>
+                        </div>
+                        <div className="flex justify-between items-center mt-2">
+                          <span className="font-medium">{order.price}</span>
+                          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg">
+                            Mua lại
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                </div>
-              ))) : (
-                <p>Không có địa chỉ nào.</p>
               )}
-            </div>
-            <div className="flex justify-center mt-auto mb-4">
-              <button
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-                onClick={handleAddAddress} // Mở modal thêm mới địa chỉ
-              >
-                Thêm địa chỉ mới
-              </button>
+
+              {activeSection === "qr" && (
+                <div className="text-center">
+                  <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg">
+                    <h3 className="text-xl font-bold">Mã QR của tôi</h3>
+                  </div>
+                  <img
+                    src="./UserInfo/QR.jpg"
+                    alt="QR"
+                    className="w-65 h-60 mx-auto mt-4"
+                  />
+                </div>
+              )}
+
+              {activeSection === "address" && (
+                <div className="flex flex-col justify-between h-full">
+                  <div>
+                    <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
+                      <h3 className="text-xl font-bold">Quản lý địa chỉ</h3>
+                    </div>
+                    {Array.isArray(userAddresses) && userAddresses.length > 0 ? (
+                      userAddresses.map((address) => (
+                        <div
+                          key={address.id}
+                          className="flex items-center justify-between mb-4"
+                        >
+                          <div style={{ margin: "10px" }}>
+                            <p style={{ fontWeight: "bold", fontSize: 22 }}>
+                              {address.fullName}
+                            </p>
+                            <p style={{ fontSize: 17 }}>
+                              {address.phoneNumber} | {address.street}, {address.ward}
+                              , {address.district}, {address.province}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            <button
+                              className="text-blue-500 font-semibold"
+                              style={{ fontSize: 20 }}
+                              onClick={() => handleEditAddress(address)} // Mở modal chỉnh sửa
+                            >
+                              Sửa
+                            </button>
+                            <button
+                              className="text-red-500 font-semibold"
+                              style={{ fontSize: 20 }}
+                              onClick={() => handleDeleteAddress(address)} // Mở modal xóa
+                            >
+                              Xóa
+                            </button>
+                          </div>
+                        </div>
+                      ))) : (
+                      <p>Không có địa chỉ nào.</p>
+                    )}
+                  </div>
+                  <div className="flex justify-center mt-auto mb-4">
+                    <button
+                      className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                      onClick={handleAddAddress} // Mở modal thêm mới địa chỉ
+                    >
+                      Thêm địa chỉ mới
+                    </button>
+                  </div>
+                </div>
+              )}{/* Modal Add/Edit Address */}
+              <AddressModal
+                isOpen={isAddressModalOpen}
+                onClose={() => setIsAddressModalOpen(false)}
+                addressToEdit={addressToEdit}
+                onSave={handleSaveAddress}
+              />
+
+              {activeSection === "payment" && (
+                <div className="text-center flex flex-col justify-between h-full">
+                  <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
+                    <h3 className="text-xl font-bold">Quản lý thanh toán</h3>
+                  </div>
+                  <div className="flex justify-center mt-auto mb-4">
+                    <button className="bg-blue-500 text-white px-4 py-2 mt-4 rounded-lg">
+                      Cập nhật thông tin thanh toán
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {isModalOpen && <CreatePostPage setIsModalOpen={setIsModalOpen} />}
             </div>
           </div>
-        )}{/* Modal Add/Edit Address */}
-    <AddressModal
-  isOpen={isAddressModalOpen}
-  onClose={() => setIsAddressModalOpen(false)}  
-  addressToEdit={addressToEdit}
-  onSave={handleSaveAddress}
-/>
-
-          {activeSection === "payment" && (
-            <div className="text-center flex flex-col justify-between h-full">
-              <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
-                <h3 className="text-xl font-bold">Quản lý thanh toán</h3>
-              </div>
-              <div className="flex justify-center mt-auto mb-4">
-                <button className="bg-blue-500 text-white px-4 py-2 mt-4 rounded-lg">
-                  Cập nhật thông tin thanh toán
-                </button>
-              </div>
-            </div>
-          )}
-
-          {isModalOpen && <CreatePostPage setIsModalOpen={setIsModalOpen} />}
-        </div>
-      </div>
+        )
+      }
       <Footer />
     </div>
   );
