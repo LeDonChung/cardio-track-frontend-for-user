@@ -4,6 +4,8 @@ import CategorySlice from './slice/CategorySlice';
 import BrandSlice from './slice/BrandSlice';
 import TagSlice from './slice/TagSlice';
 import CartSlice from './slice/CartSlice';
+import ProductSlice from './slice/ProductSlice';
+import FilterSlice from './slice/FilterSlice';
 
 const store = configureStore({
     reducer: {
@@ -12,6 +14,8 @@ const store = configureStore({
         brand: BrandSlice,
         tag: TagSlice,
         cart: CartSlice,
+        product: ProductSlice,
+        filter: FilterSlice,
     },
     middleware: getDefaultMiddleware =>
         getDefaultMiddleware({
