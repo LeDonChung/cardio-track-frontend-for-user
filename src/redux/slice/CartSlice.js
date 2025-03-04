@@ -2,12 +2,38 @@ import { createSlice } from '@reduxjs/toolkit';
 import { fetchAddresses, submitOrder } from '../../api/CartAPI';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
+const loadCartFromLocalStorage = () => {
+  // Kiểm tra xem có userId trong localStorage không
+  const userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
+
+  if (userId) {
+    // Nếu có userId, lấy giỏ hàng của người dùng từ localStorage
+    const cart = JSON.parse(localStorage.getItem(`cart_${userId}`));
+    return cart || [];
+  } else {
+    // Nếu không có userId, lấy giỏ hàng chung của khách từ localStorage
+    const cart = JSON.parse(localStorage.getItem('cart_guest'));
+    return cart || [];
+  }
+};
+
+const saveCartToLocalStorage = (cart) => {
+  const userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
+  if (userId) {
+    // Nếu có userId, lưu giỏ hàng dưới key theo userId
+    localStorage.setItem(`cart_${userId}`, JSON.stringify(cart));
+  } else {
+    // Nếu không có userId, lưu giỏ hàng chung cho khách
+    localStorage.setItem('cart_guest', JSON.stringify(cart));
+  }
+};
+
 const initialState = {
-  cart: [],  // Giỏ hàng bắt đầu rỗng
-  addresses: [],  // Danh sách địa chỉ
-  loading: false,  // Trạng thái tải dữ liệu
-  error: null,  // Lỗi (nếu có)
-  orderResponse: null,  // Kết quả trả về khi đặt hàng
+  cart: loadCartFromLocalStorage(),  // Tải giỏ hàng từ LocalStorage nếu có
+  addresses: [],
+  loading: false,
+  error: null,
+  orderResponse: null,
 };
 
 // Thunk để lấy danh sách địa chỉ
@@ -52,11 +78,13 @@ const cartSlice = createSlice({
         // Nếu chưa có trong giỏ, thêm sản phẩm mới vào giỏ
         state.cart.push({ ...product, quantity: 1 });
       }
+      saveCartToLocalStorage(state.cart);
     },
 
     // Xóa sản phẩm khỏi giỏ
     removeFromCart: (state, action) => {
       state.cart = state.cart.filter(item => item.id !== action.payload);
+      saveCartToLocalStorage(state.cart);
     },
 
     // Cập nhật số lượng sản phẩm trong giỏ
@@ -66,16 +94,19 @@ const cartSlice = createSlice({
       if (product) {
         product.quantity = quantity;
       }
+      saveCartToLocalStorage(state.cart);
     },
 
     // Cập nhật giỏ hàng
     updateCart: (state, action) => {
       state.cart = action.payload;
+      saveCartToLocalStorage(state.cart);
     },
 
     // Xóa các sản phẩm đã chọn khỏi giỏ hàng
     clearSelectedProducts: (state) => {
       state.cart = state.cart.filter(product => !product.selected);
+      saveCartToLocalStorage(state.cart);
     },
   },
 
