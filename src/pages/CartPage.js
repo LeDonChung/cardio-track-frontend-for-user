@@ -40,7 +40,7 @@ export const CartPage = () => {
     const [note, setNote] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [addresses, setAddresses] = useState([]);
-    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [selectedAddress, setSelectedAddress] = useState("");
 
 
     useEffect(() => {
