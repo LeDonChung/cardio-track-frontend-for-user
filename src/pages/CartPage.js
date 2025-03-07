@@ -231,6 +231,12 @@ export const CartPage = () => {
             medicine: product.id, 
         }));
 
+        const orderDetailsPayment = selectedProducts.map(product => ({
+            price: product.price - product.discount*product.price/100,
+            quantity: product.quantity,
+            name: product.name,
+        })); 
+
         const orderData = {
             note: note,
             exportInvoice: isInvoiceRequested,
@@ -269,6 +275,9 @@ export const CartPage = () => {
             } else if (paymentMethod === 'qr') {
                 try {
                     console.log("2: " + orderId);
+
+                    console.log(orderDetailsPayment);
+
                     // Gọi API của PayOS để tạo payment link
                     const response = await fetch('http://localhost:8888/api/v1/pay/create-payment-link', {
                         method: 'POST',
@@ -277,7 +286,7 @@ export const CartPage = () => {
                             'Authorization': `Bearer ${token}`,
                         },
                         body: JSON.stringify({
-                            productName: 'Laptop Dell XPS 15',
+                            products: orderDetailsPayment,
                             description: 'Thanh toán',
                             returnUrl: 'http://localhost:3000/payment-result',
                             cancelUrl: 'http://localhost:3000/payment-result',
