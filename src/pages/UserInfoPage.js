@@ -6,12 +6,12 @@ import "@fortawesome/fontawesome-free/css/all.min.css";
 import { CreatePostPage } from "./CreatePostPage";
 import UpdateUserModal from "./UpdateUserModal";
 import AddressModal from "./AddressModal";
-import ViewMyPost from "./ViewMyPost";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMyListPost } from "../redux/slice/PostSlice";
 import { fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress, deleteAddress, fetchUserOrders } from "../redux/slice/UserSlice";
 import showToast from "../utils/AppUtils";
 import { format } from "date-fns";
+import UpdatePostPage from "./UpdatePostPage"; 
 
 export const UserInfoPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -19,7 +19,8 @@ export const UserInfoPage = () => {
   const dispatch = useDispatch();
   const userAddresses = useSelector((state) => state.user.userAddresses);
   const posts = useSelector((state) => state.post.myPosts) || []; // Lấy bài viết từ redux store và đảm bảo nó là một mảng
-  
+  const [isModalOpenUpdate, setIsModalOpenUpdate] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
   const [loadingMyPost, setLoadingMyPost] = useState(true); 
   useEffect(() => {
     // Gọi API lấy bài viết của người dùng
@@ -31,6 +32,7 @@ export const UserInfoPage = () => {
         setLoadingMyPost(false);
       });
   }, [dispatch]);
+
 
 
   // ✅ Lấy dữ liệu user từ localStorage khi load trang
@@ -100,6 +102,11 @@ export const UserInfoPage = () => {
   const handleCreatePost = () => {
     setIsModalOpen(true);
   };
+  const handleUpdatePost = (post) => {
+    setSelectedPost(post); // Set the post to be updated
+    setIsModalOpenUpdate(true); // Open the update modal
+};
+  
 
   //mở model add/update địa chỉ
   const [addressToEdit, setAddressToEdit] = useState(null); // Địa chỉ đang chỉnh sửa
@@ -419,37 +426,51 @@ export const UserInfoPage = () => {
               </div>
             )}
 
-          {/* hiển thị tất cả bài viết của tôi */}
-          {activeSection === "my-post" && (
-            <div className="text-center">
-              <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg">
-                <h3 className="text-xl font-bold">Bài viết của tôi</h3>
-              </div>
-              {loadingMyPost ? (
-                <p>Đang tải...</p>
-              ) : posts.length === 0 ? (
-                <p>Không có bài viết nào.</p>
-              ) : (
-                <div className="space-y-4 mt-4">
-                  {posts.map((post) => (
-                    <div key={post.id} className="border-b pb-4 mb-4">
+        {/* hiển thị tất cả bài viết của tôi */}
+        {activeSection === "my-post" && (
+          <div className="text-center">
+            <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg">
+              <h3 className="text-xl font-bold">Bài viết của tôi</h3>
+            </div>
+            {loadingMyPost ? (
+              <p>Đang tải...</p>
+            ) : posts.length === 0 ? (
+              <p>Không có bài viết nào.</p>
+            ) : (
+              <div className="space-y-4 mt-4">
+                {posts.map((post) => (
+                  <div key={post.id} className="border-b pb-4 mb-4 flex justify-between items-center">
+                    <div>
                       <h2 className="text-xl font-semibold text-left">{post.title}</h2>
                       <p className="text-left">{post.content}</p>
                       <div className="text-sm text-gray-500 text-left">
                         Ngày tạo: {format(new Date(post.createdAt), "HH:mm dd/MM/yyyy")}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-              <button
-                className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-                onClick={handleCreatePost}
-              >
-                Tạo bài viết mới
-              </button>
-            </div>
-          )}
+                    <button
+                      className="ml-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                      onClick={() => handleUpdatePost(post)}
+                    >
+                      Cập nhật
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+            <button
+              className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+              onClick={handleCreatePost}
+            >
+              Tạo bài viết mới
+            </button>
+          </div>
+        )}{/* Modal for updating the post */}
+        {isModalOpenUpdate && selectedPost && (
+            <UpdatePostPage
+                setIsModalOpen={setIsModalOpenUpdate}
+                postToEdit={selectedPost}
+            />
+        )}
 
 
 

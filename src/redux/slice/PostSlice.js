@@ -41,6 +41,25 @@ const fetchCreatePost = createAsyncThunk('post/fetchCreatePost', async ({ title,
     }
 });
 
+    // Define the update post async thunk
+ const fetchUpdatePost = createAsyncThunk('post/fetchUpdatePost', async ({ id, title, content }, { rejectWithValue }) => {
+    try {
+        const token = localStorage.getItem("token");
+        const response = await axiosInstance.put(`/api/v1/post/update/${id}`, {
+            title,
+            content
+        }, {
+            headers: {
+                Authorization: `${token}` // Add the token if necessary
+            }
+        });
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || "Lỗi cập nhật bài viết.");
+    }
+});
+
+
 
 const PostSlice = createSlice({
     name: 'post',
@@ -69,11 +88,22 @@ const PostSlice = createSlice({
             state.errorResponse = action.payload;
         });
 
+        //update post
+        builder.addCase(fetchUpdatePost.pending, (state, action) => {
+        state.errorResponse = null;
+        } );
+        builder.addCase(fetchUpdatePost.fulfilled, (state, action) => {
+            state.errorResponse = null;
+        });
+        builder.addCase(fetchUpdatePost.rejected, (state, action) => {
+            state.errorResponse = action.payload;
+        });
+
         
 
     }
 });
 
 export const { } = PostSlice.actions;
-export { fetchCreatePost, fetchMyListPost };
+export { fetchCreatePost, fetchMyListPost,fetchUpdatePost };
 export default PostSlice.reducer;
