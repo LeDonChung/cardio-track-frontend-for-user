@@ -6,6 +6,7 @@ import TagSlice from './slice/TagSlice';
 import CartSlice from './slice/CartSlice';
 import ProductSlice from './slice/ProductSlice';
 import FilterSlice from './slice/FilterSlice';
+import PostSlice from './slice/PostSlice';
 
 const store = configureStore({
     reducer: {
@@ -16,6 +17,7 @@ const store = configureStore({
         cart: CartSlice,
         product: ProductSlice,
         filter: FilterSlice,
+        post: PostSlice,
     },
     middleware: getDefaultMiddleware =>
         getDefaultMiddleware({
