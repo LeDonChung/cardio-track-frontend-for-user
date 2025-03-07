@@ -7,17 +7,27 @@ import { useDispatch, useSelector } from 'react-redux';
 import { removeFromCart, updateQuantity, updateCart } from '../redux/slice/CartSlice';
 import { calculateSalePrice, formatPrice } from "../utils/AppUtils";
 import showToast from "../utils/AppUtils";
+import { ProductRecommend } from "../components/ProductRecommend";
+import { recommendOrder } from "../redux/slice/ProductSlice";
 
 export const OrderPage = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const cart = useSelector(state => state.cart.cart);
 
+    const recommendOrders = useSelector(state => state.product.recommendOrders);
+
     useEffect(() => {
         if (cart.length === 0) {
             showToast("Vui lòng chọn thêm thuốc vào giỏ hàng", "error");
             navigate("/");
+            return;
         }
+
+        // Lấy danh sách sản phẩm được đề xuất mua kèm
+        
+        const productIds = cart.map(product => product.id);
+        dispatch(recommendOrder(productIds));
     }, []);
     const [selectAll, setSelectAll] = useState(false);
     const [isDiscountOpen, setIsDiscountOpen] = useState(false);
@@ -209,6 +219,22 @@ export const OrderPage = () => {
                                 </tbody>
                             </table>
                         </div>
+
+                        {
+                            recommendOrders.length > 0 &&
+                            <div className="bg-white p-4 rounded-md shadow-md border mt-5">
+
+                                <h2 className="text-[20px] font-semibold mt-7">Bạn có thể mua kèm</h2>
+
+                                <div className="w-full my-5">
+                                    {
+                                        recommendOrders
+                                        && <ProductRecommend data={recommendOrders} />
+                                    }
+                                </div>
+                            </div>
+                        }
+
                     </div>
 
                     <div className="p-4 rounded-md w-1/3">
