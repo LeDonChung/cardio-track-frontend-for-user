@@ -242,6 +242,7 @@ export const CartPage = () => {
             exportInvoice: isInvoiceRequested,
             feeShip: feeShip,
             customer: user.id,
+            paymentMethod: paymentMethod,
             addressDetail: {
                 district: selectedAddress ? selectedAddress.district : districts.find(district => district.code === Number(selectedDistrict.value)).name,
                 province: selectedAddress ? selectedAddress.province : provinces.find(province => province.code === Number(selectedProvince.value)).name,
@@ -262,7 +263,6 @@ export const CartPage = () => {
             let orderId = '';            
             if (result.payload && result.payload.data) {
                 orderId = result.payload.data.id;  
-                console.log(orderId); 
             } else {
                 console.log('Không có dữ liệu đơn hàng');
             }
@@ -270,14 +270,10 @@ export const CartPage = () => {
             showToast("Đặt hàng thành công", "success");
             dispatch(clearSelectedProducts());
 
-            if (paymentMethod === 'cash') {
+            if (paymentMethod === 'CASH') {
                 navigate('/');
-            } else if (paymentMethod === 'qr') {
+            } else if (paymentMethod === 'QR_CODE') {
                 try {
-                    console.log("2: " + orderId);
-
-                    console.log(orderDetailsPayment);
-
                     // Gọi API của PayOS để tạo payment link
                     const response = await fetch('http://localhost:8888/api/v1/pay/create-payment-link', {
                         method: 'POST',
@@ -500,7 +496,7 @@ export const CartPage = () => {
                             <div className="mb-4">
                                 <label className="flex items-center mb-2 pb-2 border-b">
                                     <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('cash')}/>
+                                    onChange={()=>setPaymentMethod('CASH')}/>
                                     <img
                                         src="/icon/ic_cod.png"
                                         alt="Thanh toán tiền mặt khi nhận hàng"
@@ -510,7 +506,7 @@ export const CartPage = () => {
                                 </label>
                                 <label className="flex items-center mb-2 pb-2 border-b">
                                     <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('qr')}/>
+                                    onChange={()=>setPaymentMethod('QR_CODE')}/>
                                     <img
                                         src="/icon/ic_qr.png"
                                         alt="Thanh toán bằng chuyển khoản (QR Code)"
