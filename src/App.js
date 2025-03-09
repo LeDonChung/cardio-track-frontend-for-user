@@ -1,5 +1,5 @@
 import './App.css';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { CartPage } from './pages/CartPage';
@@ -13,6 +13,7 @@ import { ViewPostPage } from './pages/ViewPostPage.js';
 import {AddressModal} from './pages/AddressModal.js';
 import{UpdateUserModal} from './pages/UpdateUserModal.js';
 import { FilterProductPage } from './pages/FilterProductPage.js';
+import ChatBox from './components/ChatBox.js';
 function App() {
   return (
     <BrowserRouter
@@ -21,6 +22,7 @@ function App() {
         v7_relativeSplatPath: true
       }}
     >
+      <ChatBox />
       <Routes>
         
         {/* Login Page */}
@@ -48,6 +50,8 @@ function App() {
 
         {/* filter product page */}
         <Route path="/filter-product" element={<FilterProductPage />} />
+
+
       </Routes>
     </BrowserRouter>
 

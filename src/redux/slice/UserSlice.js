@@ -167,6 +167,7 @@ const UserSlice = createSlice({
         });
         builder.addCase(fetchUserInfo.fulfilled, (state, action) => {
             localStorage.setItem("userInfo", JSON.stringify(action.payload.data));
+            login(action.payload.data);
             state.errorResponse = null;
         });
         builder.addCase(fetchUserInfo.rejected, (state, action) => {
