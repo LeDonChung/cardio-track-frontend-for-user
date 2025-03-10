@@ -6,7 +6,8 @@ import showToast from "../utils/AppUtils"; // Import showToast để hiển th�
 export const ProductPreview = ({ item }) => {
     const navigate = useNavigate()
     const handlerGoDetailClick = () => {
-        navigate(`/product/${item.id}`)
+        // link use a tag
+        window.location.href = `/product/${item.id}`
     }
 
 

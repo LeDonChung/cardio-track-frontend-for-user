@@ -7,79 +7,10 @@ import showToast from "../utils/AppUtils";
 import Slider from "react-slick";
 import { faPlus, faMinus, faCircleQuestion, faAngleDown, faAngleUp } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { getProductById } from "../redux/slice/ProductSlice";
+import { getProductById, recommendProduct } from "../redux/slice/ProductSlice";
+import { ProductRecommend } from "../components/ProductRecommend";
 
-const productModel = {
-    "id": 41,
-    "des": "<h3>Mẹ an lành với thai kỳ khỏe mạnh</h3><p>Prenatal One là sản phẩm giúp bổ sung DHA, vitamin và khoáng chất thiết yếu, hỗ trợ tăng cường sức khỏe cho phụ nữ mang thai và sau khi sinh. Prenatal One sản xuất bởi thương hiệu <a href=\"https://nhathuoclongchau.com.vn/thuong-hieu/vitamins-for-life\">Vitamins For Life</a> đến từ Hoa Kỳ.</p><figure class=\"image\"><img src=\"https://cdn.nhathuoclongchau.com.vn/unsafe/800x0/https://cms-prod.s3-sgn09.fptcloud.com/prenatal_one_60v_37593_5d02c0df4e.png\" alt=\"prenatal-one-60v-37593.png\"></figure><p>Góp phần cho một thai kỳ khỏe mạnh không thể thiếu một chế độ dinh dưỡng đầy đủ, đa dạng các chất. Đây là nền tảng cho thai nhi có thể hoàn thiện các bộ phận, chức năng cơ thể; đồng thời giúp người mẹ luôn khỏe mạnh và giảm các triệu chứng khó chịu trong hơn 9 tháng mang thai. Mẹ ăn uống đa dạng cùng việc bổ sung dinh dưỡng từ Prenatal One mỗi ngày giúp mẹ khỏe và trải qua một thai kỳ nhẹ nhàng.</p><p>Prenatal One là sản phẩm bổ sung dinh dưỡng cho tất cả các giai đoạn của thai kỳ. Với thành phần DHA cùng các <a href=\"https://nhathuoclongchau.com.vn/thuc-pham-chuc-nang/vitamin-khoang-chat\">vitamin và khoáng chất</a> thiết yếu khai thác chủ yếu từ tự nhiên, Prenatal One hỗ trợ tăng cường sức khỏe và sự phát triển toàn diện của cả mẹ và bé. Sản phẩm không chứa men, thuốc trừ sâu, hóa chất tổng hợp cũng như các chất gây dị ứng và độc tố khác.</p><p>Viên uống cũng được nghiên cứu phù hợp với nhu cầu dinh dưỡng của người mẹ khi mang thai và sau khi sinh, giúp tăng cường miễn dịch bảo vệ mẹ trước các tác động tiêu cực, tạo thêm năng lượng và cân bằng dinh dưỡng để cơ thể có đủ dưỡng chất nuôi dưỡng cả mẹ và bé yêu trong bụng, đồng thời có thể tiết sữa tốt sau sinh.</p><p>Đối với phụ nữ sinh thường bị mất nhiều sức lực, cơ thể mệt mỏi, Prenatal One còn là trợ thủ giúp mẹ bổ sung đủ chất để hỗ trợ cho quá trình phục hồi sau quá trình sinh nở và cho việc cho con bú.</p><p>Prenatal One được sản xuất bởi thương hiệu Vitamins For Life đến từ Mỹ. Đây là công ty chuyên sản xuất các dòng sản phẩm chăm sóc sức khỏe nổi tiếng với cam kết đem đến sản phẩm trong lành, tinh khiết nhất từ nguồn nguyên liệu sạch, an toàn và không để lại bất kỳ tác dụng phụ không mong muốn nào cho người tiêu dùng.</p><ul><li>Sản phẩm sản xuất tại Hoa Kỳ theo tiêu chuẩn chất lượng của ngành công nghiệp dược phẩm.</li><li>Sản phẩm luôn đảm bảo tất cả các chế độ kiểm tra mức an toàn, thực phẩm sạch, vượt qua sự kiểm định khắt khe của Cục Quản lý Thực phẩm và Dược phẩm Hoa Kỳ (FDA hoặc USFDA) trước khi ra thị trường.</li><li>Sản phẩm được cấp giấy chứng nhận Lưu hành tại Mỹ bởi Bộ Y tế Hoa Kỳ.</li><li>Nhà sản xuất luôn tuân thủ các bước theo Tiêu chuẩn Thực hành tốt sản xuất (GMP).</li></ul>",
-    "desShort": "<p>Prenatal One cung cấp DHA, vitamin và khoáng chất thiết yếu, giúp cân bằng dinh dưỡng cho phụ nữ đang mang thai và sau khi sinh.</p>",
-    "discount": 53,
-    "init": "Hộp",
-    "name": "Thực phẩm bảo vệ sức khỏe Prenatal One Vitamins For Life cung cấp DHA, vitamin và khoáng chất ",
-    "price": 660000.0,
-    "primaryImage": "https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/DSC_00115_72e83dcffe.jpg",
-    "sku": "00503294",
-    "status": 1,
-    "brand": {
-        "id": 29,
-        "image": "https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/Stella_Pharm_252x252_66deef2f18.png",
-        "title": "Stella Pharm"
-    },
-    "categories": [
-        {
-            "id": 3,
-            "fullPathSlug": "/thuc-pham-chuc-nang/canxi-vitamin-D",
-            "icon": "https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/bo_sung_canxi_vitamin_d_level_3_1cac767906.png",
-            "level": 3,
-            "title": "Bổ sung Canxi & Vitamin D",
-            "parentId": 2,
-            "children": []
-        }
-    ],
-    "specifications": [
-        {
-            "id": 6,
-            "title": "Hộp 60 Viên"
-        }
-    ],
-    "images": [
-        {
-            "id": 303,
-            "url": "https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/DSC_00107_8d2f87320f.jpg"
-        },
-        {
-            "id": 302,
-            "url": "https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/DSC_00105_fbafb6e554.jpg"
-        },
-        {
-            "id": 305,
-            "url": "https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/DSC_00109_be283dabc3.jpg"
-        },
-        {
-            "id": 307,
-            "url": "https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/DSC_00119_e851702b44.jpg"
-        },
-        {
-            "id": 306,
-            "url": "https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/DSC_00110_5e0c49bc10.jpg"
-        },
-        {
-            "id": 304,
-            "url": "https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/DSC_00108_6ffe2e70da.jpg"
-        },
-        {
-            "id": 308,
-            "url": "https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/DSC_00123_8078660030.jpg"
-        }
-    ],
-    "tags": [
-        {
-            "id": 3,
-            "title": "Phụ nữ có thai",
-            "des": "Phụ nữ có thai"
-        }
-    ]
-};
+
 
 const initialQuantity = { quantity: 1 };
 
@@ -103,6 +34,7 @@ export const ProductDetailPage = () => {
     const [expanded, setExpanded] = useState(false);
     const product = useSelector((state) => state.product.product);
 
+    const recommendProducts = useSelector((state) => state.product.recommendProducts);
 
 
     // setting for slick slider
@@ -113,11 +45,12 @@ export const ProductDetailPage = () => {
         slidesToScroll: 1,
         autoplay: true,
         autoplaySpeed: 3000,
-        arrows: true, 
+        arrows: true,
     };
 
     const initital = async () => {
         await dispatch(getProductById(id));
+        await dispatch(recommendProduct(id));
     }
     useEffect(() => {
         initital()
@@ -213,6 +146,17 @@ export const ProductDetailPage = () => {
                                 </span>
                             </button>
                         </div>
+                    </div>
+                </div>
+                <div className="container mx-auto">
+
+                    <h2 className="text-[20px] font-semibold mt-7">Sản phẩm liên quan</h2>
+
+                    <div className="w-full my-5">
+                        {
+                            recommendProducts 
+                            && <ProductRecommend data={recommendProducts} />
+                        }
                     </div>
                 </div>
                 <Footer />

@@ -85,8 +85,7 @@ export const HomePage = () => {
         await dispatch(getBrands());
         await dispatch(getProminents());
         await dispatch(getObject());
-
-        setSelectedTag(tagsByObject[0]);
+        setSelectedTag(tagsByObject[0]); 
     }
 
     const prominents = useSelector(state => state.category.prominents);

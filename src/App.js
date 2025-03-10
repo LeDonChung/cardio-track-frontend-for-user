@@ -13,6 +13,7 @@ import { ViewPostPage } from './pages/ViewPostPage.js';
 import {AddressModal} from './pages/AddressModal.js';
 import{UpdateUserModal} from './pages/UpdateUserModal.js';
 import { FilterProductPage } from './pages/FilterProductPage.js';
+import { PaymentResult } from './components/PaymentResult.js';  
 function App() {
   return (
     <BrowserRouter
@@ -51,6 +52,9 @@ function App() {
 
         {/* filter product page */}
         <Route path="/filter-product" element={<FilterProductPage />} />
+
+        {/* payment result*/}
+        <Route path="/payment-result" element={<PaymentResult />} />
       </Routes>
     </BrowserRouter>
 
