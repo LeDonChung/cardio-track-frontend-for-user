@@ -43,6 +43,9 @@ function App() {
 
         {/* View Post Page */}
         <Route path="/view-post" element={<ViewPostPage />} />
+               {/* View My Post Page */}
+        
+
         
         {/* product detail page */}
         <Route path="/product/:id" element={<ProductDetailPage />} />
