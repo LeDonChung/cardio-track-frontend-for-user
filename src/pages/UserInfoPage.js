@@ -34,6 +34,9 @@ export const UserInfoPage = () => {
   }, [dispatch]);
 
 
+  
+
+
 
   // ✅ Lấy dữ liệu user từ localStorage khi load trang
   const [userInfo, setUserInfo] = useState(() => {
@@ -52,9 +55,16 @@ export const UserInfoPage = () => {
   }, [dispatch]);
 
   useEffect(() => {
-    // Gọi fetchUserAddresses với userId từ userInfo
-    dispatch(fetchUserAddresses());
-  }, [dispatch]);
+    // Lấy dữ liệu từ localStorage nếu có
+    const storedAddresses = JSON.parse(localStorage.getItem("userAddress")) || [];
+    if (storedAddresses.length > 0) {
+        // Nếu có dữ liệu trong localStorage, sử dụng dữ liệu đó
+        dispatch(fetchUserAddresses(storedAddresses)); 
+    } else {
+        // Nếu không có, gọi API
+        dispatch(fetchUserAddresses()); 
+    }
+}, [dispatch]);
 
   useEffect(() => {
     // kiểm tra đã login chưa
@@ -184,7 +194,9 @@ export const UserInfoPage = () => {
   
   //mua lại sản phẩm
 
-  
+  useEffect(() => {
+    console.log("User Addresses:", userAddresses); // Kiểm tra xem dữ liệu có được tải đúng không
+}, [userAddresses]);
 
   const handleNavigation = (section) => {
     setActiveSection(section);

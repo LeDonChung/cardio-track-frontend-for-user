@@ -4,6 +4,7 @@ import axios from "axios";
 
 const initialState = {
     userAddresses: [],
+    userOrdersAddress: [],
     orders: [],
     errorResponse: null
 };
@@ -198,10 +199,12 @@ const UserSlice = createSlice({
             state.errorResponse = null;
         });
         builder.addCase(fetchUserAddresses.fulfilled, (state, action) => {
-            state.userAddresses = action.payload.data; // Cập nhật danh sách địa chỉ vào Redux store
-            localStorage.setItem("userAddress", JSON.stringify(action.payload.data));
-            state.errorResponse = null;
+            if (action.payload && action.payload.data) {
+                state.userAddresses = action.payload.data;  // Cập nhật dữ liệu địa chỉ
+                localStorage.setItem("userAddress", JSON.stringify(action.payload.data));  // Lưu vào localStorage
+            }
         });
+        
         builder.addCase(fetchUserAddresses.rejected, (state, action) => {
             state.errorResponse = action.payload;
         });
@@ -258,7 +261,7 @@ const UserSlice = createSlice({
             state.errorResponse = null;
         });
         builder.addCase(fetchUserOrders.fulfilled, (state, action) => {
-            state.userAddresses = action.payload.data; // Cập nhật danh sách địa chỉ vào Redux store
+            state.userOrdersAddress = action.payload.data; // Cập nhật danh sách địa chỉ vào Redux store
             state.orders = action.payload.data;
             localStorage.setItem("MyOrder", JSON.stringify(action.payload.data));
             state.errorResponse = null;
