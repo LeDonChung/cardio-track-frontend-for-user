@@ -99,9 +99,19 @@ export const UserInfoPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
-  const handleCreatePost = () => {
-    setIsModalOpen(true);
-  };
+ // Kiểm tra roleName từ userInfo
+ const isUser = userInfo?.roleNames?.includes("user");
+
+ // Xử lý các hành động khi người dùng có role là "user"
+ const handleCreatePost = () => {
+   if (isUser) {
+     showToast("Bạn không có quyền tạo bài viết", "error");
+     return;
+   }
+   setIsModalOpen(true);
+ };
+
+
   const handleUpdatePost = (post) => {
     setSelectedPost(post); // Set the post to be updated
     setIsModalOpenUpdate(true); // Open the update modal
@@ -164,12 +174,13 @@ export const UserInfoPage = () => {
   
   
   
-  const filteredOrders = orders.filter((order) => {
+  const filteredOrders = (orders || []).filter((order) => {
     return (
       (order.id && order.id.toString().includes(searchTerm)) || 
       order.item.toLowerCase().includes(searchTerm.toLowerCase())
     );
   });
+  
   
   //mua lại sản phẩm
 
@@ -426,8 +437,8 @@ export const UserInfoPage = () => {
               </div>
             )}
 
-        {/* hiển thị tất cả bài viết của tôi */}
-        {activeSection === "my-post" && (
+       {/* hiển thị tất cả bài viết của tôi */}
+        {activeSection === "my-post" && !isUser && (
           <div className="text-center">
             <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg">
               <h3 className="text-xl font-bold">Bài viết của tôi</h3>
@@ -441,8 +452,13 @@ export const UserInfoPage = () => {
                 {posts.map((post) => (
                   <div key={post.id} className="border-b pb-4 mb-4 flex justify-between items-center">
                     <div>
-                      <h2 className="text-xl font-semibold text-left">{post.title}</h2>
-                      <p className="text-left">{post.content}</p>
+                      <h2 className="text-xl font-semibold text-left">
+                        Tác giả: <span className="font-normal">{post.fullName}</span>
+                      </h2>
+                      <h2 className="text-xl font-semibold text-left">
+                        Tiêu đề: <span className="font-normal">{post.title}</span>
+                      </h2>
+                      <p className="text-left">Nội dung: {post.content}</p>
                       <div className="text-sm text-gray-500 text-left">
                         Ngày tạo: {format(new Date(post.createdAt), "HH:mm dd/MM/yyyy")}
                       </div>
@@ -464,13 +480,21 @@ export const UserInfoPage = () => {
               Tạo bài viết mới
             </button>
           </div>
-        )}{/* Modal for updating the post */}
-        {isModalOpenUpdate && selectedPost && (
-            <UpdatePostPage
-                setIsModalOpen={setIsModalOpenUpdate}
-                postToEdit={selectedPost}
-            />
+        )}{/* Thông báo lỗi nếu là người dùng với role 'user' */}
+        {isUser && ( 
+          <div className="alert alert-warning">
+            <p>Chức năng chỉ dành cho nhân viên.</p>
+          </div>
         )}
+
+        {/* Modal for updating the post */}
+        {isModalOpenUpdate && selectedPost && (
+          <UpdatePostPage
+            setIsModalOpen={setIsModalOpenUpdate}
+            postToEdit={selectedPost}
+          />
+        )}
+
 
 
 
