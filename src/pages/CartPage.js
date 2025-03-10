@@ -40,7 +40,9 @@ export const CartPage = () => {
     const [note, setNote] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [addresses, setAddresses] = useState([]);
-    const [selectedAddress, setSelectedAddress] = useState(null);
+    const [selectedAddress, setSelectedAddress] = useState("");
+    const [paymentMethod, setPaymentMethod] = useState('');
+
 
 
     useEffect(() => {
@@ -184,9 +186,8 @@ export const CartPage = () => {
         setNote(e.target.value);
     };
 
-    const token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwODY3NzEzNTU3IiwiYXV0aG9yaXRpZXMiOltdLCJpc0VuYWJsZSI6dHJ1ZSwiaWF0IjoxNzQwNTY2MDc4LCJleHAiOjE3NDExNzA4Nzh9.86IsRIQhcdvT452m_HXPRvedUAibsOoNEYQjv1U-Hxs";
-
-    const handleSubmitOrder = () => {
+    const token = localStorage.getItem('token');
+    const handleSubmitOrder = async() => {
         if (!fullName) {
             alert("Vui lòng nhập họ tên người nhận hàng");
             return;
@@ -217,19 +218,31 @@ export const CartPage = () => {
             return;
         }
 
+        if(paymentMethod === '') {
+            alert("Vui lòng chọn phương thức thanh toán. Hiện tại chỉ hổ trợ tiền mặt và QR");
+            return;
+        }
+
         // Lấy thông tin người dùng và đơn hàng
         const orderDetails = selectedProducts.map(product => ({
             discount: product.discount,
             price: product.price,
             quantity: product.quantity,
-            medicine: product.id, // Bạn cần thay 'medicine' bằng id sản phẩm hoặc một thuộc tính tương tự
+            medicine: product.id, 
         }));
+
+        const orderDetailsPayment = selectedProducts.map(product => ({
+            price: product.price - product.discount*product.price/100,
+            quantity: product.quantity,
+            name: product.name,
+        })); 
 
         const orderData = {
             note: note,
             exportInvoice: isInvoiceRequested,
             feeShip: feeShip,
             customer: user.id,
+            paymentMethod: paymentMethod,
             addressDetail: {
                 district: selectedAddress ? selectedAddress.district : districts.find(district => district.code === Number(selectedDistrict.value)).name,
                 province: selectedAddress ? selectedAddress.province : provinces.find(province => province.code === Number(selectedProvince.value)).name,
@@ -242,15 +255,60 @@ export const CartPage = () => {
             orderDetails: orderDetails,
         };
 
-        dispatch(submitOrderThunk({ orderData, token: token }))
-            .then(() => {
-                showToast("Đặt hàng thành công", "success");
-                dispatch(clearSelectedProducts());
+        sessionStorage.setItem("orderData", JSON.stringify(orderData));
+
+        try {
+            // Lưu lại đơn hàng vào cơ sở dữ liệu với trạng thái SPENDING
+            const result = await dispatch(submitOrderThunk({ orderData, token }));
+            let orderId = '';            
+            if (result.payload && result.payload.data) {
+                orderId = result.payload.data.id;  
+            } else {
+                console.log('Không có dữ liệu đơn hàng');
+            }
+    
+            showToast("Đặt hàng thành công", "success");
+            dispatch(clearSelectedProducts());
+
+            if (paymentMethod === 'CASH') {
                 navigate('/');
-            })
-            .catch(() => {
-                showToast("Đặt hàng thất bại", "error");
-            });
+            } else if (paymentMethod === 'QR_CODE') {
+                try {
+                    // Gọi API của PayOS để tạo payment link
+                    const response = await fetch('http://localhost:8888/api/v1/pay/create-payment-link', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`,
+                        },
+                        body: JSON.stringify({
+                            products: orderDetailsPayment,
+                            description: 'Thanh toán',
+                            returnUrl: 'http://localhost:3000/payment-result',
+                            cancelUrl: 'http://localhost:3000/payment-result',
+                            amount: 10000,
+                            orderCode: orderId,
+                        }),
+                    });
+    
+                    const data = await response.json();
+    
+                    if (response.ok) {
+                        const paymentLink = data.checkoutUrl;
+                        window.location.href = `${paymentLink}`;
+                    } else {
+                        showToast("Có lỗi xảy ra khi tạo liên kết thanh toán", "error");
+                        navigate('/');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showToast("Có lỗi xảy ra trong quá trình thanh toán", "error");
+                }
+            }
+        } catch (error) {
+            showToast("Đặt hàng thất bại", "error");
+        }
+        
     };
 
     const customSelectStyles = {
@@ -437,7 +495,8 @@ export const CartPage = () => {
                         <div className="bg-white p-4 rounded-md shadow-md mb-4">
                             <div className="mb-4">
                                 <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" />
+                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
+                                    onChange={()=>setPaymentMethod('CASH')}/>
                                     <img
                                         src="/icon/ic_cod.png"
                                         alt="Thanh toán tiền mặt khi nhận hàng"
@@ -446,7 +505,8 @@ export const CartPage = () => {
                                     <span>Thanh toán tiền mặt khi nhận hàng</span>
                                 </label>
                                 <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" />
+                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
+                                    onChange={()=>setPaymentMethod('QR_CODE')}/>
                                     <img
                                         src="/icon/ic_qr.png"
                                         alt="Thanh toán bằng chuyển khoản (QR Code)"
@@ -455,7 +515,8 @@ export const CartPage = () => {
                                     <span>Thanh toán bằng chuyển khoản (QR Code)</span>
                                 </label>
                                 <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" />
+                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
+                                    onChange={()=>setPaymentMethod('')}/>
                                     <img
                                         src="/icon/ic_card.png"
                                         alt="Thanh toán bằng thẻ ATM nội địa và tài khoản ngân hàng"
@@ -464,7 +525,8 @@ export const CartPage = () => {
                                     <span>Thanh toán bằng thẻ ATM nội địa và tài khoản ngân hàng</span>
                                 </label>
                                 <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" />
+                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
+                                    onChange={()=>setPaymentMethod('')}/>
                                     <img
                                         src="/icon/ic_vnpay_atm.png"
                                         alt="Thanh toán bằng thẻ quốc tế Visa, Master, JCB, AMEX (GooglePay, ApplePay)"
@@ -473,7 +535,8 @@ export const CartPage = () => {
                                     <span>Thanh toán bằng thẻ quốc tế Visa, Master, JCB, AMEX (GooglePay, ApplePay)</span>
                                 </label>
                                 <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" />
+                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
+                                    onChange={()=>setPaymentMethod('')}/>
                                     <img
                                         src="/icon/ic_zalopay.png"
                                         alt="Thanh toán bằng ví ZaloPay"
@@ -482,7 +545,8 @@ export const CartPage = () => {
                                     <span>Thanh toán bằng ví ZaloPay</span>
                                 </label>
                                 <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" />
+                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
+                                    onChange={()=>setPaymentMethod('')}/>
                                     <img
                                         src="/icon/ic_momo.png"
                                         alt="Thanh toán bằng ví MoMo"
@@ -491,7 +555,8 @@ export const CartPage = () => {
                                     <span>Thanh toán bằng ví MoMo</span>
                                 </label>
                                 <label className="flex items-center">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" />
+                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
+                                    onChange={()=>setPaymentMethod('')}/>
                                     <img
                                         src="/icon/ic_vnpay.png"
                                         alt="Thanh toán bằng ví VNPay"
