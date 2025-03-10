@@ -376,12 +376,14 @@ export const UserInfoPage = () => {
 
                 {/* Danh sách đơn hàng */}
                 <div className="overflow-y-auto max-h-[500px]">
-                  {orders.map((order) => (
+                {orders
+                  .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))  // Sắp xếp theo ngày tạo đơn hàng mới nhất
+                  .map((order) => (
                     <div key={order.id} className="flex flex-col border-b pb-4 mb-6">
                       
                       {/* Đơn hàng thông tin */}
                       <div className="flex justify-between mb-4">
-                        <span className="text-lg font-medium">Đơn hàng {order.orderDate}</span>
+                        <span className="text-lg font-medium">Đơn đặt ngày: {format(new Date(order.orderDate), "dd/MM/yyyy")} </span>
                         <span className="text-gray-500 text-lg" style={{position:'relative',right:'50px'}}>Mã đơn: {order.id}</span>
                       </div>
 
@@ -437,63 +439,70 @@ export const UserInfoPage = () => {
               </div>
             )}
 
-       {/* hiển thị tất cả bài viết của tôi */}
-        {activeSection === "my-post" && !isUser && (
-          <div className="text-center">
-            <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg">
-              <h3 className="text-xl font-bold">Bài viết của tôi</h3>
-            </div>
-            {loadingMyPost ? (
-              <p>Đang tải...</p>
-            ) : posts.length === 0 ? (
-              <p>Không có bài viết nào.</p>
-            ) : (
-              <div className="space-y-4 mt-4">
-                {posts.map((post) => (
-                  <div key={post.id} className="border-b pb-4 mb-4 flex justify-between items-center">
-                    <div>
-                      <h2 className="text-xl font-semibold text-left">
-                        Tác giả: <span className="font-normal">{post.fullName}</span>
-                      </h2>
-                      <h2 className="text-xl font-semibold text-left">
-                        Tiêu đề: <span className="font-normal">{post.title}</span>
-                      </h2>
-                      <p className="text-left">Nội dung: {post.content}</p>
-                      <div className="text-sm text-gray-500 text-left">
-                        Ngày tạo: {format(new Date(post.createdAt), "HH:mm dd/MM/yyyy")}
-                      </div>
+            {/* hiển thị tất cả bài viết của tôi */}
+            {activeSection === "my-post" && !isUser && (
+              <div className="text-center">
+                <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg">
+                  <h3 className="text-xl font-bold">Bài viết của tôi</h3>
+                </div>
+                {loadingMyPost ? (
+                  <p>Đang tải...</p>
+                ) : posts.length === 0 ? (
+                  <p>Không có bài viết nào.</p>
+                ) : (
+                  <div className="space-y-4 mt-4">
+                    <div className="post-container" style={{ maxHeight: '500px', overflowY: 'auto' }}> {/* Thêm thanh cuộn */}
+                      {posts.map((post) => (
+                        <div key={post.id} className="border-b pb-4 mb-4 flex justify-between items-center">
+                          <div>
+                            <h2 className="text-xl font-semibold text-left">
+                              Tác giả: <span className="font-normal">{post.fullName}</span>
+                            </h2>
+                            <h2 className="text-xl font-semibold text-left">
+                              Tiêu đề: <span className="font-normal">{post.title}</span>
+                            </h2>
+                            <div
+                                className="ql-editor"
+                                dangerouslySetInnerHTML={{ __html: post.content }} // Đảm bảo nội dung hiển thị đúng định dạng HTML
+                            />
+                            <div className="text-sm text-gray-500 text-left">
+                              Ngày tạo: {format(new Date(post.createdAt), "HH:mm dd/MM/yyyy")}
+                            </div>
+                          </div>
+                          <button
+                            className="ml-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                            onClick={() => handleUpdatePost(post)}
+                          >
+                            Cập nhật
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                    <button
-                      className="ml-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                      onClick={() => handleUpdatePost(post)}
-                    >
-                      Cập nhật
-                    </button>
                   </div>
-                ))}
+                )}
+                <button
+                  className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  onClick={handleCreatePost}
+                >
+                  Tạo bài viết mới
+                </button>
               </div>
             )}
-            <button
-              className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              onClick={handleCreatePost}
-            >
-              Tạo bài viết mới
-            </button>
-          </div>
-        )}{/* Thông báo lỗi nếu là người dùng với role 'user' */}
-        {isUser && ( 
-          <div className="alert alert-warning">
-            <p>Chức năng chỉ dành cho nhân viên.</p>
-          </div>
-        )}
 
-        {/* Modal for updating the post */}
-        {isModalOpenUpdate && selectedPost && (
-          <UpdatePostPage
-            setIsModalOpen={setIsModalOpenUpdate}
-            postToEdit={selectedPost}
-          />
-        )}
+            {/* Thông báo lỗi nếu là người dùng với role 'user' */}
+            {isUser && ( 
+              <div className="alert alert-warning">
+                <p>Chức năng chỉ dành cho nhân viên.</p>
+              </div>
+            )}
+
+            {/* Modal for updating the post */}
+            {isModalOpenUpdate && selectedPost && (
+              <UpdatePostPage
+                setIsModalOpen={setIsModalOpenUpdate}
+                postToEdit={selectedPost}
+              />
+            )}
 
 
 

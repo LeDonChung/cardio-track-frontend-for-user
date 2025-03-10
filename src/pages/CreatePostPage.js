@@ -1,8 +1,25 @@
-import React, { useState, useEffect } from "react";
-import { fetchCreatePost } from "../redux/slice/PostSlice";
+import React, { useState } from "react";
+import ReactQuill from "react-quill-new"; // Import react-quill-new
+import "react-quill-new/dist/quill.snow.css"; // Import CSS style for Quill
+import { fetchCreatePost, fetchMyListPost  } from "../redux/slice/PostSlice";
 import showToast from "../utils/AppUtils";
-import { useDispatch, useSelector } from "react-redux";
+import { useDispatch } from "react-redux";
 
+
+
+// Toolbar modules for formatting (optional)
+const modules = {
+    toolbar: [
+        [{ header: "1" }, { header: "2" }, { font: [] }],
+        [{ size: ["small", "medium", "large", "huge", "10px", "12px", "14px", "18px", "24px", "36px"] }],
+        [{ list: "ordered" }, { list: "bullet" }],
+        ["bold", "italic", "underline", "strike"],
+        [{ align: [] }],
+        ["link", "image"],
+        [{ color: [] }, { background: [] }],
+        ["clean"]
+    ]
+};
 
 export const CreatePostPage = ({ setIsModalOpen }) => {
     const [title, setTitle] = useState("");
@@ -14,8 +31,10 @@ export const CreatePostPage = ({ setIsModalOpen }) => {
 
         // Gọi API tạo bài viết qua Redux
         dispatch(fetchCreatePost({ title, content })).then(() => {
-            showToast("Cập nhật thông tin thành công!", "success");
-            setIsModalOpen(false);  // Đóng modal khi tạo bài viết thành công
+             dispatch(fetchMyListPost()).then(() => {
+                showToast("Cập nhật thông tin thành công!", "success");
+                setIsModalOpen(false);  // Đóng modal khi tạo bài viết thành công
+            });
         }).catch(err => {
             console.log("Error creating post:", err);
         });
@@ -23,11 +42,11 @@ export const CreatePostPage = ({ setIsModalOpen }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 1000 }}>
-            <div className="bg-white p-6 rounded-lg shadow-lg w-1/2">
+            <div className="bg-white p-6 rounded-lg shadow-lg" style={{ width: "90%", height: "90%" }}>
                 <h1 className="text-2xl font-bold mb-4">Tạo Bài Viết</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
-                        <label className="block font-medium">Tiêu đề</label>
+                        <label className="block text-2xl font-bold">Tiêu đề</label>
                         <input
                             type="text"
                             value={title}
@@ -37,15 +56,20 @@ export const CreatePostPage = ({ setIsModalOpen }) => {
                         />
                     </div>
                     <div className="mb-4">
-                        <label className="block font-medium">Nội dung</label>
-                        <textarea
+                        <label className="block text-2xl font-bold">Nội dung</label>
+                        <ReactQuill
                             value={content}
-                            onChange={(e) => setContent(e.target.value)} // Cần phải lấy e.target.value
-                            className="w-full p-3 border border-gray-300 rounded-lg"
-                            style={{ minHeight: "200px", maxHeight: "400px", overflowY: "auto" }}
-                            placeholder="Nhập nội dung bài viết"
+                            onChange={setContent} // Cập nhật nội dung
+                            className="w-full p-3 border border-gray-300 rounded-lg custom-quill"
+                            style={{                                                             
+                                minHeight: "300px", // Tăng chiều cao mặc định
+                                maxHeight: "600px", // Giới hạn chiều cao tối đa
+                                overflowY: "auto", // Thêm cuộn dọc nếu nội dung quá dài
+                                resize: "both", // Cho phép người dùng thay đổi kích thước
+                            }}
+                            placeholder="Nhập nội dung bài viết" 
+                            modules={modules} // Sử dụng modules đã cấu hình
                         />
-
                     </div>
 
                     <div className="flex justify-end space-x-4">
@@ -64,9 +88,53 @@ export const CreatePostPage = ({ setIsModalOpen }) => {
                         </button>
                     </div>
                 </form>
+                <style jsx>{`
+                    .ql-size {
+                        font-size: 16px; /* Đảm bảo kích thước chữ mặc định */
+                    }
+
+                    .ql-size .ql-picker-item {
+                        font-size: 16px !important; /* Đảm bảo các item trong dropdown có kích thước đúng */
+                    }
+
+                    .ql-size .ql-picker-item[data-value="10px"] {
+                        font-size: 10px !important; /* Cập nhật size chữ cho từng giá trị cụ thể */
+                    }
+
+                    .ql-size .ql-picker-item[data-value="12px"] {
+                        font-size: 12px !important;
+                    }
+
+                    .ql-size .ql-picker-item[data-value="14px"] {
+                        font-size: 14px !important;
+                    }
+
+                    .ql-size .ql-picker-item[data-value="18px"] {
+                        font-size: 18px !important;
+                    }
+
+                    .ql-size .ql-picker-item[data-value="24px"] {
+                        font-size: 24px !important;
+                    }
+
+                    .ql-size .ql-picker-item[data-value="36px"] {
+                        font-size: 36px !important;
+                    }
+
+                    .ql-size .ql-picker-item.ql-selected {
+                        background-color: #e0e0e0; /* Tô màu nền cho item đã chọn */
+                        font-weight: bold;
+                    }
+
+                    .ql-size .ql-picker-item:hover {
+                        background-color: #f0f0f0; /* Tô màu nền khi hover */
+                    }
+                `}</style>
             </div>
         </div>
     );
 };
 
 export default CreatePostPage;
+
+

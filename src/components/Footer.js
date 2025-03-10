@@ -26,7 +26,7 @@ export const Footer = () => {
                         <li><a href="#" className="text-blue-600 text-custom-size">Góc sức khỏe</a></li>
                         <li><a href="#" className="text-blue-600 text-custom-size">Tra cứu thuốc</a></li>
                         <li><a href="#" className="text-blue-600 text-custom-size">Bệnh thường gặp</a></li>
-                        <li><a href="#" className="text-blue-600 text-custom-size">Tin tức sự kiện</a></li>
+                        <li><a href="/news" className="text-blue-600 text-custom-size">Tin tức sự kiện</a></li>
                     </ul>
                 </div>
                 <div>

@@ -59,6 +59,16 @@ const fetchCreatePost = createAsyncThunk('post/fetchCreatePost', async ({ title,
     }
 });
 
+//All posts
+const fetchAllListPost = createAsyncThunk('post/fetchAllListPost', async (_, { rejectWithValue }) => {
+    try {
+    
+        const response = await axiosInstance.get(`/api/v1/post/all-post`);
+        return response.data; // Trả về dữ liệu người dùng
+    } catch (error) {
+        return rejectWithValue(error.response?.data || "Lỗi API không lấy được post.");
+    }
+});
 
 
 const PostSlice = createSlice({
@@ -98,6 +108,17 @@ const PostSlice = createSlice({
         builder.addCase(fetchUpdatePost.rejected, (state, action) => {
             state.errorResponse = action.payload;
         });
+        //lấy toàn bộ posts
+        builder.addCase(fetchAllListPost.pending, (state, action) => {
+        state.errorResponse = null;
+        } );
+        builder.addCase(fetchAllListPost.fulfilled, (state, action) => {
+            state.errorResponse = null;
+            state.myPosts = action.payload.data;
+        });
+        builder.addCase(fetchAllListPost.rejected, (state, action) => {
+            state.errorResponse = action.payload;
+        });
 
         
 
@@ -105,5 +126,5 @@ const PostSlice = createSlice({
 });
 
 export const { } = PostSlice.actions;
-export { fetchCreatePost, fetchMyListPost,fetchUpdatePost };
+export { fetchCreatePost, fetchMyListPost,fetchUpdatePost,fetchAllListPost };
 export default PostSlice.reducer;
