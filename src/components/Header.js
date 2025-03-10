@@ -9,6 +9,9 @@ import { Trash2 } from "lucide-react";
 import { removeFromCart } from '../redux/slice/CartSlice';
 import { calculateSalePrice, formatPrice } from "../utils/AppUtils"
 
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
+
 export const Header = () => {
     const [hoveredCategory, setHoveredCategory] = useState(null);
     const [hoveredChildCategory, setHoveredChildCategory] = useState(null);
@@ -16,16 +19,11 @@ export const Header = () => {
     const cart = useSelector(state => state.cart.cart);
     const [isHovered, setIsHovered] = useState(false);
 
+    const user = JSON.parse(localStorage.getItem('userInfo'));
+
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
-    const handlerActionLogout = () => {
-        if (localStorage.getItem('token')) {
-            localStorage.removeItem('token');
-        }
-
-        navigate('/login')
-    }
 
 
     const initital = async () => {
@@ -42,14 +40,13 @@ export const Header = () => {
     };
 
     const handleRemoveItem = (id) => {
-        dispatch(removeFromCart(id)); 
+        dispatch(removeFromCart(id));
     };
 
     const handleGoToCart = () => {
-        navigate('/order'); 
+        navigate('/order');
     };
-    
-    const user = JSON.parse(localStorage.getItem('userInfo'));
+
     return (
         <header className="bg-blue-600">
             <div className="bg-blue-600 container mx-auto flex justify-between items-center  p-4">
@@ -108,7 +105,7 @@ export const Header = () => {
                                 //     />
                                 //     Đăng xuất
                                 // </button>
-                                
+
                             )
                             :
                             (
@@ -128,7 +125,7 @@ export const Header = () => {
                         onMouseEnter={() => setIsHovered(true)}
                         onMouseLeave={() => setIsHovered(false)}>
                         <button className='bg-[#002AFF] text-blue-600 ml-4 px-4 py-2 rounded-full mt-2 mb-2'>
-                            <FontAwesomeIcon icon={faCartShopping} className="mr-1" color="#fff" onClick={handleGoToCart}/>
+                            <FontAwesomeIcon icon={faCartShopping} className="mr-1" color="#fff" onClick={handleGoToCart} />
                             <span className="absolute top-0 left-10 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                                 {getCartTotal()}
                             </span>
@@ -140,7 +137,7 @@ export const Header = () => {
                                 <div class="absolute bottom--20 right-8 transform -translate-y-1/2 w-4 h-4 bg-white rotate-45"></div>
                                 <div className="absolute bg-white shadow-lg p-4 right-0 rounded-lg w-96">
                                     <div className=''>
-                                    </div>   
+                                    </div>
                                     <h3 className="text-lg font-semibold mb-2">Giỏ hàng</h3>
                                     <div className='max-h-96 overflow-y-auto'>
                                         <ul>
@@ -149,7 +146,7 @@ export const Header = () => {
                                                     <div className="w-1/7 border border-gray-200 rounded-lg">
                                                         <img src={item.primaryImage} alt={item.name} className="h-16 w-full object-cover p-2" />
                                                     </div>
-                                                    
+
                                                     <div className="flex flex-col w-3/5">
                                                         <span className="text-sm font-medium line-clamp-2 overflow-hidden" title={item.name}>
                                                             {item.name}
@@ -170,7 +167,7 @@ export const Header = () => {
                                                     </div>
 
                                                     <div className="w-1/7 text-center cursor-pointer" >
-                                                        <Trash2 onClick={() => handleRemoveItem(item.id)}/>
+                                                        <Trash2 onClick={() => handleRemoveItem(item.id)} />
                                                     </div>
                                                 </li>
                                             ))}

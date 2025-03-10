@@ -27,14 +27,17 @@ export default function ChatBox() {
     const user = JSON.parse(localStorage.getItem('userInfo'));
     const [messageSend, setMessageSend] = useState(false);
 
-    console.log(messageList)
+
     useEffect(() => {
+        console.log("user", user);
+
         const getMessages = async () => {
             try {
                 const response = await axiosInstance.get(`http://localhost:9095/api/messages/${user.id}`);
                 setMessageList(response.data.messages);
             } catch (error) {
                 console.error("Lỗi lấy tin nhắn:", error);
+                setMessageList([]);
             }
         };
         getMessages();
@@ -49,9 +52,24 @@ export default function ChatBox() {
             onConnect: () => {
                 console.log("✅ WebSocket connected!");
                 client.subscribe("/topic/messages", (message) => {
-                    
-                    setMessageList(prev => [...prev, JSON.parse(message.body)]);
+                    const newMessage = JSON.parse(message.body);
+                    setMessageList(prev => [...(Array.isArray(prev) ? prev : []), newMessage]);
                 });
+
+
+                const message = {
+                    "sender": {
+                        "id": user.id,
+                        "username": user.fullName
+                    },
+                };
+
+                // Notify the server that user has connected
+                client.publish({
+                    destination: "/app/user-connected", // Địa chỉ gửi khi người dùng kết nối
+                    body: JSON.stringify(message) // Gửi senderId thay vì sender
+                });
+
                 setStompClient(client);  // Cập nhật trạng thái client sau khi kết nối
             },
 
@@ -93,14 +111,14 @@ export default function ChatBox() {
             content: message
         };
 
-        console.log("📤 Gửi tin nhắn:", newMessage);
-
         stompClient.publish({
             destination: "/app/chat",
             body: JSON.stringify(newMessage)
         });
 
 
+        // ✅ Thêm luôn tin nhắn vào messageList để hiển thị ngay (instant update)
+        setMessageList(prev => [...(Array.isArray(prev) ? prev : []), newMessage]);
         setMessageSend(!messageSend);
         setMessage("");
     };
@@ -129,7 +147,7 @@ export default function ChatBox() {
 
                     {/* Nội dung chat */}
                     <div className="flex-1 overflow-y-auto p-2">
-                        {messageList.map((msg, index) => (
+                        {messageList && messageList.map((msg, index) => (
                             <div key={index} className={`flex ${(msg.receiverId === user.id) ? "justify-start" : "justify-end"} my-2`}>
                                 <div className={`${(msg.receiverId === user.id) ? "bg-gray-300" : "bg-blue-600 text-white"} px-4 py-2 rounded-lg max-w-xs`}>
                                     <p>{msg.content}</p>

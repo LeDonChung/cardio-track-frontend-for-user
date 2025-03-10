@@ -9,6 +9,8 @@ import AddressModal from "./AddressModal";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress, deleteAddress } from "../redux/slice/UserSlice";
 import showToast from "../utils/AppUtils";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 
 export const UserInfoPage = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -45,6 +47,51 @@ export const UserInfoPage = () => {
       setIsLoading(true);
     }
   }, []);
+
+  // Hàm xử lý logout và gửi thông tin qua socket
+  const user = JSON.parse(localStorage.getItem('userInfo'));
+  const handlerActionLogout = () => {
+          if (!user) {
+              // Nếu không có user (đề phòng), chỉ cần navigate về login
+              navigate('/login');
+              return;
+          }
+      
+          const socket = new SockJS("http://localhost:9095/ws");
+          const client = new Client({
+              webSocketFactory: () => socket,
+              onConnect: () => {
+                  console.log("📤 Gửi thông tin đăng xuất qua socket");
+      
+                  client.publish({
+                      destination: "/app/user-disconnected",
+                      body: JSON.stringify({
+                          sender: {
+                              id: user.id,
+                              username: user.fullName
+                          }
+                      })
+                  });
+      
+                  client.deactivate(); // Ngắt kết nối sau khi gửi xong
+      
+                  // Sau khi gửi socket thành công, xóa dữ liệu và navigate
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('userInfo');
+                  navigate('/login');
+              },
+              onStompError: (frame) => {
+                  console.error('STOMP error', frame);
+      
+                  // Trường hợp socket lỗi vẫn đảm bảo logout
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('userInfo');
+                  navigate('/login');
+              }
+          });
+      
+          client.activate();
+      }
 
   //hàm cập nhật user theo id
   const [isEditing, setIsEditing] = useState(false);  // Trạng thái để điều khiển việc hiển thị nút
@@ -242,12 +289,7 @@ export const UserInfoPage = () => {
                     : "hover:bg-blue-500 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
                     }`}
                   onClick={() => {
-                    if (localStorage.getItem('token')) {
-                      localStorage.removeItem('token');
-                      localStorage.removeItem('userInfo');
-                    }
-
-                    navigate('/login')
+                    handlerActionLogout();
                   }}
                 >
                   <i className="fas fa-sign-out-alt mr-3"></i> Đăng xuất
