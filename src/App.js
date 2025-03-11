@@ -10,10 +10,12 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { UserInfoPage } from './pages/UserInfoPage.js';
 import { CreatePostPage } from './pages/CreatePostPage.js';
 import { ViewPostPage } from './pages/ViewPostPage.js';
+import { NewsPage } from './pages/NewsPage.js';
 import {AddressModal} from './pages/AddressModal.js';
 import{UpdateUserModal} from './pages/UpdateUserModal.js';
 import { FilterProductPage } from './pages/FilterProductPage.js';
 import ChatBox from './components/ChatBox.js';
+import { PaymentResult } from './components/PaymentResult.js';  
 function App() {
   return (
     <BrowserRouter
@@ -44,6 +46,9 @@ function App() {
 
         {/* View Post Page */}
         <Route path="/view-post" element={<ViewPostPage />} />
+               {/* View All Post Page */}
+              <Route path="/news" element={<NewsPage />} />
+
         
         {/* product detail page */}
         <Route path="/product/:id" element={<ProductDetailPage />} />
@@ -51,7 +56,8 @@ function App() {
         {/* filter product page */}
         <Route path="/filter-product" element={<FilterProductPage />} />
 
-
+        {/* payment result*/}
+        <Route path="/payment-result" element={<PaymentResult />} />
       </Routes>
     </BrowserRouter>
 

@@ -7,16 +7,35 @@ import { CreatePostPage } from "./CreatePostPage";
 import UpdateUserModal from "./UpdateUserModal";
 import AddressModal from "./AddressModal";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress, deleteAddress } from "../redux/slice/UserSlice";
+import { fetchMyListPost } from "../redux/slice/PostSlice";
+import { fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress, deleteAddress, fetchUserOrders } from "../redux/slice/UserSlice";
 import showToast from "../utils/AppUtils";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { format } from "date-fns";
+import UpdatePostPage from "./UpdatePostPage"; 
 
 export const UserInfoPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const userAddresses = useSelector((state) => state.user.userAddresses);
+  const posts = useSelector((state) => state.post.myPosts) || []; // Lấy bài viết từ redux store và đảm bảo nó là một mảng
+  const [isModalOpenUpdate, setIsModalOpenUpdate] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [loadingMyPost, setLoadingMyPost] = useState(true); 
+  useEffect(() => {
+    // Gọi API lấy bài viết của người dùng
+    dispatch(fetchMyListPost())
+      .then(() => {
+        setLoadingMyPost(false);
+      })
+      .catch(() => {
+        setLoadingMyPost(false);
+      });
+  }, [dispatch]);
+
+
 
   // ✅ Lấy dữ liệu user từ localStorage khi load trang
   const [userInfo, setUserInfo] = useState(() => {
@@ -127,9 +146,24 @@ export const UserInfoPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
 
-  const handleCreatePost = () => {
-    setIsModalOpen(true);
-  };
+ // Kiểm tra roleName từ userInfo
+ const isUser = userInfo?.roleNames?.includes("user");
+
+ // Xử lý các hành động khi người dùng có role là "user"
+ const handleCreatePost = () => {
+   if (isUser) {
+     showToast("Bạn không có quyền tạo bài viết", "error");
+     return;
+   }
+   setIsModalOpen(true);
+ };
+
+
+  const handleUpdatePost = (post) => {
+    setSelectedPost(post); // Set the post to be updated
+    setIsModalOpenUpdate(true); // Open the update modal
+};
+  
 
   //mở model add/update địa chỉ
   const [addressToEdit, setAddressToEdit] = useState(null); // Địa chỉ đang chỉnh sửa
@@ -175,43 +209,33 @@ export const UserInfoPage = () => {
   };
 
 
-  const orders = [
-    {
-      id: "31749",
-      date: "7:02 26/11/2024",
-      item: "ATITUDE 250MG/5ML AN TIÊN 6X5 ỐNG 5ML",
-      price: "15.000đ",
-      quantity: "1 Vi",
-      status: "Đã giao",
-      address:
-        "Nhận hàng tại: Nhà thuốc Long Châu 8B - 10B Nguyễn Thái Sơn, P.3, Q. Gò Vấp, TP.HCM",
-      image:
-        "https://tinhdoanvinhphuc.vn/wp-content/uploads/2020/04/thuoc-bo-pharmaton-co-tot-khong.jpg",
-    },
-    {
-      id: "31750",
-      date: "8:21 26/11/2024",
-      item: "ATITUDE 250MG/5ML AN TIÊN 6X5 ỐNG 5ML",
-      price: "3.000đ",
-      quantity: "5 ống",
-      status: "Đang giao",
-      address:
-        "Nhận hàng tại: Nhà thuốc Long Châu 159 Nguyễn Văn Nghi, P.6, Q. Bình Thạnh, TP. HCM",
-      image:
-        "https://tinhdoanvinhphuc.vn/wp-content/uploads/2020/04/thuoc-bo-pharmaton-co-tot-khong.jpg",
-    },
-  ];
+
+  const orders = JSON.parse(localStorage.getItem("MyOrder"));
+  //lấy thông tin đặt hàng thuốc của user
+  useEffect(() => {
+    // Lấy danh sách đơn hàng của user sau khi đã lấy thông tin người dùng
+    if (userInfo) {
+        dispatch(fetchUserOrders());
+    }
+  }, [dispatch, userInfo]);
+  
+  
+  
+  const filteredOrders = (orders || []).filter((order) => {
+    return (
+      (order.id && order.id.toString().includes(searchTerm)) || 
+      order.item.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+  
+  
+  //mua lại sản phẩm
+
+  
 
   const handleNavigation = (section) => {
     setActiveSection(section);
   };
-
-  const filteredOrders = orders.filter((order) => {
-    return (
-      order.id.includes(searchTerm) ||
-      order.item.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
 
   return (
     <div className="bg-gray-100 min-h-screen">
@@ -355,76 +379,179 @@ export const UserInfoPage = () => {
                 onSave={handleSaveUserInfo}
               />
 
+            {activeSection === "orders" && (
+              <div>
+                <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg text-center">
+                  <h3 className="text-2xl font-bold">Đơn thuốc của tôi</h3>
+                </div>
 
-              {activeSection === "orders" && (
-                <div>
-                  <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
-                    <h3 className="text-xl font-bold">Đơn thuốc của tôi</h3>
-                  </div>
-                  <div className="flex gap-4 mb-4 items-center">
-                    <input
-                      type="text"
-                      placeholder="Tìm theo mã đơn, tên sản phẩm..."
-                      className="border p-2 rounded-lg w-full"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <i className="fas fa-search text-gray-500 ml-2"></i>
-                  </div>
-                  <div className="flex gap-4 mb-4">
-                    <button className="px-4 py-2 bg-blue-500 text-white rounded-lg flex items-center">
-                      <i className="fas fa-box mr-2"></i> Tất cả
-                    </button>
-                    <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
-                      <i className="fas fa-truck mr-2"></i> Đang giao
-                    </button>
-                    <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
-                      <i className="fas fa-check mr-2"></i> Đã giao
-                    </button>
-                    <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
-                      <i className="fas fa-trash-alt mr-2"></i> Đã hủy
-                    </button>
-                    <button className="px-4 py-2 bg-gray-200 rounded-lg flex items-center">
-                      <i className="fas fa-undo mr-2"></i> Trả hàng
-                    </button>
-                  </div>
-                  <div className="overflow-y-auto max-h-[400px]">
-                    {filteredOrders.map((order) => (
-                      <div key={order.id} className="border-b pb-4 mb-4">
-                        <div className="flex justify-between">
-                          <span className="font-medium">{order.date}</span>
-                          <span className="text-gray-500">Mã đơn: {order.id}</span>
-                        </div>
-                        <div className="flex items-center gap-4 mb-2">
+                {/* Tìm kiếm */}
+                <div className="flex gap-4 mb-4 items-center">
+                  <input
+                    type="text"
+                    placeholder="Tìm theo mã đơn, tên sản phẩm..."
+                    className="border p-3 rounded-lg w-full text-lg"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <i className="fas fa-search text-gray-500 ml-2"></i>
+                </div>
+
+                {/* Filter buttons */}
+                <div className="flex gap-4 mb-4">
+                  <button className="px-6 py-3 bg-blue-500 text-white rounded-lg flex items-center text-lg">
+                    <i className="fas fa-box mr-2"></i> Tất cả
+                  </button>
+                  <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
+                    <i className="fas fa-truck mr-2"></i> Đang giao
+                  </button>
+                  <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
+                    <i className="fas fa-check mr-2"></i> Đã giao
+                  </button>
+                  <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
+                    <i className="fas fa-trash-alt mr-2"></i> Đã hủy
+                  </button>
+                  <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
+                    <i className="fas fa-undo mr-2"></i> Trả hàng
+                  </button>
+                </div>
+
+                {/* Danh sách đơn hàng */}
+                <div className="overflow-y-auto max-h-[500px]">
+                {orders
+                  .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))  // Sắp xếp theo ngày tạo đơn hàng mới nhất
+                  .map((order) => (
+                    <div key={order.id} className="flex flex-col border-b pb-4 mb-6">
+                      
+                      {/* Đơn hàng thông tin */}
+                      <div className="flex justify-between mb-4">
+                        <span className="text-lg font-medium">Đơn đặt ngày: {format(new Date(order.orderDate), "dd/MM/yyyy")} </span>
+                        <span className="text-gray-500 text-lg" style={{position:'relative',right:'50px'}}>Mã đơn: {order.id}</span>
+                      </div>
+
+                      {/* Lặp qua các sản phẩm trong đơn hàng */}
+                      {order.orderDetails.map((orderDetail, index) => (
+                        <div key={index} className="flex items-center gap-6 mb-6">
+                          
+                          {/* Ảnh sản phẩm */}
                           <img
-                            src={order.image}
+                            src={order.imageUrl || "/default-image.jpg"}
                             alt="Product"
-                            className="w-20 h-20 object-cover"
+                            className="w-24 h-24 object-cover rounded-lg"
                           />
-                          <div className="text-blue-600">{order.item}</div>
+                          
+                          {/* Thông tin sản phẩm */}
+                          <div className="flex flex-col w-full">
+                          <div className="text-blue-600 font-medium text-lg">{order.nameProduct}</div>
+                            <div className="text-black-500 text-lg w-2/4">Giá:{(orderDetail.price).toLocaleString()} VND</div>
+              
+                            <div className="text-black-600 text-lg">{orderDetail.quantity} {order.init}</div>
+                          </div>
+
+                          {/* Thành tiền */}
+                          <div className="flex justify-between items-center w-full text-xl">
+                            <span className="font-medium" style={{position:'relative', left:'220px',top:'20px'}}> Thành tiền: 
+                              {orderDetail.price * orderDetail.quantity > 0 ?
+                                (orderDetail.price * orderDetail.quantity).toLocaleString() : '0'} VND
+                            </span>
+                            <button className="bg-blue-500 text-white px-6 py-3 rounded-lg text-lg" style={{position:'relative', top:'70px'}}
+                            onClick={() => {
+                              // Chuyển hướng đến trang sản phẩm
+                              navigate(`/product/${order.productId}`); 
+                            }}
+                            >
+                              Mua lại
+                            </button>
+                          </div>
                         </div>
-                        <div className="text-gray-600">
-                          Số lượng: {order.quantity}
-                        </div>
-                        <div className="text-gray-600">
-                          Địa chỉ: {order.address}
-                        </div>
-                        <div className="mt-2">
-                          <span className="text-sm text-gray-600">
-                            {order.status}
-                          </span>
-                        </div>
-                        <div className="flex justify-between items-center mt-2">
-                          <span className="font-medium">{order.price}</span>
-                          <button className="bg-blue-500 text-white px-4 py-2 rounded-lg">
-                            Mua lại
+                      ))}
+
+                      {/* Địa chỉ nhận hàng */}
+                      <div className="text-gray-600 mt-2 text-lg">
+                        Địa chỉ nhận hàng: {order.addressDetail.street}, {order.addressDetail.ward}, {order.addressDetail.district}, {order.addressDetail.province}
+                      </div>
+                      
+                      {/* Trạng thái đơn hàng */}
+                      <div className="mt-2 text-gray-600 text-lg">
+                        Trạng thái: <span className="font-semibold">{order.status}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* hiển thị tất cả bài viết của tôi */}
+            {activeSection === "my-post" && !isUser && (
+              <div className="text-center">
+                <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg">
+                  <h3 className="text-xl font-bold">Bài viết của tôi</h3>
+                </div>
+                {loadingMyPost ? (
+                  <p>Đang tải...</p>
+                ) : posts.length === 0 ? (
+                  <p>Không có bài viết nào.</p>
+                ) : (
+                  <div className="space-y-4 mt-4">
+                    <div className="post-container" style={{ maxHeight: '500px', overflowY: 'auto' }}> {/* Thêm thanh cuộn */}
+                      {posts.map((post) => (
+                        <div key={post.id} className="border-b pb-4 mb-4 flex justify-between items-center">
+                          <div>
+                            <h2 className="text-xl font-semibold text-left">
+                              Tác giả: <span className="font-normal">{post.fullName}</span>
+                            </h2>
+                            <h2 className="text-xl font-semibold text-left">
+                              Tiêu đề: <span className="font-normal">{post.title}</span>
+                            </h2>
+                            <div
+                                className="ql-editor"
+                                dangerouslySetInnerHTML={{ __html: post.content }} // Đảm bảo nội dung hiển thị đúng định dạng HTML
+                            />
+                            <div className="text-sm text-gray-500 text-left">
+                              Ngày tạo: {format(new Date(post.createdAt), "HH:mm dd/MM/yyyy")}
+                            </div>
+                          </div>
+                          <button
+                            className="ml-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                            onClick={() => handleUpdatePost(post)}
+                          >
+                            Cập nhật
                           </button>
                         </div>
-                      </div>
-                    ))}
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+                <button
+                  className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  onClick={handleCreatePost}
+                >
+                  Tạo bài viết mới
+                </button>
+              </div>
+            )}
+
+            {/* Thông báo lỗi nếu là người dùng với role 'user' */}
+            {isUser && ( 
+              <div className="alert alert-warning">
+                <p>Chức năng chỉ dành cho nhân viên.</p>
+              </div>
+            )}
+
+            {/* Modal for updating the post */}
+            {isModalOpenUpdate && selectedPost && (
+              <UpdatePostPage
+                setIsModalOpen={setIsModalOpenUpdate}
+                postToEdit={selectedPost}
+              />
+            )}
+
+
+
+
+
+
+
 
               {activeSection === "qr" && (
                 <div className="text-center">
