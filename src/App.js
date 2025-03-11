@@ -1,5 +1,5 @@
 import './App.css';
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { CartPage } from './pages/CartPage';
@@ -10,9 +10,11 @@ import { ProductDetailPage } from './pages/ProductDetailPage';
 import { UserInfoPage } from './pages/UserInfoPage.js';
 import { CreatePostPage } from './pages/CreatePostPage.js';
 import { ViewPostPage } from './pages/ViewPostPage.js';
+import { NewsPage } from './pages/NewsPage.js';
 import {AddressModal} from './pages/AddressModal.js';
 import{UpdateUserModal} from './pages/UpdateUserModal.js';
 import { FilterProductPage } from './pages/FilterProductPage.js';
+import ChatBox from './components/ChatBox.js';
 import { PaymentResult } from './components/PaymentResult.js';  
 function App() {
   return (
@@ -22,6 +24,7 @@ function App() {
         v7_relativeSplatPath: true
       }}
     >
+      <ChatBox />
       <Routes>
         
         {/* Login Page */}
@@ -43,8 +46,8 @@ function App() {
 
         {/* View Post Page */}
         <Route path="/view-post" element={<ViewPostPage />} />
-               {/* View My Post Page */}
-        
+               {/* View All Post Page */}
+              <Route path="/news" element={<NewsPage />} />
 
         
         {/* product detail page */}

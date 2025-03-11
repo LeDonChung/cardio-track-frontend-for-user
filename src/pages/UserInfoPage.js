@@ -10,6 +10,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchMyListPost } from "../redux/slice/PostSlice";
 import { fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress, deleteAddress, fetchUserOrders } from "../redux/slice/UserSlice";
 import showToast from "../utils/AppUtils";
+import { Client } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 import { format } from "date-fns";
 import UpdatePostPage from "./UpdatePostPage"; 
 
@@ -64,6 +66,51 @@ export const UserInfoPage = () => {
       setIsLoading(true);
     }
   }, []);
+
+  // Hàm xử lý logout và gửi thông tin qua socket
+  const user = JSON.parse(localStorage.getItem('userInfo'));
+  const handlerActionLogout = () => {
+          if (!user) {
+              // Nếu không có user (đề phòng), chỉ cần navigate về login
+              navigate('/login');
+              return;
+          }
+      
+          const socket = new SockJS("http://localhost:9095/ws");
+          const client = new Client({
+              webSocketFactory: () => socket,
+              onConnect: () => {
+                  console.log("📤 Gửi thông tin đăng xuất qua socket");
+      
+                  client.publish({
+                      destination: "/app/user-disconnected",
+                      body: JSON.stringify({
+                          sender: {
+                              id: user.id,
+                              username: user.fullName
+                          }
+                      })
+                  });
+      
+                  client.deactivate(); // Ngắt kết nối sau khi gửi xong
+      
+                  // Sau khi gửi socket thành công, xóa dữ liệu và navigate
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('userInfo');
+                  navigate('/login');
+              },
+              onStompError: (frame) => {
+                  console.error('STOMP error', frame);
+      
+                  // Trường hợp socket lỗi vẫn đảm bảo logout
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('userInfo');
+                  navigate('/login');
+              }
+          });
+      
+          client.activate();
+      }
 
   //hàm cập nhật user theo id
   const [isEditing, setIsEditing] = useState(false);  // Trạng thái để điều khiển việc hiển thị nút
@@ -266,12 +313,7 @@ export const UserInfoPage = () => {
                     : "hover:bg-blue-500 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
                     }`}
                   onClick={() => {
-                    if (localStorage.getItem('token')) {
-                      localStorage.removeItem('token');
-                      localStorage.removeItem('userInfo');
-                    }
-
-                    navigate('/login')
+                    handlerActionLogout();
                   }}
                 >
                   <i className="fas fa-sign-out-alt mr-3"></i> Đăng xuất
@@ -376,12 +418,14 @@ export const UserInfoPage = () => {
 
                 {/* Danh sách đơn hàng */}
                 <div className="overflow-y-auto max-h-[500px]">
-                  {orders.map((order) => (
+                {orders
+                  .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))  // Sắp xếp theo ngày tạo đơn hàng mới nhất
+                  .map((order) => (
                     <div key={order.id} className="flex flex-col border-b pb-4 mb-6">
                       
                       {/* Đơn hàng thông tin */}
                       <div className="flex justify-between mb-4">
-                        <span className="text-lg font-medium">Đơn hàng {order.orderDate}</span>
+                        <span className="text-lg font-medium">Đơn đặt ngày: {format(new Date(order.orderDate), "dd/MM/yyyy")} </span>
                         <span className="text-gray-500 text-lg" style={{position:'relative',right:'50px'}}>Mã đơn: {order.id}</span>
                       </div>
 
@@ -437,63 +481,70 @@ export const UserInfoPage = () => {
               </div>
             )}
 
-       {/* hiển thị tất cả bài viết của tôi */}
-        {activeSection === "my-post" && !isUser && (
-          <div className="text-center">
-            <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg">
-              <h3 className="text-xl font-bold">Bài viết của tôi</h3>
-            </div>
-            {loadingMyPost ? (
-              <p>Đang tải...</p>
-            ) : posts.length === 0 ? (
-              <p>Không có bài viết nào.</p>
-            ) : (
-              <div className="space-y-4 mt-4">
-                {posts.map((post) => (
-                  <div key={post.id} className="border-b pb-4 mb-4 flex justify-between items-center">
-                    <div>
-                      <h2 className="text-xl font-semibold text-left">
-                        Tác giả: <span className="font-normal">{post.fullName}</span>
-                      </h2>
-                      <h2 className="text-xl font-semibold text-left">
-                        Tiêu đề: <span className="font-normal">{post.title}</span>
-                      </h2>
-                      <p className="text-left">Nội dung: {post.content}</p>
-                      <div className="text-sm text-gray-500 text-left">
-                        Ngày tạo: {format(new Date(post.createdAt), "HH:mm dd/MM/yyyy")}
-                      </div>
+            {/* hiển thị tất cả bài viết của tôi */}
+            {activeSection === "my-post" && !isUser && (
+              <div className="text-center">
+                <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg">
+                  <h3 className="text-xl font-bold">Bài viết của tôi</h3>
+                </div>
+                {loadingMyPost ? (
+                  <p>Đang tải...</p>
+                ) : posts.length === 0 ? (
+                  <p>Không có bài viết nào.</p>
+                ) : (
+                  <div className="space-y-4 mt-4">
+                    <div className="post-container" style={{ maxHeight: '500px', overflowY: 'auto' }}> {/* Thêm thanh cuộn */}
+                      {posts.map((post) => (
+                        <div key={post.id} className="border-b pb-4 mb-4 flex justify-between items-center">
+                          <div>
+                            <h2 className="text-xl font-semibold text-left">
+                              Tác giả: <span className="font-normal">{post.fullName}</span>
+                            </h2>
+                            <h2 className="text-xl font-semibold text-left">
+                              Tiêu đề: <span className="font-normal">{post.title}</span>
+                            </h2>
+                            <div
+                                className="ql-editor"
+                                dangerouslySetInnerHTML={{ __html: post.content }} // Đảm bảo nội dung hiển thị đúng định dạng HTML
+                            />
+                            <div className="text-sm text-gray-500 text-left">
+                              Ngày tạo: {format(new Date(post.createdAt), "HH:mm dd/MM/yyyy")}
+                            </div>
+                          </div>
+                          <button
+                            className="ml-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                            onClick={() => handleUpdatePost(post)}
+                          >
+                            Cập nhật
+                          </button>
+                        </div>
+                      ))}
                     </div>
-                    <button
-                      className="ml-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                      onClick={() => handleUpdatePost(post)}
-                    >
-                      Cập nhật
-                    </button>
                   </div>
-                ))}
+                )}
+                <button
+                  className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                  onClick={handleCreatePost}
+                >
+                  Tạo bài viết mới
+                </button>
               </div>
             )}
-            <button
-              className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
-              onClick={handleCreatePost}
-            >
-              Tạo bài viết mới
-            </button>
-          </div>
-        )}{/* Thông báo lỗi nếu là người dùng với role 'user' */}
-        {isUser && ( 
-          <div className="alert alert-warning">
-            <p>Chức năng chỉ dành cho nhân viên.</p>
-          </div>
-        )}
 
-        {/* Modal for updating the post */}
-        {isModalOpenUpdate && selectedPost && (
-          <UpdatePostPage
-            setIsModalOpen={setIsModalOpenUpdate}
-            postToEdit={selectedPost}
-          />
-        )}
+            {/* Thông báo lỗi nếu là người dùng với role 'user' */}
+            {isUser && ( 
+              <div className="alert alert-warning">
+                <p>Chức năng chỉ dành cho nhân viên.</p>
+              </div>
+            )}
+
+            {/* Modal for updating the post */}
+            {isModalOpenUpdate && selectedPost && (
+              <UpdatePostPage
+                setIsModalOpen={setIsModalOpenUpdate}
+                postToEdit={selectedPost}
+              />
+            )}
 
 
 
