@@ -4,6 +4,7 @@ import axios from "axios";
 
 const initialState = {
     userAddresses: [],
+    orders: [],
     errorResponse: null
 };
 
@@ -122,6 +123,25 @@ const sendOtp = createAsyncThunk('user/sendOtp', async (request, { rejectWithVal
     }
 });
 
+//lấy danh sách đơn đặt hàng của user 
+const fetchUserOrders = createAsyncThunk('user/fetchUserOrders', async (_, { rejectWithValue }) => {
+    try {
+        const token = localStorage.getItem("token");
+        const userInfo = JSON.parse(localStorage.getItem("userInfo"));
+        // Sử dụng userInfo.id để lấy danh sách đơn hàng
+        const response = await axiosInstance.get(`/api/v1/order/user/${userInfo.id}`, {
+            headers: {
+                Authorization: `Bearer ${token}` // Cung cấp token trong header
+            }
+        });
+        return response.data; // Trả về dữ liệu đơn hàng của người dùng
+    } catch (error) {
+        return rejectWithValue(error.response?.data || "Lỗi API không lấy được thông tin đơn hàng.");
+    }
+});
+
+
+
 const UserSlice = createSlice({
     name: 'user',
     initialState: initialState,
@@ -234,10 +254,24 @@ const UserSlice = createSlice({
         builder.addCase(deleteAddress.rejected, (state, action) => {
             state.errorResponse = action.payload;
         });
+        //My orders
+        builder.addCase(fetchUserOrders.pending, (state) => {
+            state.errorResponse = null;
+        });
+        builder.addCase(fetchUserOrders.fulfilled, (state, action) => {
+            state.userAddresses = action.payload.data; // Cập nhật danh sách địa chỉ vào Redux store
+            state.orders = action.payload.data;
+            localStorage.setItem("MyOrder", JSON.stringify(action.payload.data));
+            state.errorResponse = null;
+        });
+        builder.addCase(fetchUserOrders.rejected, (state, action) => {
+            state.errorResponse = action.payload; // Xử lý lỗi khi gọi API thất bại
+        });
+        
 
     }
 });
 
 export const { } = UserSlice.actions;
-export { register, login, sendOtp, fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress,deleteAddress };
+export { register, login, sendOtp, fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress,deleteAddress,fetchUserOrders };
 export default UserSlice.reducer;
