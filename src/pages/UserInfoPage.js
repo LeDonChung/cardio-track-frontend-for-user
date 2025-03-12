@@ -7,7 +7,7 @@ import { CreatePostPage } from "./CreatePostPage";
 import UpdateUserModal from "./UpdateUserModal";
 import AddressModal from "./AddressModal";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchMyListPost } from "../redux/slice/PostSlice";
+import { fetchMyListPost,fetchComments } from "../redux/slice/PostSlice";
 import { fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress, deleteAddress, fetchUserOrders } from "../redux/slice/UserSlice";
 import showToast from "../utils/AppUtils";
 import { Client } from "@stomp/stompjs";
@@ -237,6 +237,12 @@ export const UserInfoPage = () => {
     setActiveSection(section);
   };
 
+  const comments = useSelector((state) => state.post.comments);
+   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const openCommentModal = (post) => {
+    dispatch(fetchComments(post.id)); // Lấy danh sách bình luận của bài viết
+    setIsCommentModalOpen(true); // Mở modal bình luận
+};
   return (
     <div className="bg-gray-100 min-h-screen">
       <Header />
@@ -511,12 +517,20 @@ export const UserInfoPage = () => {
                               Ngày tạo: {format(new Date(post.createdAt), "HH:mm dd/MM/yyyy")}
                             </div>
                           </div>
-                          <button
-                            className="ml-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                            onClick={() => handleUpdatePost(post)}
-                          >
-                            Cập nhật
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                              onClick={() => handleUpdatePost(post)}
+                            >
+                              Cập nhật
+                            </button>
+                            <button
+                              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                              onClick={() => openCommentModal(post)}
+                            >
+                              Xem bình luận
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -545,6 +559,36 @@ export const UserInfoPage = () => {
                 postToEdit={selectedPost}
               />
             )}
+            {isCommentModalOpen  && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg w-1/2">
+            <div className="flex justify-between">
+                <button
+                    onClick={() => setIsCommentModalOpen(false)}
+                    className="bg-gray-500 text-white px-4 py-2 rounded-lg"
+                >
+                    Thoát
+                </button>
+            </div>
+            <div className="mt-4">
+                <h4 className="font-semibold">Danh sách bình luận:</h4>
+                <div className="space-y-4 mt-4 max-h-60 overflow-y-auto">
+                    {comments && comments.length > 0 ? (
+                        comments.map((comment) => (
+                            <div key={comment.id} className="p-3 border-b border-gray-200">
+                                <p><strong>{comment.fullName}</strong>: {comment.content}</p>
+                                <p className="text-sm text-gray-500">{format(new Date(comment.createdAt), "dd/MM/yyyy HH:mm")}</p>
+                            </div>
+                        ))
+                    ) : (
+                        <p>Chưa có bình luận nào.</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    </div>
+)}
+
 
 
 
