@@ -1,6 +1,6 @@
 // UpdateUserModal.js
 import React, { useState } from "react";
-import { showToast } from "../utils/AppUtils";
+import showToast  from "../utils/AppUtils";
 const UpdateUserModal = ({ isOpen, onClose, onSave }) => {
 
 
@@ -13,6 +13,14 @@ const UpdateUserModal = ({ isOpen, onClose, onSave }) => {
     username: userInfo.username || "",
   });
 
+  // Hàm kiểm tra và xử lý tên (đảm bảo mỗi từ bắt đầu bằng chữ hoa)
+  const capitalizeName = (name) => {
+    return name
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setEditUserInfo({
@@ -22,9 +30,51 @@ const UpdateUserModal = ({ isOpen, onClose, onSave }) => {
   };
 
   const handleSave = () => {
-    onSave(editUserInfo);
+    // Kiểm tra fullName không được để trống
+    if (!editUserInfo.fullName.trim()) {
+      showToast("Tên đầy đủ không được để trống", "error");
+      return; // Không lưu thông tin nếu tên trống
+    }
+  
+    // Kiểm tra tên không chứa ký tự đặc biệt và chữ số
+    const namePattern = /^[a-zA-Z\s]+$/; // Chỉ cho phép chữ cái và dấu cách
+    if (!namePattern.test(editUserInfo.fullName)) {
+      showToast("Tên đầy đủ không được chứa ký tự đặc biệt hoặc số", "error");
+      return; // Không lưu thông tin nếu tên chứa ký tự đặc biệt hoặc số
+    }
+  
+    // Kiểm tra ngày sinh (dob)
+    const today = new Date();
+    const dob = new Date(editUserInfo.dob);
+  
+    // Kiểm tra ngày sinh không lớn hơn ngày hiện tại
+    if (dob > today) {
+      showToast("Ngày sinh không được lớn hơn ngày hiện tại", "error");
+      return; // Không lưu thông tin nếu ngày sinh lớn hơn ngày hiện tại
+    }
+  
+    // Kiểm tra tuổi (>= 14 tuổi)
+    const age = today.getFullYear() - dob.getFullYear();
+    const monthDiff = today.getMonth() - dob.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+      age--;
+    }
+  
+    if (age < 14) {
+      showToast("Bạn phải đủ 14 tuổi để cập nhật thông tin", "error");
+      return; // Không lưu thông tin nếu tuổi nhỏ hơn 14
+    }
+  
+    // Chỉnh sửa tên đầy đủ nếu cần
+    const formattedFullName = capitalizeName(editUserInfo.fullName);
+    const updatedUserInfo = { ...editUserInfo, fullName: formattedFullName };
+  
+    onSave(updatedUserInfo);
     onClose(); // Đóng modal sau khi lưu
   };
+  
+  
+  
 
   return (
     isOpen && (
