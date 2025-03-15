@@ -37,7 +37,7 @@ const UpdateUserModal = ({ isOpen, onClose, onSave }) => {
     }
   
     // Kiểm tra tên không chứa ký tự đặc biệt và chữ số
-    const namePattern = /^[a-zA-Z\s]+$/; // Chỉ cho phép chữ cái và dấu cách
+    const namePattern = /^[a-zA-Zàáạảãàâầấẩẫăắằẳẵâờóọỏõờđèéẹẻẽêếềểễỉíìịĩóòọỏõôồốổỗơờớởỡơúùụủũưừứựửữýỳỷỹỵ\s]+$/; // Chỉ cho phép chữ cái và dấu cách
     if (!namePattern.test(editUserInfo.fullName)) {
       showToast("Tên đầy đủ không được chứa ký tự đặc biệt hoặc số", "error");
       return; // Không lưu thông tin nếu tên chứa ký tự đặc biệt hoặc số
