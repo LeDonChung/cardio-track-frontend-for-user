@@ -7,7 +7,7 @@ import { CreatePostPage } from "./CreatePostPage";
 import UpdateUserModal from "./UpdateUserModal";
 import AddressModal from "./AddressModal";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchMyListPost } from "../redux/slice/PostSlice";
+import { fetchMyListPost,fetchComments } from "../redux/slice/PostSlice";
 import { fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress, deleteAddress, fetchUserOrders } from "../redux/slice/UserSlice";
 import showToast from "../utils/AppUtils";
 import { Client } from "@stomp/stompjs";
@@ -68,49 +68,15 @@ export const UserInfoPage = () => {
   }, []);
 
   // Hàm xử lý logout và gửi thông tin qua socket
-  const user = JSON.parse(localStorage.getItem('userInfo'));
   const handlerActionLogout = () => {
-          if (!user) {
-              // Nếu không có user (đề phòng), chỉ cần navigate về login
-              navigate('/login');
-              return;
-          }
-      
-          const socket = new SockJS("http://localhost:9095/ws");
-          const client = new Client({
-              webSocketFactory: () => socket,
-              onConnect: () => {
-                  console.log("📤 Gửi thông tin đăng xuất qua socket");
-      
-                  client.publish({
-                      destination: "/app/user-disconnected",
-                      body: JSON.stringify({
-                          sender: {
-                              id: user.id,
-                              username: user.fullName
-                          }
-                      })
-                  });
-      
-                  client.deactivate(); // Ngắt kết nối sau khi gửi xong
-      
-                  // Sau khi gửi socket thành công, xóa dữ liệu và navigate
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('userInfo');
-                  navigate('/login');
-              },
-              onStompError: (frame) => {
-                  console.error('STOMP error', frame);
-      
-                  // Trường hợp socket lỗi vẫn đảm bảo logout
-                  localStorage.removeItem('token');
-                  localStorage.removeItem('userInfo');
-                  navigate('/login');
-              }
-          });
-      
-          client.activate();
-      }
+    if (localStorage.getItem('token')) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('MyOrder');
+        localStorage.removeItem('userInfo');
+    }
+
+    navigate('/login')
+}
 
   //hàm cập nhật user theo id
   const [isEditing, setIsEditing] = useState(false);  // Trạng thái để điều khiển việc hiển thị nút
@@ -237,6 +203,12 @@ export const UserInfoPage = () => {
     setActiveSection(section);
   };
 
+  const comments = useSelector((state) => state.post.comments);
+   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const openCommentModal = (post) => {
+    dispatch(fetchComments(post.id)); // Lấy danh sách bình luận của bài viết
+    setIsCommentModalOpen(true); // Mở modal bình luận
+};
   return (
     <div className="bg-gray-100 min-h-screen">
       <Header />
@@ -379,107 +351,110 @@ export const UserInfoPage = () => {
                 onSave={handleSaveUserInfo}
               />
 
-            {activeSection === "orders" && (
-              <div>
-                <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg text-center">
-                  <h3 className="text-2xl font-bold">Đơn thuốc của tôi</h3>
-                </div>
+{activeSection === "orders" && (
+  <div>
+    <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg text-center">
+      <h3 className="text-2xl font-bold">Đơn thuốc của tôi</h3>
+    </div>
 
-                {/* Tìm kiếm */}
-                <div className="flex gap-4 mb-4 items-center">
-                  <input
-                    type="text"
-                    placeholder="Tìm theo mã đơn, tên sản phẩm..."
-                    className="border p-3 rounded-lg w-full text-lg"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                  <i className="fas fa-search text-gray-500 ml-2"></i>
-                </div>
+    {/* Tìm kiếm */}
+    <div className="flex gap-4 mb-4 items-center">
+      <input
+        type="text"
+        placeholder="Tìm theo mã đơn, tên sản phẩm..."
+        className="border p-3 rounded-lg w-full text-lg"
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+      />
+      <i className="fas fa-search text-gray-500 ml-2"></i>
+    </div>
 
-                {/* Filter buttons */}
-                <div className="flex gap-4 mb-4">
-                  <button className="px-6 py-3 bg-blue-500 text-white rounded-lg flex items-center text-lg">
-                    <i className="fas fa-box mr-2"></i> Tất cả
-                  </button>
-                  <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
-                    <i className="fas fa-truck mr-2"></i> Đang giao
-                  </button>
-                  <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
-                    <i className="fas fa-check mr-2"></i> Đã giao
-                  </button>
-                  <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
-                    <i className="fas fa-trash-alt mr-2"></i> Đã hủy
-                  </button>
-                  <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
-                    <i className="fas fa-undo mr-2"></i> Trả hàng
-                  </button>
-                </div>
+    {/* Filter buttons */}
+    <div className="flex gap-4 mb-4">
+      <button className="px-6 py-3 bg-blue-500 text-white rounded-lg flex items-center text-lg">
+        <i className="fas fa-box mr-2"></i> Tất cả
+      </button>
+      <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
+        <i className="fas fa-truck mr-2"></i> Đang giao
+      </button>
+      <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
+        <i className="fas fa-check mr-2"></i> Đã giao
+      </button>
+      <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
+        <i className="fas fa-trash-alt mr-2"></i> Đã hủy
+      </button>
+      <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
+        <i className="fas fa-undo mr-2"></i> Trả hàng
+      </button>
+    </div>
 
-                {/* Danh sách đơn hàng */}
-                <div className="overflow-y-auto max-h-[500px]">
-                {orders
-                  .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))  // Sắp xếp theo ngày tạo đơn hàng mới nhất
-                  .map((order) => (
-                    <div key={order.id} className="flex flex-col border-b pb-4 mb-6">
-                      
-                      {/* Đơn hàng thông tin */}
-                      <div className="flex justify-between mb-4">
-                        <span className="text-lg font-medium">Đơn đặt ngày: {format(new Date(order.orderDate), "dd/MM/yyyy")} </span>
-                        <span className="text-gray-500 text-lg" style={{position:'relative',right:'50px'}}>Mã đơn: {order.id}</span>
-                      </div>
-
-                      {/* Lặp qua các sản phẩm trong đơn hàng */}
-                      {order.orderDetails.map((orderDetail, index) => (
-                        <div key={index} className="flex items-center gap-6 mb-6">
-                          
-                          {/* Ảnh sản phẩm */}
-                          <img
-                            src={order.imageUrl || "/default-image.jpg"}
-                            alt="Product"
-                            className="w-24 h-24 object-cover rounded-lg"
-                          />
-                          
-                          {/* Thông tin sản phẩm */}
-                          <div className="flex flex-col w-full">
-                          <div className="text-blue-600 font-medium text-lg">{order.nameProduct}</div>
-                            <div className="text-black-500 text-lg w-2/4">Giá:{(orderDetail.price).toLocaleString()} VND</div>
-              
-                            <div className="text-black-600 text-lg">{orderDetail.quantity} {order.init}</div>
-                          </div>
-
-                          {/* Thành tiền */}
-                          <div className="flex justify-between items-center w-full text-xl">
-                            <span className="font-medium" style={{position:'relative', left:'220px',top:'20px'}}> Thành tiền: 
-                              {orderDetail.price * orderDetail.quantity > 0 ?
-                                (orderDetail.price * orderDetail.quantity).toLocaleString() : '0'} VND
-                            </span>
-                            <button className="bg-blue-500 text-white px-6 py-3 rounded-lg text-lg" style={{position:'relative', top:'70px'}}
-                            onClick={() => {
-                              // Chuyển hướng đến trang sản phẩm
-                              navigate(`/product/${order.productId}`); 
-                            }}
-                            >
-                              Mua lại
-                            </button>
-                          </div>
-                        </div>
-                      ))}
-
-                      {/* Địa chỉ nhận hàng */}
-                      <div className="text-gray-600 mt-2 text-lg">
-                        Địa chỉ nhận hàng: {order.addressDetail.street}, {order.addressDetail.ward}, {order.addressDetail.district}, {order.addressDetail.province}
-                      </div>
-                      
-                      {/* Trạng thái đơn hàng */}
-                      <div className="mt-2 text-gray-600 text-lg">
-                        Trạng thái: <span className="font-semibold">{order.status}</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+    {/* Danh sách đơn hàng */}
+    <div className="overflow-y-auto max-h-[500px]">
+      {orders && orders.length > 0 ? (
+        orders
+          .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))  // Sắp xếp theo ngày tạo đơn hàng mới nhất
+          .map((order) => (
+            <div key={order.id} className="flex flex-col border-b pb-4 mb-6">
+              {/* Đơn hàng thông tin */}
+              <div className="flex justify-between mb-4">
+                <span className="text-lg font-medium">Đơn đặt ngày: {format(new Date(order.orderDate), "dd/MM/yyyy")}</span>
+                <span className="text-gray-500 text-lg" style={{ position: 'relative', right: '50px' }}>Mã đơn: {order.id}</span>
               </div>
-            )}
+
+              {/* Lặp qua các sản phẩm trong đơn hàng */}
+              {order.orderDetails.map((orderDetail, index) => (
+                <div key={index} className="flex items-center gap-6 mb-6">
+                  {/* Ảnh sản phẩm */}
+                  <img
+                    src={order.imageUrl || "/default-image.jpg"}
+                    alt="Product"
+                    className="w-24 h-24 object-cover rounded-lg"
+                  />
+
+                  {/* Thông tin sản phẩm */}
+                  <div className="flex flex-col w-full">
+                    <div className="text-blue-600 font-medium text-lg">{order.nameProduct}</div>
+                    <div className="text-black-500 text-lg w-2/4">Giá: {orderDetail.price.toLocaleString()} VND</div>
+                    <div className="text-black-600 text-lg">{orderDetail.quantity} {order.init}</div>
+                  </div>
+
+                  {/* Thành tiền */}
+                  <div className="flex justify-between items-center w-full text-xl">
+                    <span className="font-medium" style={{ position: 'relative', left: '220px', top: '20px' }}>
+                      Thành tiền: {orderDetail.price * orderDetail.quantity > 0 ? (orderDetail.price * orderDetail.quantity).toLocaleString() : '0'} VND
+                    </span>
+                    <button
+                      className="bg-blue-500 text-white px-6 py-3 rounded-lg text-lg"
+                      style={{ position: 'relative', top: '70px' }}
+                      onClick={() => {
+                        // Chuyển hướng đến trang sản phẩm
+                        navigate(`/product/${order.productId}`);
+                      }}
+                    >
+                      Mua lại
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Địa chỉ nhận hàng */}
+              <div className="text-gray-600 mt-2 text-lg">
+                Địa chỉ nhận hàng: {order.addressDetail.street}, {order.addressDetail.ward}, {order.addressDetail.district}, {order.addressDetail.province}
+              </div>
+
+              {/* Trạng thái đơn hàng */}
+              <div className="mt-2 text-gray-600 text-lg">
+                Trạng thái: <span className="font-semibold">{order.status}</span>
+              </div>
+            </div>
+          ))
+      ) : (
+        <p className="text-center text-gray-500" style={{fontSize:"17px"}}>Bạn chưa có đơn hàng nào.</p>
+      )}
+    </div>
+  </div>
+)}
+
 
             {/* hiển thị tất cả bài viết của tôi */}
             {activeSection === "my-post" && !isUser && (
@@ -511,12 +486,20 @@ export const UserInfoPage = () => {
                               Ngày tạo: {format(new Date(post.createdAt), "HH:mm dd/MM/yyyy")}
                             </div>
                           </div>
-                          <button
-                            className="ml-4 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
-                            onClick={() => handleUpdatePost(post)}
-                          >
-                            Cập nhật
-                          </button>
+                          <div className="flex space-x-2">
+                            <button
+                              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                              onClick={() => handleUpdatePost(post)}
+                            >
+                              Cập nhật
+                            </button>
+                            <button
+                              className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                              onClick={() => openCommentModal(post)}
+                            >
+                              Xem bình luận
+                            </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -532,11 +515,11 @@ export const UserInfoPage = () => {
             )}
 
             {/* Thông báo lỗi nếu là người dùng với role 'user' */}
-            {isUser && ( 
+            {/* {isUser && ( 
               <div className="alert alert-warning">
                 <p>Chức năng chỉ dành cho nhân viên.</p>
               </div>
-            )}
+            )} */}
 
             {/* Modal for updating the post */}
             {isModalOpenUpdate && selectedPost && (
@@ -545,6 +528,36 @@ export const UserInfoPage = () => {
                 postToEdit={selectedPost}
               />
             )}
+            {isCommentModalOpen  && (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded-lg w-1/2">
+            <div className="flex justify-between">
+                <button
+                    onClick={() => setIsCommentModalOpen(false)}
+                    className="bg-gray-500 text-white px-4 py-2 rounded-lg"
+                >
+                    Thoát
+                </button>
+            </div>
+            <div className="mt-4">
+                <h4 className="font-semibold">Danh sách bình luận:</h4>
+                <div className="space-y-4 mt-4 max-h-60 overflow-y-auto">
+                    {comments && comments.length > 0 ? (
+                        comments.map((comment) => (
+                            <div key={comment.id} className="p-3 border-b border-gray-200">
+                                <p><strong>{comment.fullName}</strong>: {comment.content}</p>
+                                <p className="text-sm text-gray-500">{format(new Date(comment.createdAt), "dd/MM/yyyy HH:mm")}</p>
+                            </div>
+                        ))
+                    ) : (
+                        <p>Chưa có bình luận nào.</p>
+                    )}
+                </div>
+            </div>
+        </div>
+    </div>
+)}
+
 
 
 

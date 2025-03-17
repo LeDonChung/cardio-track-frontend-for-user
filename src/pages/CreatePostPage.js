@@ -29,6 +29,17 @@ export const CreatePostPage = ({ setIsModalOpen }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
 
+         // Kiểm tra tiêu đề và nội dung không được null hoặc rỗng
+         if (!title.trim()) {
+            showToast("Tiêu đề không được để trống", "error");
+            return; // Ngừng gửi bài nếu tiêu đề rỗng
+        }
+
+        if (!content.trim()) {
+            showToast("Nội dung không được để trống", "error");
+            return; // Ngừng gửi bài nếu nội dung rỗng
+        }
+
         // Gọi API tạo bài viết qua Redux
         dispatch(fetchCreatePost({ title, content })).then(() => {
              dispatch(fetchMyListPost()).then(() => {
