@@ -41,7 +41,7 @@ export default function ChatBox() {
             }
         };
         getMessages();
-    }, [messageSend]);
+    }, [messageSend, user.id]);
 
     useEffect(() => {
         const socket = new SockJS("http://localhost:9095/ws");
@@ -64,7 +64,7 @@ export default function ChatBox() {
                     },
                 };
 
-                // Notify the server that user has connected
+                // thông báo đến server rằng người dùng đã kết nối
                 client.publish({
                     destination: "/app/user-connected", // Địa chỉ gửi khi người dùng kết nối
                     body: JSON.stringify(message) // Gửi senderId thay vì sender
