@@ -76,7 +76,7 @@ export const UserInfoPage = () => {
               return;
           }
       
-          const socket = new SockJS("http://localhost:9095/ws");
+          const socket = new SockJS("http://localhost:8888/api/v1/chat/ws");
           const client = new Client({
               webSocketFactory: () => socket,
               onConnect: () => {

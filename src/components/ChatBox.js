@@ -33,7 +33,7 @@ export default function ChatBox() {
 
         const getMessages = async () => {
             try {
-                const response = await axiosInstance.get(`http://localhost:9095/api/messages/${user.id}`);
+                const response = await axiosInstance.get(`http://localhost:9097/api/v1/messages/${user.id}`);
                 setMessageList(response.data.messages);
             } catch (error) {
                 console.error("Lỗi lấy tin nhắn:", error);
@@ -41,10 +41,10 @@ export default function ChatBox() {
             }
         };
         getMessages();
-    }, [messageSend]);
+    }, [messageSend, user.id]);
 
     useEffect(() => {
-        const socket = new SockJS("http://localhost:9095/ws");
+        const socket = new SockJS("http://localhost:9097/api/v1/chat/ws");
         const client = new Client({
             webSocketFactory: () => socket,
             reconnectDelay: 5000,
@@ -64,7 +64,7 @@ export default function ChatBox() {
                     },
                 };
 
-                // Notify the server that user has connected
+                // thông báo đến server rằng người dùng đã kết nối
                 client.publish({
                     destination: "/app/user-connected", // Địa chỉ gửi khi người dùng kết nối
                     body: JSON.stringify(message) // Gửi senderId thay vì sender
