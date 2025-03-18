@@ -4,7 +4,8 @@ import axios from "axios";
 
 const initialState = {
     errorResponse: null,
-    myPosts: []
+    myPosts: [],
+    comments: [],
 
 };
 
@@ -71,6 +72,27 @@ const fetchAllListPost = createAsyncThunk('post/fetchAllListPost', async (_, { r
 });
 
 
+// Fetch bình luận của bài viết
+const fetchComments = createAsyncThunk('comment/fetchComments', async (postId, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get(`/api/v1/comment/get-comments/${postId}`);
+        return response.data; // Trả về dữ liệu bình luận
+    } catch (error) {
+        return rejectWithValue(error.response?.data || "Lỗi khi lấy danh sách bình luận.");
+    }
+});
+
+// Thêm bình luận
+const addComment = createAsyncThunk('comment/addComment', async (commentData, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.post('/api/v1/comment/create', commentData);
+        return response.data; // Trả về bình luận vừa thêm
+    } catch (error) {
+        return rejectWithValue(error.response?.data || "Lỗi khi thêm bình luận.");
+    }
+});
+
+
 const PostSlice = createSlice({
     name: 'post',
     initialState: initialState,
@@ -120,11 +142,36 @@ const PostSlice = createSlice({
             state.errorResponse = action.payload;
         });
 
+
+        // Lấy bình luận
+        builder.addCase(fetchComments.pending, (state) => {
+            state.errorResponse = null;
+        });
+        builder.addCase(fetchComments.fulfilled, (state, action) => {
+            state.comments = action.payload.data; // Cập nhật danh sách bình luận
+        });
+        builder.addCase(fetchComments.rejected, (state, action) => {
+            state.errorResponse = action.payload;
+        });
+
+        // Thêm bình luận
+        builder.addCase(addComment.pending, (state) => {
+            state.errorResponse = null;
+        });
+        builder.addCase(addComment.fulfilled, (state, action) => {
+            state.comments.push(action.payload); // Thêm bình luận mới vào danh sách
+        });
+        builder.addCase(addComment.rejected, (state, action) => {
+            state.errorResponse = action.payload;
+        });
+        
+
+
         
 
     }
 });
 
 export const { } = PostSlice.actions;
-export { fetchCreatePost, fetchMyListPost,fetchUpdatePost,fetchAllListPost };
+export { fetchCreatePost, fetchMyListPost,fetchUpdatePost,fetchAllListPost, fetchComments, addComment };
 export default PostSlice.reducer;

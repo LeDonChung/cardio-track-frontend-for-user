@@ -1,6 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
-import { fetchAllListPost } from "../redux/slice/PostSlice"; 
+import { fetchAllListPost, fetchComments, addComment } from "../redux/slice/PostSlice"; 
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { format } from "date-fns";
@@ -9,24 +9,48 @@ import UpdatePostPage from "./UpdatePostPage"; // Import UpdatePostPage modal
 export const NewsPage = () => {
     const dispatch = useDispatch();
     const posts = useSelector((state) => state.post.myPosts);
+    const comments = useSelector((state) => state.post.comments); // Lấy danh sách bình luận
     const loading = useSelector((state) => state.post.loading);
-    const userInfo = JSON.parse(localStorage.getItem("userInfo")); // Thông tin người dùng hiện tại
+    const userInfo = JSON.parse(localStorage.getItem("userInfo"));
 
     const [selectedPost, setSelectedPost] = useState(null); // Để lưu bài viết cần cập nhật
-    const [isModalOpen, setIsModalOpen] = useState(false); // Để điều khiển việc hiển thị modal
+    const [isModalOpen, setIsModalOpen] = useState(false); // Để điều khiển việc hiển thị modal cập nhật
+    const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+    const [newComment, setNewComment] = useState("");
 
-    // Mở modal khi nhấn nút cập nhật
+    const [currentPost, setCurrentPost] = useState(null); // Để lưu bài viết hiện tại đang bình luận
+
     const openUpdateModal = (post) => {
-        setSelectedPost(post);
+        setSelectedPost(post);  // Lưu bài viết cần cập nhật
         setIsModalOpen(true);  // Mở modal
     };
 
     useEffect(() => {
-        dispatch(fetchAllListPost());  // Gọi API để lấy tất cả bài viết
+        dispatch(fetchAllListPost());
     }, [dispatch]);
 
-    // Tạo một bản sao của mảng và sắp xếp theo thời gian tạo (createdAt), từ mới nhất đến cũ nhất
-    const sortedPosts = [...posts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+    const openCommentModal = (post) => {
+        setCurrentPost(post); // Lưu bài viết hiện tại
+        dispatch(fetchComments(post.id)); // Lấy danh sách bình luận của bài viết
+        setIsCommentModalOpen(true); // Mở modal bình luận
+    };
+
+    const handleAddComment = () => {
+        if (newComment.trim()) {
+            const commentData = {
+                content: newComment,
+                postId: currentPost.id,
+                authorId: userInfo.id,
+            };
+            dispatch(addComment(commentData)).then(() => {
+                // Gửi bình luận lên server và tải lại bình luận sau khi thêm thành công
+                dispatch(fetchComments(currentPost.id));
+                setNewComment(""); // Reset ô nhập
+            }).catch(err => {
+                console.log("Error adding comment:", err);
+            });
+        }
+    };
 
     return (
         <div className="bg-[#EDF0F3] text-gray-900 min-h-screen">
@@ -39,27 +63,21 @@ export const NewsPage = () => {
                     <img src="https://nhatduoc.vn/wp-content/uploads/2019/04/14.jpg" alt="Side image2" className="w-full h-auto rounded-lg shadow-md mt-4"/>
                 </div>
 
-                {/* Nội dung tin tức */}
                 <div className="w-full md:w-9/12 lg:w-7/12">
                     <h1 className="text-3xl font-bold mb-6 text-center text-blue-800">Tin tức và sự kiện</h1>
-
                     {loading ? (
                         <p>Đang tải bài viết...</p>
-                    ) : sortedPosts.length === 0 ? (
+                    ) : posts.length === 0 ? (
                         <p>Không có bài viết nào.</p>
                     ) : (
                         <div className="space-y-4">
-                            {sortedPosts.map((post) => (
+                            {posts.map((post) => (
                                 <div key={post.id} className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 mb-6">
                                     <h2 className="text-xl font-semibold mb-2 text-blue-600">{post.title}</h2>
                                     <h3 className="text-sm text-gray-500 mb-4">Tác giả: <span className="font-normal">{post.fullName}</span></h3>
-                                    <div 
-                                        className="text-lg text-gray-700 mb-4"
-                                        dangerouslySetInnerHTML={{ __html: post.content }} // Hiển thị nội dung bài viết với định dạng HTML
-                                    />
-                                    <div className="text-sm text-gray-500">
-                                        Ngày đăng: {format(new Date(post.createdAt), "dd/MM/yyyy HH:mm")}
-                                    </div>
+                                    <div className="text-lg text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: post.content }} />
+                                    <div className="text-sm text-gray-500">Ngày đăng: {format(new Date(post.createdAt), "dd/MM/yyyy HH:mm")}</div>
+
                                     {/* Hiển thị nút Cập nhật nếu người dùng là chủ của bài viết */}
                                     {userInfo && userInfo.id === post.authorId && (
                                         <button
@@ -69,6 +87,14 @@ export const NewsPage = () => {
                                             Cập nhật
                                         </button>
                                     )}
+
+                                    {/* Nút Bình luận với số lượng bình luận */}
+                                    <button
+                                        onClick={() => openCommentModal(post)}  // Mở modal bình luận
+                                        className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                                    >
+                                        Bình luận({post.soluongbinhluan || 0}) {/* Hiển thị số lượng bình luận */}
+                                    </button>
                                 </div>
                             ))}
                         </div>
@@ -83,6 +109,55 @@ export const NewsPage = () => {
                 </div>
             </div>
 
+            {/* Modal Bình luận */}
+            {isCommentModalOpen && currentPost && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-1/2">
+                        <h3 className="text-xl font-bold mb-4">Bình luận cho bài viết: {currentPost.title}</h3>
+                        <textarea
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            className="w-full p-3 border border-gray-300 rounded-lg mb-4"
+                            placeholder="Nhập bình luận của bạn..."
+                        />
+                        <div className="flex justify-between">
+                            <button
+                                onClick={handleAddComment}
+                                className="bg-blue-500 text-white px-4 py-2 rounded-lg"
+                            >
+                                Đăng bình luận
+                            </button>
+                            <button
+                                onClick={() => setIsCommentModalOpen(false)}
+                                className="bg-gray-500 text-white px-4 py-2 rounded-lg"
+                            >
+                                Hủy
+                            </button>
+                        </div>
+                        <div className="mt-4">
+                            <h4 className="font-semibold">Danh sách bình luận:</h4>
+                            <div className="space-y-4 mt-4 max-h-60 overflow-y-auto"> {/* Thêm thanh cuộn */}
+                                {Array.isArray(comments) && comments.length > 0 ? (
+                                    comments.map((comment) => {
+                                        const commentDate = new Date(comment.createdAt);
+                                        const formattedDate = commentDate.getTime() > 0 ? format(commentDate, "dd/MM/yyyy HH:mm") : "Ngày không hợp lệ";
+
+                                        return (
+                                            <div key={comment.id} className="p-3 border-b border-gray-200">
+                                                <p><strong>{comment.fullName}</strong>: {comment.content}</p>
+                                                <p className="text-sm text-gray-500">{formattedDate}</p>
+                                            </div>
+                                        );
+                                    })
+                                ) : (
+                                    <p>Không có bình luận nào.</p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Modal Update Post */}
             {isModalOpen && selectedPost && (
                 <UpdatePostPage
@@ -90,6 +165,7 @@ export const NewsPage = () => {
                     postToEdit={selectedPost} // Truyền bài viết cần sửa
                 />
             )}
+
             <Footer />
         </div>
     );
