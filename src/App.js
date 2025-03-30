@@ -16,6 +16,7 @@ import{UpdateUserModal} from './pages/UpdateUserModal.js';
 import { FilterProductPage } from './pages/FilterProductPage.js';
 import ChatBox from './components/ChatBox.js';
 import { PaymentResult } from './components/PaymentResult.js';  
+import ConsultBox from './components/ConsultBox.js';
 function App() {
   return (
     <BrowserRouter
@@ -25,6 +26,7 @@ function App() {
       }}
     >
       <ChatBox />
+      <ConsultBox />
       <Routes>
         
         {/* Login Page */}
