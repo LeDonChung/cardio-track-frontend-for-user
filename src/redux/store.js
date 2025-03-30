@@ -7,6 +7,7 @@ import CartSlice from './slice/CartSlice';
 import ProductSlice from './slice/ProductSlice';
 import FilterSlice from './slice/FilterSlice';
 import PostSlice from './slice/PostSlice';
+import ChatSlice from './slice/ChatSlice';
 
 const store = configureStore({
     reducer: {
@@ -18,6 +19,7 @@ const store = configureStore({
         product: ProductSlice,
         filter: FilterSlice,
         post: PostSlice,
+        chat: ChatSlice
     },
     middleware: getDefaultMiddleware =>
         getDefaultMiddleware({

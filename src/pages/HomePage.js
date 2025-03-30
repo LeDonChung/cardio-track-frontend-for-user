@@ -9,44 +9,8 @@ import { useEffect, useState } from "react";
 import { getProminents } from "../redux/slice/CategorySlice";
 import { getObject } from "../redux/slice/TagSlice";
 import { TagByObject } from "../components/TagByObject";
-const menus = [
-    {
-        id: 'menu1',
-        icon: 'https://cdn.nhathuoclongchau.com.vn/unsafe/40x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/canmuathuoc_29bf521996.png',
-        title: 'Cần mua thuốc',
-        onPress: () => { },
-    },
-    {
-        id: 'menu2',
-        icon: 'https://cdn.nhathuoclongchau.com.vn/unsafe/40x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/tuvanvoiduocsi_1855320b40.png',
-        title: 'Tư vấn với Dược Sỹ',
-        onPress: () => { },
-    },
-    {
-        id: 'menu3',
-        icon: 'https://cdn.nhathuoclongchau.com.vn/unsafe/40x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/timnhathuoc_cbadb52c85.png',
-        title: 'Tìm nhà thuốc',
-        onPress: () => { },
-    },
-    {
-        id: 'menu4',
-        icon: 'https://cdn.nhathuoclongchau.com.vn/unsafe/40x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/doncuatoi_5058ac6058.png',
-        title: 'Đơn của tôi',
-        onPress: () => { },
-    },
-    {
-        id: 'menu5',
-        icon: 'https://cdn.nhathuoclongchau.com.vn/unsafe/40x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/vaccine_013e37b079.png',
-        title: 'Tiêm vắc xin',
-        onPress: () => { },
-    },
-    {
-        id: 'menu6',
-        icon: 'https://cdn.nhathuoclongchau.com.vn/unsafe/40x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/kiemtrasuckhoe_15f6ff48e9.png',
-        title: 'Kiểm tra sức khỏe',
-        onPress: () => { },
-    }
-]
+import { setIsChatOpen } from "../redux/slice/ChatSlice";
+
 
 
 const policiesInit = [
@@ -79,6 +43,47 @@ const policiesInit = [
     }
 ]
 export const HomePage = () => {
+    const navigate = useNavigate();
+
+    const isChatOpen = useSelector(state => state.chat.isChatOpen);
+    const menus = [
+        {
+            id: 'menu1',
+            icon: 'https://cdn.nhathuoclongchau.com.vn/unsafe/40x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/canmuathuoc_29bf521996.png',
+            title: 'Cần mua thuốc',
+            onPress: () => {
+                navigate('/filter-product')
+            },
+        },
+        {
+            id: 'menu2',
+            icon: 'https://cdn.nhathuoclongchau.com.vn/unsafe/40x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/tuvanvoiduocsi_1855320b40.png',
+            title: 'Tư vấn với Dược Sỹ',
+            onPress: () => { 
+                dispatch(setIsChatOpen(true))
+            },
+        },
+        {
+            id: 'menu4',
+            icon: 'https://cdn.nhathuoclongchau.com.vn/unsafe/40x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/doncuatoi_5058ac6058.png',
+            title: 'Đơn của tôi',
+            onPress: () => { 
+                navigate('/user')
+             },
+        },
+        {
+            id: 'menu5',
+            icon: 'https://cdn.nhathuoclongchau.com.vn/unsafe/40x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/vaccine_013e37b079.png',
+            title: 'Tiêm vắc xin',
+            onPress: () => { },
+        },
+        {
+            id: 'menu6',
+            icon: 'https://cdn.nhathuoclongchau.com.vn/unsafe/40x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/kiemtrasuckhoe_15f6ff48e9.png',
+            title: 'Kiểm tra sức khỏe',
+            onPress: () => { },
+        }
+    ]
     const brands = useSelector(state => state.brand.brands);
     const dispatch = useDispatch();
     const initital = async () => {
@@ -94,7 +99,7 @@ export const HomePage = () => {
 
     const [selectedTag, setSelectedTag] = useState(tagsByObject[0]);
 
-    const [policies] = useState(policiesInit);
+    const [policies] = useState(policiesInit); 
 
 
     useEffect(() => {
@@ -144,7 +149,7 @@ export const HomePage = () => {
                     {
                         menus && menus.map(menu => {
                             return (
-                                <div key={menu.id} className="flex bg-white items-center px-6 py-2 cursor-pointer rounded-lg">
+                                <div onClick={menu.onPress} key={menu.id} className="flex bg-white items-center px-6 py-2 cursor-pointer rounded-lg">
                                     <img src={menu.icon} alt="Thera Care Logo" className="h-10 w-10 mr-2" />
                                     <span className="text-custom-size font-medium mt-2">{menu.title}</span>
                                 </div>
@@ -167,7 +172,7 @@ export const HomePage = () => {
                                     </div>
                                 </div>
                                 <div className="w-full my-5">
-                                    <Brand data={brands} />
+                                    <Brand  data={brands} />
                                 </div>
                             </div>
                         </div>

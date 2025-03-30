@@ -236,50 +236,6 @@ export const Header = () => {
 
 
                                                                 </div>
-                                                                <div>
-                                                                    <h2 class="text-lg font-semibold mb-2">Bán chạy nhất <a href="#" class="text-blue-500 underline">Xem tất cả</a></h2>
-                                                                    <div class="grid grid-cols-5 gap-4">
-                                                                        <div class="bg-white p-4 rounded-lg shadow-lg">
-                                                                            <img src="https://placehold.co/100x100" alt="Viên uống Alisha Biotic For Women Happy Life bổ sung" class="h-24 mx-auto" />
-                                                                            <div class="text-center mt-2">
-                                                                                <span class="text-red-500">-20%</span>
-                                                                                <p class="text-sm">Viên uống Alisha Biotic For Women Happy Life bổ sung</p>
-                                                                                <p class="text-blue-500 font-semibold">183.000đ / Hộp</p>
-                                                                                <p class="text-gray-500 line-through">229.000đ</p>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="bg-white p-4 rounded-lg shadow-lg">
-                                                                            <img src="https://placehold.co/100x100" alt="Viên uống JP Lady Jpanwell cung cấp vitamin hỗ trợ phụ nữ" class="h-24 mx-auto" />
-                                                                            <div class="text-center mt-2">
-                                                                                <p class="text-sm">Viên uống JP Lady Jpanwell cung cấp vitamin hỗ trợ phụ nữ</p>
-                                                                                <p class="text-blue-500 font-semibold">1.300.000đ / Hộp</p>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="bg-white p-4 rounded-lg shadow-lg">
-                                                                            <img src="https://placehold.co/100x100" alt="Viên uống LeAna Ocavill hỗ trợ cân bằng nội tiết tố (6" class="h-24 mx-auto" />
-                                                                            <div class="text-center mt-2">
-                                                                                <p class="text-sm">Viên uống LeAna Ocavill hỗ trợ cân bằng nội tiết tố (6</p>
-                                                                                <p class="text-blue-500 font-semibold">680.000đ / Hộp</p>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="bg-white p-4 rounded-lg shadow-lg">
-                                                                            <img src="https://placehold.co/100x100" alt="Viên uống Tố Nữ Vương Royal Care hỗ trợ cải thiện nội tiết" class="h-24 mx-auto" />
-                                                                            <div class="text-center mt-2">
-                                                                                <span class="text-red-500">-20%</span>
-                                                                                <p class="text-sm">Viên uống Tố Nữ Vương Royal Care hỗ trợ cải thiện nội tiết</p>
-                                                                                <p class="text-blue-500 font-semibold">116.000đ / Hộp</p>
-                                                                                <p class="text-gray-500 line-through">145.000đ</p>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="bg-white p-4 rounded-lg shadow-lg">
-                                                                            <img src="https://placehold.co/100x100" alt="Viên nang cứng Vương Nữ Khang Royal Care hỗ trợ" class="h-24 mx-auto" />
-                                                                            <div class="text-center mt-2">
-                                                                                <p class="text-sm">Viên nang cứng Vương Nữ Khang Royal Care hỗ trợ</p>
-                                                                                <p class="text-blue-500 font-semibold">195.000đ / Hộp</p>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
                                                             </div>
 
                                                         </div>
