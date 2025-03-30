@@ -6,6 +6,7 @@ import { faComments, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchUserInfo } from "../redux/slice/UserSlice";
 import { axiosInstance } from "../api/APIClient";
+import { setIsChatOpen } from "../redux/slice/ChatSlice";
 
 const initialMessages = {
     "sender": {
@@ -20,7 +21,7 @@ const initialMessages = {
 }
 
 export default function ChatBox() {
-    const [isChatOpen, setIsChatOpen] = useState(false);
+    const isChatOpen = useSelector(state => state.chat.isChatOpen);
     const [message, setMessage] = useState("");
     const [messageList, setMessageList] = useState([]);
     const [stompClient, setStompClient] = useState(null);
@@ -122,6 +123,7 @@ export default function ChatBox() {
         setMessage("");
     };
 
+    const dispatch = useDispatch();
 
     return <>
         {user &&
@@ -130,7 +132,7 @@ export default function ChatBox() {
                     {/* Nút mở chat */}
                     {!isChatOpen && (
                         <button
-                            onClick={() => setIsChatOpen(true)}
+                            onClick={() => dispatch(setIsChatOpen(true))}
                             className="bg-blue-500 text-white px-4 py-2 rounded-full shadow-lg"
                         >
                             <FontAwesomeIcon icon={faComments} color="white" size="30" />
@@ -143,7 +145,7 @@ export default function ChatBox() {
                             {/* Header */}
                             <div className="flex justify-between items-center border-b pb-2">
                                 <h2 className="text-lg font-semibold">Chat với Dược Sĩ</h2>
-                                <button onClick={() => setIsChatOpen(false)} className="text-red-500">X</button>
+                                <button onClick={() => dispatch(setIsChatOpen(false))} className="text-red-500">X</button>
                             </div>
 
                             {/* Nội dung chat */}
