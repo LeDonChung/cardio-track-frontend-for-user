@@ -69,7 +69,7 @@ export const UserInfoPage = () => {
 
   // Hàm xử lý logout và gửi thông tin qua socket
   const handlerActionLogout = () => {
-    if (!user) {
+    if (!userInfo) {
       // Nếu không có user (đề phòng), chỉ cần navigate về login
       navigate('/login');
       return;
@@ -85,8 +85,8 @@ export const UserInfoPage = () => {
           destination: "/app/user-disconnected",
           body: JSON.stringify({
             sender: {
-              id: user.id,
-              username: user.fullName
+              id: userInfo.id,
+              username: userInfo.fullName
             }
           })
         });
@@ -112,7 +112,7 @@ export const UserInfoPage = () => {
     client.activate();
   }
 
-}
+
 
 //hàm cập nhật user theo id
 const [isEditing, setIsEditing] = useState(false);  // Trạng thái để điều khiển việc hiển thị nút

@@ -1,6 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { axiosInstance } from "../../api/APIClient";
-import axios from "axios";
+
 
 const initialState = {
     errorResponse: null,
