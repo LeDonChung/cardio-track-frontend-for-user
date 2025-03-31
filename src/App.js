@@ -1,29 +1,22 @@
-import "./App.css";
-import {
-  BrowserRouter,
-  Navigate,
-  Route,
-  Routes,
-  useLocation,
-} from "react-router-dom";
-import { LoginPage } from "./pages/LoginPage";
-import { RegisterPage } from "./pages/RegisterPage";
-import { CartPage } from "./pages/CartPage";
-import { OrderPage } from "./pages/OrderPage";
-import { ToastContainer } from "react-toastify";
-import { HomePage } from "./pages/HomePage";
-import { ProductDetailPage } from "./pages/ProductDetailPage";
-import { UserInfoPage } from "./pages/UserInfoPage.js";
-import { CreatePostPage } from "./pages/CreatePostPage.js";
-import { ViewPostPage } from "./pages/ViewPostPage.js";
-import { NewsPage } from "./pages/NewsPage.js";
-import { AddressModal } from "./pages/AddressModal.js";
-import { UpdateUserModal } from "./pages/UpdateUserModal.js";
-import { HealthCheck } from "./pages/HealthCheck.js";
-import { HealthCheckDetail } from "./pages/HealthCheckDetail"; 
-import { FilterProductPage } from "./pages/FilterProductPage.js";
-import ChatBox from "./components/ChatBox.js";
-import { PaymentResult } from "./components/PaymentResult.js";
+import './App.css';
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom';
+import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
+import { CartPage } from './pages/CartPage';
+import { OrderPage } from './pages/OrderPage';
+import { ToastContainer } from 'react-toastify';
+import { HomePage } from './pages/HomePage';
+import { ProductDetailPage } from './pages/ProductDetailPage';
+import { UserInfoPage } from './pages/UserInfoPage.js';
+import { CreatePostPage } from './pages/CreatePostPage.js';
+import { ViewPostPage } from './pages/ViewPostPage.js';
+import { NewsPage } from './pages/NewsPage.js';
+import { AddressModal } from './pages/AddressModal.js';
+import { UpdateUserModal } from './pages/UpdateUserModal.js';
+import { FilterProductPage } from './pages/FilterProductPage.js';
+import ChatBox from './components/ChatBox.js';
+import { PaymentResult } from './components/PaymentResult.js';
+import ConsultBox from './components/ConsultBox.js';
 function App() {
   return (
     <BrowserRouter
@@ -33,6 +26,7 @@ function App() {
       }}
     >
       <ChatBox />
+      <ConsultBox />
       <Routes>
         {/* Login Page */}
         <Route path="/login" element={<LoginPage />} />
@@ -59,6 +53,7 @@ function App() {
         {/* Health Check */}
         <Route path="/health-check" element={<HealthCheck />} />
         <Route path="/health-check/:id" element={<HealthCheckDetail />} />
+
         {/* product detail page */}
         <Route path="/product/:id" element={<ProductDetailPage />} />
 

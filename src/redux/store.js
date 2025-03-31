@@ -8,6 +8,7 @@ import ProductSlice from './slice/ProductSlice';
 import FilterSlice from './slice/FilterSlice';
 import HealthCheckSlice from'./slice/HealthCheckSlice';
 import PostSlice from './slice/PostSlice';
+import ChatSlice from './slice/ChatSlice';
 
 
 const store = configureStore({
@@ -21,6 +22,7 @@ const store = configureStore({
         filter: FilterSlice,
         post: PostSlice,
         healthcheck: HealthCheckSlice,
+        chat: ChatSlice
     },
     middleware: getDefaultMiddleware =>
         getDefaultMiddleware({
