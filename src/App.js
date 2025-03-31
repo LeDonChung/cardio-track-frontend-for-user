@@ -22,19 +22,18 @@ function App() {
     <BrowserRouter
       future={{
         v7_startTransition: true,
-        v7_relativeSplatPath: true
+        v7_relativeSplatPath: true,
       }}
     >
       <ChatBox />
       <ConsultBox />
       <Routes>
-
         {/* Login Page */}
-        <Route path='/login' element={<LoginPage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/" element={<HomePage />} />
 
         {/* Register Page */}
-        <Route path='/register' element={<RegisterPage />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="*" element={<h1>404 - Page Not Found</h1>} />
         {/* User info page */}
         <Route path="/user" element={<UserInfoPage />} />
@@ -51,6 +50,9 @@ function App() {
         {/* View All Post Page */}
         <Route path="/news" element={<NewsPage />} />
 
+        {/* Health Check */}
+        <Route path="/health-check" element={<HealthCheck />} />
+        <Route path="/health-check/:id" element={<HealthCheckDetail />} />
 
         {/* product detail page */}
         <Route path="/product/:id" element={<ProductDetailPage />} />
@@ -62,7 +64,6 @@ function App() {
         <Route path="/payment-result" element={<PaymentResult />} />
       </Routes>
     </BrowserRouter>
-
   );
 }
 
