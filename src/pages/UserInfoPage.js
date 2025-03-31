@@ -69,7 +69,7 @@ export const UserInfoPage = () => {
 
   // Hàm xử lý logout và gửi thông tin qua socket
   const handlerActionLogout = () => {
-    if (!userInfo) {
+    if (!user) {
       // Nếu không có user (đề phòng), chỉ cần navigate về login
       navigate('/login');
       return;
@@ -85,8 +85,8 @@ export const UserInfoPage = () => {
           destination: "/app/user-disconnected",
           body: JSON.stringify({
             sender: {
-              id: userInfo.id,
-              username: userInfo.fullName
+              id: user.id,
+              username: user.fullName
             }
           })
         });
@@ -111,7 +111,7 @@ export const UserInfoPage = () => {
 
     client.activate();
   }
-
+}
 
 
 //hàm cập nhật user theo id
@@ -695,4 +695,4 @@ return (
     <Footer />
   </div>
 );
-};
+
