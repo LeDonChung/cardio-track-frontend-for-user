@@ -10,7 +10,8 @@ import { getProminents } from "../redux/slice/CategorySlice";
 import { getObject } from "../redux/slice/TagSlice";
 import { TagByObject } from "../components/TagByObject";
 import { setIsChatOpen } from "../redux/slice/ChatSlice";
-
+import { fetchAllHealthTests } from "../redux/slice/HealthCheckSlice";
+import React from "react";
 
 
 const policiesInit = [
@@ -45,6 +46,25 @@ const policiesInit = [
 export const HomePage = () => {
     const navigate = useNavigate();
 
+    //thêm vào để sd 2 nút cuộn trái phải
+    const [scrollPosition, setScrollPosition] = useState(0); 
+    const containerRef = React.createRef(); 
+  
+    // Function to scroll to the left
+    const scrollLeft = () => {
+      if (containerRef.current) {
+        containerRef.current.scrollLeft -= 500; //tốc độc cuộn
+        setScrollPosition(containerRef.current.scrollLeft);
+      }
+    };
+  
+    // Function to scroll to the right
+    const scrollRight = () => {
+      if (containerRef.current) {
+        containerRef.current.scrollLeft += 500; 
+        setScrollPosition(containerRef.current.scrollLeft);
+      }
+    };
     const isChatOpen = useSelector(state => state.chat.isChatOpen);
     const menus = [
         {
@@ -101,12 +121,14 @@ export const HomePage = () => {
 
     const [policies] = useState(policiesInit); 
 
-
+    const { healthTests } = useSelector((state) => state.healthcheck);
     useEffect(() => {
         initital();
+        dispatch(fetchAllHealthTests());
     }, [dispatch])
 
-    
+
+
 
     return (
         <div className="bg-[#EDF0F3] text-gray-900">
@@ -259,6 +281,68 @@ export const HomePage = () => {
                     })}
                 </div>
             </div>
+
+          {/* Health Tests - Horizontal Scroll */}
+      <div className="container mx-auto my-6">
+        <h2 className="text-2xl font-semibold mb-4">Các bài kiểm tra sức khỏe</h2>
+          {/* Background container */}
+        <div className="relative bg-cover bg-center bg-blue-500 p-4 rounded-lg" style={{ backgroundImage: "url('https://cdn.nhathuoclongchau.com.vn/unsafe/1440x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/Kiem_tra_suc_khoe_27634e751f.jpg')", height:"230px" }}>
+          <div
+            ref={containerRef}
+            className="flex overflow-x-auto space-x-6 pb-4"
+            style={{
+              scrollbarWidth: "none", // Firefox
+              msOverflowStyle: "none", // IE and Edge
+            }}
+          >
+            <style>
+              {`
+                div::-webkit-scrollbar {
+                  display: none;
+                }
+              `}
+            </style>
+
+            {healthTests.map((test) => (
+              <div key={test.id} className="bg-white p-4 rounded-lg shadow-md w-[250px] flex-shrink-0" >
+                <img
+                  src="https://cdn.nhathuoclongchau.com.vn/unsafe/96x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/ic_tien_dai_thao_duong_688b8d7cde.png"
+                  alt={test.testName}
+                  className="w-14 h-14 mb-3 mx-auto"
+                />
+                <h3 className="text-base font-semibold text-center">{test.testName}</h3>
+                <button
+                  onClick={() => navigate(`/health-check/${test.id}`)}
+                  className="text-blue-600 font-semibold hover:underline w-full text-center"
+                >
+                  Bắt đầu
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Left Arrow */}
+          <button
+            className="absolute top-1/2 left-0 transform -translate-y-1/2 text-3xl bg-gray-700 text-white p-2 rounded-full"
+            onClick={scrollLeft}
+          >
+            &#8249;
+          </button>
+
+          {/* Right Arrow */}
+          <button
+            className="absolute top-1/2 right-0 transform -translate-y-1/2 text-3xl bg-gray-700 text-white p-2 rounded-full"
+            onClick={scrollRight}
+          >
+            &#8250;
+          </button>
+        </div>
+      </div>
+
+
+
+
+
 
             <Footer />
         </div>
