@@ -19,7 +19,7 @@ export const UserInfoPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const userAddresses = useSelector((state) => state.user.userAddresses);
+  //const userAddresses = useSelector((state) => state.user.userAddresses);
   const posts = useSelector((state) => state.post.myPosts) || []; // Lấy bài viết từ redux store và đảm bảo nó là một mảng
   const [isModalOpenUpdate, setIsModalOpenUpdate] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
@@ -53,9 +53,19 @@ export const UserInfoPage = () => {
     });
   }, [dispatch]);
 
+  const [userAddresses, setUserAddresses] = useState(() => {
+    const constuserAddresses = localStorage.getItem("userAddress");
+    // return storedUser !== null  || storedUser !== undefined ? JSON.parse(storedUser) : null;
+  });
   useEffect(() => {
     // Gọi fetchUserAddresses với userId từ userInfo
-    dispatch(fetchUserAddresses());
+    dispatch(fetchUserAddresses()).then((res) => {
+      if (res.payload) {
+        setUserAddresses(res.payload.data); // Cập nhật lại địa chỉ vào state
+        localStorage.setItem("userAddress", JSON.stringify(res.payload.data)); // Lưu lại nếu cần
+      }
+    }
+    );
   }, [dispatch]);
 
   useEffect(() => {
@@ -188,27 +198,38 @@ export const UserInfoPage = () => {
       // Truyền đúng đối tượng newAddress vào
       newAddress.id = addressToEdit.id;  // Đảm bảo id được truyền
       dispatch(updateAddress(newAddress)).then(() => {
-        dispatch(fetchUserAddresses()); // Gọi lại fetchUserAddresses sau khi cập nhật thành công
+        // Cập nhật trực tiếp state userAddresses mà không cần gọi lại fetchUserAddresses
+        setUserAddresses((prevAddresses) =>
+          prevAddresses.map((address) =>
+            address.id === addressToEdit.id ? { ...address, ...newAddress } : address
+          )
+        );
       });
     } else {
       // Nếu là thêm mới địa chỉ
-      dispatch(addAddress(newAddress)).then(() => {
-        dispatch(fetchUserAddresses()); // Gọi lại fetchUserAddresses sau khi thêm mới thành công
+      dispatch(addAddress(newAddress)).then((res) => {
+        // Giả sử rằng response của addAddress trả về địa chỉ mới
+        const addedAddress = res.payload.data;
+        // Cập nhật trực tiếp state userAddresses với địa chỉ mới
+        setUserAddresses((prevAddresses) => [...prevAddresses, addedAddress]);
       });
     }
     setIsAddressModalOpen(false); // Đóng modal
   };
+  
 
-
-  //hàm xóa address
   const handleDeleteAddress = (address) => {
     // Xác nhận trước khi xóa
     if (window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
       dispatch(deleteAddress(address)).then(() => {
-        dispatch(fetchUserAddresses()); // Gọi lại fetchUserAddresses sau khi xóa thành công
+        // Cập nhật ngay lập tức state userAddresses để xóa địa chỉ khỏi danh sách
+        setUserAddresses((prevAddresses) =>
+          prevAddresses.filter((addr) => addr.id !== address.id)
+        );
       });
     }
   };
+  
 
 
 
