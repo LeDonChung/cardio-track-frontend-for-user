@@ -4,19 +4,18 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { CartPage } from './pages/CartPage';
 import { OrderPage } from './pages/OrderPage';
-import { ToastContainer } from 'react-toastify';
 import { HomePage } from './pages/HomePage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { UserInfoPage } from './pages/UserInfoPage.js';
 import { CreatePostPage } from './pages/CreatePostPage.js';
 import { ViewPostPage } from './pages/ViewPostPage.js';
 import { NewsPage } from './pages/NewsPage.js';
-import { AddressModal } from './pages/AddressModal.js';
-import { UpdateUserModal } from './pages/UpdateUserModal.js';
 import { FilterProductPage } from './pages/FilterProductPage.js';
 import ChatBox from './components/ChatBox.js';
 import { PaymentResult } from './components/PaymentResult.js';
 import ConsultBox from './components/ConsultBox.js';
+import { HealthCheckDetail } from './pages/HealthCheckDetail.js';
+import { HealthCheck } from './pages/HealthCheck.js';
 function App() {
   return (
     <BrowserRouter
