@@ -97,6 +97,7 @@ const fetchAllListPost = createAsyncThunk('post/fetchAllListPost', async (_, { r
     try {
     
         const response = await axiosInstance.get(`/api/v1/post/all-post`);
+       
         return response.data; // Trả về dữ liệu người dùng
     } catch (error) {
         return rejectWithValue(error.response?.data || "Lỗi API không lấy được post.");

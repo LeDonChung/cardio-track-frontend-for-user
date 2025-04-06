@@ -15,6 +15,7 @@ import ChatBox from './components/ChatBox.js';
 import { PaymentResult } from './components/PaymentResult.js';
 import ConsultBox from './components/ConsultBox.js';
 import { HealthCheckDetail } from './pages/HealthCheckDetail.js';
+import { PostDetailPage } from './pages/PostDetailPage.js';
 import { HealthCheck } from './pages/HealthCheck.js';
 function App() {
   return (
@@ -46,7 +47,9 @@ function App() {
 
         {/* View Post Page */}
         <Route path="/view-post" element={<ViewPostPage />} />
-        {/* View All Post Page */}
+        {/* View Detail Post Page theo title */}
+        <Route path="/search/:title" element={<PostDetailPage />} />
+        {/* News */}
         <Route path="/news" element={<NewsPage />} />
 
         {/* Health Check */}

@@ -49,7 +49,7 @@ formData.append("file", file);  // Gửi tệp ảnh vào formData
 try {
     const imgUrl = await dispatch(uploadImage(formData)).unwrap();  // Tải ảnh lên và nhận URL
     setImgTitle(imgUrl);  // Lưu URL của ảnh vào state
-    console.log("Uploaded image URL:", imgUrl);  // In ra URL đã tải lên
+    //console.log("Uploaded image URL:", imgUrl);  // In ra URL đã tải lên
 } catch (error) {
     console.error("Error uploading image:", error);
     showToast("Lỗi khi tải ảnh lên", "error");
