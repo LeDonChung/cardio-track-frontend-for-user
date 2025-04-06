@@ -6,25 +6,45 @@ const initialState = {
     errorResponse: null,
     myPosts: [],
     comments: [],
+    searchPost:[],
+    imgUrl: null,
 
 };
 
-const fetchCreatePost = createAsyncThunk('post/fetchCreatePost', async ({ title, content }, { rejectWithValue }) => {
+const uploadImage = createAsyncThunk('post/uploadImage', async (formData, { rejectWithValue }) => {
     try {
-        const token = localStorage.getItem("token");
-        const response = await axiosInstance.post(`/api/v1/post/create`,{
-            title,
-            content
-        }, {
+        // Gửi file lên backend để upload lên S3 và lấy URL
+        const response = await axiosInstance.post(`/api/v1/post/upload-image`, formData, {
             headers: {
-                Authorization: `${token}` // Cung cấp token trong header
-            }
+                "Content-Type": "multipart/form-data",     
+            },
         });
-        return response.data; // Trả về dữ liệu người dùng
+
+        // Trả về URL của ảnh
+        return response.data.url;
     } catch (error) {
-        return rejectWithValue(error.response?.data || "Lỗi API không lấy được thông tin user.");
+        console.error("Lỗi tải ảnh lên:", error.response);  // Log lỗi chi tiết
+        return rejectWithValue(error.response?.data || "Lỗi tải ảnh lên.");
     }
 });
+
+
+
+const fetchCreatePost = createAsyncThunk('post/fetchCreatePost', async (formData, { rejectWithValue, dispatch }) => {
+    try {
+        const token = localStorage.getItem("token");
+
+        const response = await axiosInstance.post(`/api/v1/post/create`, formData, {
+            headers: {
+                Authorization: `${token}`,
+            },
+        });
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || "Lỗi khi tạo bài viết.");
+    }
+});
+
 
 //my list post 
     const fetchMyListPost = createAsyncThunk('post/fetchMyListPost', async (_, { rejectWithValue }) => {
@@ -54,6 +74,18 @@ const fetchCreatePost = createAsyncThunk('post/fetchCreatePost', async ({ title,
                 Authorization: `${token}` // Add the token if necessary
             }
         });
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response?.data || "Lỗi cập nhật bài viết.");
+    }
+});
+
+
+//hàm tìm post theo title
+const fetchSearchPost = createAsyncThunk('post/fetchSearchPost', async (title, { rejectWithValue }) => {
+    try {
+
+        const response = await axiosInstance.get(`/api/v1/post/search?title=${title}`);
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response?.data || "Lỗi cập nhật bài viết.");
@@ -164,8 +196,29 @@ const PostSlice = createSlice({
         builder.addCase(addComment.rejected, (state, action) => {
             state.errorResponse = action.payload;
         });
-        
-
+        //upload file
+         // Xử lý upload ảnh
+         builder.addCase(uploadImage.pending, (state) => {
+            state.errorResponse = null;
+        });
+        builder.addCase(uploadImage.fulfilled, (state, action) => {
+            state.errorResponse = null;
+            state.imgUrl = action.payload;  // Lưu URL của ảnh
+        });
+        builder.addCase(uploadImage.rejected, (state, action) => {
+            state.errorResponse = action.payload;
+        });
+        //tìm post theo title
+        builder.addCase(fetchSearchPost.pending, (state) => {
+            state.errorResponse = null;
+        });
+        builder.addCase(fetchSearchPost.fulfilled, (state, action) => {
+            state.errorResponse = null;
+            state.searchPost = action.payload.data; // Cập nhật danh sách bài viết
+        });
+        builder.addCase(fetchSearchPost.rejected, (state, action) => {
+            state.errorResponse = action.payload;
+        });
 
         
 
@@ -173,5 +226,5 @@ const PostSlice = createSlice({
 });
 
 export const { } = PostSlice.actions;
-export { fetchCreatePost, fetchMyListPost,fetchUpdatePost,fetchAllListPost, fetchComments, addComment };
+export { fetchCreatePost, fetchMyListPost,fetchUpdatePost,fetchAllListPost, fetchComments, addComment,uploadImage,fetchSearchPost };
 export default PostSlice.reducer;

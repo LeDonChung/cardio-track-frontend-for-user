@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import ReactQuill from "react-quill-new"; // Import react-quill-new
 import "react-quill-new/dist/quill.snow.css"; // Import CSS style for Quill
-import { fetchCreatePost, fetchMyListPost  } from "../redux/slice/PostSlice";
+import { fetchCreatePost, fetchMyListPost ,uploadImage } from "../redux/slice/PostSlice";
 import showToast from "../utils/AppUtils";
-import { useDispatch } from "react-redux";
+import { useDispatch,useSelector  } from "react-redux";
 
 
 
@@ -24,32 +24,73 @@ const modules = {
 export const CreatePostPage = ({ setIsModalOpen }) => {
     const [title, setTitle] = useState("");
     const [content, setContent] = useState("");
+    const [imgTitle, setImgTitle] = useState(""); // State to hold selected image
     const dispatch = useDispatch();  // Hook để dispatch action
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+    //const imgUrl = useSelector(state => state.post.imgUrl);
+    // Handle file change
+    // Handle file change
+const handleFileChange = async (e) => {
+    const file = e.target.files[0];
+    const fileExtension = file.name.split(".").pop().toLowerCase(); // Lấy đuôi tệp
 
-         // Kiểm tra tiêu đề và nội dung không được null hoặc rỗng
-         if (!title.trim()) {
-            showToast("Tiêu đề không được để trống", "error");
-            return; // Ngừng gửi bài nếu tiêu đề rỗng
-        }
+    // Kiểm tra loại tệp
+    if (!["jpg", "jpeg", "png", "gif"].includes(fileExtension)) {
+        showToast("Chỉ chấp nhận hình ảnh có định dạng: JPG, JPEG, PNG, GIF", "error");
+        e.target.value = ""; // Reset giá trị của input file
+        setImgTitle(null); // Xóa tệp đã chọn
+        return;
+    }
 
-        if (!content.trim()) {
-            showToast("Nội dung không được để trống", "error");
-            return; // Ngừng gửi bài nếu nội dung rỗng
-        }
+    // Upload ảnh lên S3 và lấy URL
+    const formData = new FormData();
+formData.append("file", file);  // Gửi tệp ảnh vào formData
 
-        // Gọi API tạo bài viết qua Redux
-        dispatch(fetchCreatePost({ title, content })).then(() => {
-             dispatch(fetchMyListPost()).then(() => {
-                showToast("Cập nhật thông tin thành công!", "success");
-                setIsModalOpen(false);  // Đóng modal khi tạo bài viết thành công
-            });
-        }).catch(err => {
-            console.log("Error creating post:", err);
+try {
+    const imgUrl = await dispatch(uploadImage(formData)).unwrap();  // Tải ảnh lên và nhận URL
+    setImgTitle(imgUrl);  // Lưu URL của ảnh vào state
+    console.log("Uploaded image URL:", imgUrl);  // In ra URL đã tải lên
+} catch (error) {
+    console.error("Error uploading image:", error);
+    showToast("Lỗi khi tải ảnh lên", "error");
+}
+};
+
+
+const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!title.trim()) {
+        showToast("Tiêu đề không được để trống", "error");
+        return;
+    }
+
+    if (!content.trim()) {
+        showToast("Nội dung không được để trống", "error");
+        return;
+    }
+
+    if (!imgTitle) {
+        showToast("Vui lòng chọn ảnh tiêu đề", "error");
+        return;
+    }
+
+    // Tạo FormData để gửi hình ảnh cùng các dữ liệu bài viết
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("content", content);
+    formData.append("imgTitle", imgTitle); // Append URL ảnh vào formData
+    // Gọi API tạo bài viết qua Redux
+    dispatch(fetchCreatePost(formData)).then(() => {
+        dispatch(fetchMyListPost()).then(() => {
+            showToast("Cập nhật bài viết thành công!", "success");
+            setIsModalOpen(false);
         });
-    };
+    }).catch(err => {
+        console.log("Error creating post:", err);
+    });
+};
+    
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 1000 }}>
@@ -82,7 +123,15 @@ export const CreatePostPage = ({ setIsModalOpen }) => {
                             modules={modules} // Sử dụng modules đã cấu hình
                         />
                     </div>
-
+                    <div className="mb-2">
+                        <label className="block text-1xl font-bold">Hình tiêu đề</label>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange} // Không cần value cho file input
+                            className="w-full p-2 border border-gray-300 rounded-lg"
+                        />
+                    </div>
                     <div className="flex justify-end space-x-4">
                         <button
                             type="button"
