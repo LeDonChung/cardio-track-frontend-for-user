@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { fetchAddresses, submitOrder, addAddress } from '../../api/CartAPI';
+import { fetchAddresses, submitOrder, addAddress, updateAddress, deleteAddress } from '../../api/CartAPI';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import showToast from "../../utils/AppUtils";
 
@@ -49,6 +49,48 @@ export const addAddressThunk = createAsyncThunk(
       // Nếu có lỗi xảy ra, trả về thông báo lỗi
       showToast('Có lỗi xảy ra khi thêm địa chỉ', 'error');  // Hiển thị thông báo lỗi
       console.error('Error adding address:', error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Thunk update address
+export const updateAddressThunk = createAsyncThunk(
+  'cart/updateAddress',
+  async ({ addressId, addressData }, { rejectWithValue }) => {
+    const token = localStorage.getItem('authToken');
+    try {
+      const response = await updateAddress(addressId, addressData, token);
+      if (response.status === 200) {
+        showToast('Cập nhật địa chỉ thành công', 'success');  // Hiển thị thông báo thành công
+      } else {
+        showToast('Cập nhật địa chỉ thất bại', 'error');  // Hiển thị thông báo thất bại
+      }
+      return response.data;  // Trả về kết quả từ API
+    } catch (error) {
+      showToast('Có lỗi xảy ra khi cập nhật địa chỉ', 'error');  // Hiển thị thông báo lỗi
+      console.error('Error updating address:', error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Thunk delete address
+export const deleteAddressThunk = createAsyncThunk(
+  'cart/deleteAddress',
+  async ({ addressId }, { rejectWithValue }) => {
+    const token = localStorage.getItem('authToken');
+    try {
+      const response = await deleteAddress(addressId, token);
+      if (response.status === 200) {
+        showToast('Xóa địa chỉ thành công', 'success');  // Hiển thị thông báo thành công
+      } else {
+        showToast('Xóa địa chỉ thất bại', 'error');  // Hiển thị thông báo thất bại
+      }
+      return response.data;  // Trả về kết quả từ API
+    } catch (error) {
+      showToast('Có lỗi xảy ra khi xóa địa chỉ', 'error');  // Hiển thị thông báo lỗi
+      console.error('Error deleting address:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
@@ -169,6 +211,28 @@ const cartSlice = createSlice({
       state.addressResponse = action.payload;  // Lưu kết quả trả về khi thêm địa chỉ
     });
     builder.addCase(addAddressThunk.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(updateAddressThunk.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(updateAddressThunk.fulfilled, (state, action) => {
+      state.loading = false;
+      state.addressResponse = action.payload;  // Lưu kết quả trả về khi cập nhật địa chỉ
+    });
+    builder.addCase(updateAddressThunk.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(deleteAddressThunk.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(deleteAddressThunk.fulfilled, (state, action) => {
+      state.loading = false;
+      state.addressResponse = action.payload;  // Lưu kết quả trả về khi xóa địa chỉ
+    });
+    builder.addCase(deleteAddressThunk.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload;
     });

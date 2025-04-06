@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { fetchAddressesThunk } from '../redux/slice/CartSlice';
+import { fetchAddressesThunk, deleteAddressThunk } from '../redux/slice/CartSlice';
 import { Edit, Trash } from 'lucide-react';
 
 const SavedAddressModal = ({ isOpen, onClose, onSelect, openAddressFormModal }) => {
@@ -28,6 +28,24 @@ const SavedAddressModal = ({ isOpen, onClose, onSelect, openAddressFormModal }) 
     const handleAddNewAddress = () => {
         openAddressFormModal();
     };
+
+    const handleDeleteAddress = (addressId) => {
+        console.log(addressId);
+        if (window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
+            dispatch(deleteAddressThunk({ addressId }))
+                .then(response => {
+                    console.log('response delete address', response); // Log để kiểm tra phản hồi
+                    if (response.payload && response.payload.success && response.payload.data === true) {
+                        setAddresses(prevAddresses => prevAddresses.filter(address => address.id !== addressId));
+                    } else {
+                        console.log('Xóa địa chỉ thất bại', response.payload); // Log chi tiết nếu thất bại
+                    }
+                })
+                .catch(error => {
+                    console.log('Có lỗi xảy ra khi xóa địa chỉ:', error); // Log lỗi nếu có
+                });
+        }
+    }     
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -68,8 +86,8 @@ const SavedAddressModal = ({ isOpen, onClose, onSelect, openAddressFormModal }) 
                                         <button 
                                             onClick={(e) => {
                                                 e.stopPropagation(); // Prevent triggering onSelect
-                                                alert('Chưa làm từ từ');
-                                            }} 
+                                                handleDeleteAddress(address.id);
+                                            }}
                                             className="p-2 rounded-md text-sm text-red-600 hover:text-red-800 transition-all"
                                         >
                                             <Trash size={20} />

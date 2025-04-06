@@ -26,3 +26,26 @@ export const addAddress = (addressData, userId, token) => {
       }
     );
 };
+
+export const updateAddress = (addressId, addressData, token) => {
+    return axiosInstance.put(
+      `/api/v1/address/update-address/${addressId}`,
+      addressData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+}
+
+export const deleteAddress = (addressId, token) => {
+    return axiosInstance.delete(
+      `/api/v1/address/delete-address/${addressId}`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+}   
