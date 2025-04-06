@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Select from 'react-select';
 import { useDispatch } from 'react-redux';
 import { addAddressThunk } from '../redux/slice/CartSlice';  
+import showToast from '../utils/AppUtils';
 
 const AddressFormModal = ({ isOpen, onClose }) => {
     const dispatch = useDispatch();
@@ -119,13 +120,13 @@ const AddressFormModal = ({ isOpen, onClose }) => {
         // Kiểm tra thông tin bắt buộc
         if (!user.id || !token) {
             console.log(user.id, token);
-            alert('Bạn cần đăng nhập để lưu địa chỉ!');
+            showToast('Vui lòng đăng nhập để lưu địa chỉ!', 'error');
             return;
         }
 
         // Kiểm tra các trường thông tin bắt buộc
         if (!fullName || !phoneNumber || !selectedProvince || !selectedDistrict || !selectedWard || !street || !addressType) {
-            alert('Vui lòng điền đầy đủ thông tin địa chỉ!');
+            showToast('Vui lòng điền đầy đủ thông tin địa chỉ!', 'error');
             return;
         }
 

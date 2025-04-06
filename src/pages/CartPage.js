@@ -188,37 +188,37 @@ export const CartPage = () => {
     const token = localStorage.getItem('token');
     const handleSubmitOrder = async() => {
         if (!fullName) {
-            alert("Vui lòng nhập họ tên người nhận hàng");
+            showToast("Vui lòng nhập họ và tên người nhận hàng", "error");
             return;
         }
 
         if (!phoneNumber) {
-            alert("Vui lòng nhập số điện thoại người nhận hàng");
+            showToast("Vui lòng nhập số điện thoại", "error");
             return;
         }
 
         if (!selectedProvince && !selectedAddress.province) {
-            alert("Vui lòng chọn tỉnh/thành phố");
+            showToast("Vui lòng chọn tỉnh/thành phố", "error");
             return;
         }
 
         if (!selectedDistrict && !selectedAddress.district) {
-            alert("Vui lòng chọn quận/huyện");
+            showToast("Vui lòng chọn quận/huyện", "error");
             return;
         }
 
         if (!selectedWard && !selectedAddress.ward) {
-            alert("Vui lòng chọn phường/xã");
+            showToast("Vui lòng chọn phường/xã", "error");
             return;
         }
 
         if (!street) {
-            alert("Vui lòng nhập địa chỉ cụ thể");
+            showToast("Vui lòng nhập địa chỉ cụ thể", "error");
             return;
         }
 
         if(paymentMethod === '') {
-            alert("Vui lòng chọn phương thức thanh toán. Hiện tại chỉ hổ trợ tiền mặt và QR");
+            showToast("Vui lòng chọn phương thức thanh toán", "error");
             return;
         }
 

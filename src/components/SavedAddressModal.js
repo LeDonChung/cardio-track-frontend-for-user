@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { fetchAddressesThunk, deleteAddressThunk } from '../redux/slice/CartSlice';
 import { Edit, Trash } from 'lucide-react';
+import showToast from '../utils/AppUtils';
 
 const SavedAddressModal = ({ isOpen, onClose, onSelect, openAddressFormModal }) => {
     const dispatch = useDispatch();
@@ -11,6 +11,9 @@ const SavedAddressModal = ({ isOpen, onClose, onSelect, openAddressFormModal }) 
         const user = JSON.parse(localStorage.getItem('userInfo'));
         return user;
     });
+
+    const [isDeleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+    const [addressToDelete, setAddressToDelete] = useState(null);
 
     useEffect(() => {
         dispatch(fetchAddressesThunk(user.id))
@@ -30,22 +33,28 @@ const SavedAddressModal = ({ isOpen, onClose, onSelect, openAddressFormModal }) 
     };
 
     const handleDeleteAddress = (addressId) => {
-        console.log(addressId);
-        if (window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
-            dispatch(deleteAddressThunk({ addressId }))
-                .then(response => {
-                    console.log('response delete address', response); // Log để kiểm tra phản hồi
-                    if (response.payload && response.payload.success && response.payload.data === true) {
-                        setAddresses(prevAddresses => prevAddresses.filter(address => address.id !== addressId));
-                    } else {
-                        console.log('Xóa địa chỉ thất bại', response.payload); // Log chi tiết nếu thất bại
-                    }
-                })
-                .catch(error => {
-                    console.log('Có lỗi xảy ra khi xóa địa chỉ:', error); // Log lỗi nếu có
-                });
-        }
-    }     
+        setAddressToDelete(addressId); // Lưu địa chỉ cần xóa
+        setDeleteConfirmOpen(true); // Mở modal xác nhận
+    };
+
+    const handleConfirmDelete = () => {
+        dispatch(deleteAddressThunk({ addressId: addressToDelete }))
+            .then(response => {
+                if (response.payload && response.payload.success) {
+                    setAddresses(prevAddresses => prevAddresses.filter(address => address.id !== addressToDelete));
+                } else {
+                    console.log('Xóa địa chỉ thất bại', response.payload);
+                }
+            })
+            .catch(error => {
+                console.log('Có lỗi xảy ra khi xóa địa chỉ:', error);
+            })
+            .finally(() => setDeleteConfirmOpen(false)); // Đóng modal sau khi xử lý
+    };
+
+    const handleCancelDelete = () => {
+        setDeleteConfirmOpen(false); // Đóng modal mà không xóa
+    };
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
@@ -77,7 +86,7 @@ const SavedAddressModal = ({ isOpen, onClose, onSelect, openAddressFormModal }) 
                                         <button 
                                             onClick={(e) => {
                                                 e.stopPropagation(); // Prevent triggering onSelect
-                                                alert('Chưa làm từ từ');
+                                                showToast('Chức năng chỉnh sửa chưa được triển khai', 'info');
                                             }} 
                                             className="p-2 rounded-md text-sm text-yellow-600 hover:text-yellow-800 transition-all"
                                         >
@@ -113,6 +122,30 @@ const SavedAddressModal = ({ isOpen, onClose, onSelect, openAddressFormModal }) 
                     </div>
                 </div>
             </div>
+
+            {/* Modal xác nhận xóa */}
+            {isDeleteConfirmOpen && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+                    <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+                        <h3 className="text-xl font-bold text-center mb-4">Xác nhận xóa địa chỉ</h3>
+                        <p className="text-center mb-4">Bạn có chắc chắn muốn xóa địa chỉ này?</p>
+                        <div className="flex justify-center space-x-4">
+                            <button 
+                                onClick={handleConfirmDelete} 
+                                className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 transition-all"
+                            >
+                                Xóa
+                            </button>
+                            <button 
+                                onClick={handleCancelDelete} 
+                                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-all"
+                            >
+                                Hủy
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
