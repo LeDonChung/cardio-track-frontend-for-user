@@ -73,10 +73,10 @@ const cartSlice = createSlice({
       
       // Nếu sản phẩm đã có trong giỏ hàng, tăng số lượng lên 1
       if (existingProduct) {
-        existingProduct.quantity += 1;
+        existingProduct.quantity += product.quantity ? product.quantity : 1;
       } else {
         // Nếu chưa có trong giỏ, thêm sản phẩm mới vào giỏ
-        state.cart.push({ ...product, quantity: 1 });
+        state.cart.push({ ...product, quantity: product.quantity ? product.quantity : 1 });
       }
       saveCartToLocalStorage(state.cart);
     },
