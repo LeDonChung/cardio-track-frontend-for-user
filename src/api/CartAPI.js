@@ -13,3 +13,16 @@ export const submitOrder = (orderData, token) => {
         }
     });
 };
+
+// Thêm địa chỉ mới
+export const addAddress = (addressData, userId, token) => {
+    return axiosInstance.post(
+      '/api/v1/user/address',
+      { ...addressData, userId },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+};

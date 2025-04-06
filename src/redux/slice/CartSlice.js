@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { fetchAddresses, submitOrder } from '../../api/CartAPI';
+import { fetchAddresses, submitOrder, addAddress } from '../../api/CartAPI';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import showToast from "../../utils/AppUtils";
 
 const loadCartFromLocalStorage = () => {
   // Kiểm tra xem có userId trong localStorage không
@@ -28,12 +29,35 @@ const saveCartToLocalStorage = (cart) => {
   }
 };
 
+// Thunk để thêm địa chỉ mới
+export const addAddressThunk = createAsyncThunk(
+  'cart/addAddress',
+  async ({ addressData }, { rejectWithValue }) => {
+    const userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
+    const token = localStorage.getItem('authToken');
+
+    try {
+      // Gọi API addAddress với addressData, userId và token
+      const response = await addAddress(addressData, userId, token);
+      if (response.status === 200) {
+        showToast('Thêm địa chỉ thành công', 'success');  // Hiển thị thông báo thành công
+      } else {
+        showToast('Thêm địa chỉ thất bại', 'error');  // Hiển thị thông báo thất bại
+      }
+      return response.data;  // Trả về kết quả từ API
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 const initialState = {
   cart: loadCartFromLocalStorage(),  // Tải giỏ hàng từ LocalStorage nếu có
   addresses: [],
   loading: false,
   error: null,
   orderResponse: null,
+  addressResponse: null,
 };
 
 // Thunk để lấy danh sách địa chỉ
@@ -131,6 +155,17 @@ const cartSlice = createSlice({
       state.orderResponse = action.payload;
     });
     builder.addCase(submitOrderThunk.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(addAddressThunk.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(addAddressThunk.fulfilled, (state, action) => {
+      state.loading = false;
+      state.addressResponse = action.payload;  // Lưu kết quả trả về khi thêm địa chỉ
+    });
+    builder.addCase(addAddressThunk.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload;
     });

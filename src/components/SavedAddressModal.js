@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { Edit, Trash } from 'lucide-react';
 
-const SavedAddressModal = ({ isOpen, onClose, addresses, onSelect}) => {
+const SavedAddressModal = ({ isOpen, onClose, addresses, onSelect, openAddressFormModal}) => {
     const [newAddress, setNewAddress] = useState('');
 
     if (!isOpen) return null;
 
     const handleAddNewAddress = () => {
-        alert('Chức năng thêm địa chỉ mới chưa được xử lý.');
-        // Sau khi hoàn thiện, có thể gọi API hoặc lưu trữ vào state ở đây
+        openAddressFormModal();
     };
 
     return (

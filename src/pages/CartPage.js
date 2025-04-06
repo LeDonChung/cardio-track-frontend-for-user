@@ -11,6 +11,7 @@ import '../css/CartPage.css';
 import Select from 'react-select';
 import showToast from "../utils/AppUtils";
 import SavedAddressModal from '../components/SavedAddressModal';
+import AddressFormModal from '../components/AddressFormModal';
 
 export const CartPage = () => {
     const dispatch = useDispatch();
@@ -42,8 +43,18 @@ export const CartPage = () => {
     const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState("");
     const [paymentMethod, setPaymentMethod] = useState('');
+    const [isAddressFormModalOpen, setIsAddressFormModalOpen] = useState(false)
 
+    // Hàm mở modal AddressFormModal
+    const openAddressFormModal = () => {
+        setIsModalOpen(false);  // Đóng modal SavedAddressModal
+        setIsAddressFormModalOpen(true);  // Mở modal AddressFormModal
+    };
 
+    // Hàm đóng AddressFormModal
+    const closeAddressFormModal = () => {
+        setIsAddressFormModalOpen(false);
+    };
 
     useEffect(() => {
         if (!localStorage.getItem("token")) {
@@ -617,6 +628,15 @@ export const CartPage = () => {
                 onClose={closeModal}
                 addresses={addresses}
                 onSelect={handleSelectAddress}
+                openAddressFormModal={openAddressFormModal}
+            />
+
+            <AddressFormModal
+                isOpen={isAddressFormModalOpen}
+                onClose={closeAddressFormModal}
+                provinces={provinceOptions}
+                districts={districtOptions}
+                wards={wardOptions}
             />
 
             <Footer />
