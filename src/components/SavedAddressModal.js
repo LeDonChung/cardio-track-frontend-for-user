@@ -1,9 +1,28 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { fetchAddressesThunk } from '../redux/slice/CartSlice';
 import { Edit, Trash } from 'lucide-react';
 
-const SavedAddressModal = ({ isOpen, onClose, addresses, onSelect, openAddressFormModal}) => {
-    const [newAddress, setNewAddress] = useState('');
+const SavedAddressModal = ({ isOpen, onClose, onSelect, openAddressFormModal }) => {
+    const dispatch = useDispatch();
+    const [addresses, setAddresses] = useState([]);
+    const [user, setUser] = useState(() => {
+        const user = JSON.parse(localStorage.getItem('userInfo'));
+        return user;
+    });
 
+    useEffect(() => {
+        dispatch(fetchAddressesThunk(user.id))
+            .then(response => {
+                if (response.payload && response.payload.data) {
+                    setAddresses(response.payload.data);
+                } else {
+                    console.log('Không có địa chỉ nào được trả về từ API');
+                }
+            })
+    }, [dispatch, user.id, isOpen]);
+        
     if (!isOpen) return null;
 
     const handleAddNewAddress = () => {
@@ -12,7 +31,7 @@ const SavedAddressModal = ({ isOpen, onClose, addresses, onSelect, openAddressFo
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg w-96 shadow-lg overflow-auto max-h-[90vh]">
+            <div className="bg-white p-6 rounded-lg w-96 shadow-lg overflow-auto max-h-[90vh] min-w-[600px]">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-bold text-center flex-grow">Địa chỉ đã lưu</h3>
                     <button 
@@ -25,17 +44,21 @@ const SavedAddressModal = ({ isOpen, onClose, addresses, onSelect, openAddressFo
                 <div className="mt-4 space-y-4">
                     {addresses.length > 0 ? (
                         addresses.map((address) => (
-                            <div key={address.id} className="border p-4 rounded-lg shadow-sm hover:shadow-md transition-all">
+                            <div 
+                                key={address.id} 
+                                className="border p-4 rounded-lg shadow-sm hover:shadow-md transition-all" 
+                                onClick={() => onSelect(address)}
+                            >
                                 <div className="flex justify-between items-center mb-2">
                                     <p 
-                                        onClick={() => onSelect(address)} 
                                         className="font-semibold text-lg cursor-pointer text-blue-600 hover:text-blue-800"
                                     >
                                         {address.addressType}
                                     </p>
                                     <div className="flex space-x-3">
                                         <button 
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevent triggering onSelect
                                                 alert('Chưa làm từ từ');
                                             }} 
                                             className="p-2 rounded-md text-sm text-yellow-600 hover:text-yellow-800 transition-all"
@@ -43,7 +66,8 @@ const SavedAddressModal = ({ isOpen, onClose, addresses, onSelect, openAddressFo
                                             <Edit size={20} />
                                         </button>
                                         <button 
-                                            onClick={() => {
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevent triggering onSelect
                                                 alert('Chưa làm từ từ');
                                             }} 
                                             className="p-2 rounded-md text-sm text-red-600 hover:text-red-800 transition-all"

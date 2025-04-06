@@ -12,7 +12,7 @@ const AddressFormModal = ({ isOpen, onClose }) => {
     const [selectedDistrict, setSelectedDistrict] = useState(null);
     const [selectedWard, setSelectedWard] = useState(null);
     const [street, setStreet] = useState('');
-    const [addressType, setAddressType] = useState('A');  // Thêm state cho addressType
+    const [addressType, setAddressType] = useState('HOME');
     const [provinces, setProvinces] = useState([]);
     const [districts, setDistricts] = useState([]);
     const [wards, setWards] = useState([]);
@@ -129,6 +129,16 @@ const AddressFormModal = ({ isOpen, onClose }) => {
             return;
         }
 
+        console.log('Địa chỉ:', {
+            fullName,
+            phoneNumber,
+            province: selectedProvince.label,
+            district: selectedDistrict.label,
+            ward: selectedWard.label,
+            street,
+            addressType,
+        });
+
         const addressData = {
             fullName,
             phoneNumber,
@@ -148,7 +158,7 @@ const AddressFormModal = ({ isOpen, onClose }) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg shadow-lg overflow-auto max-h-[90vh]">
+            <div className="bg-white p-6 rounded-lg shadow-lg overflow-auto max-h-[90vh] w-1/2 min-w-[300px]">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-bold text-center flex-grow">Thêm địa chỉ mới</h3>
                     <button onClick={onClose} className="text-3xl text-gray-600 hover:text-gray-800">

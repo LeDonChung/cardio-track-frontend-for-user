@@ -40,7 +40,6 @@ export const CartPage = () => {
     const [street, setStreet] = useState('');
     const [note, setNote] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState("");
     const [paymentMethod, setPaymentMethod] = useState('');
     const [isAddressFormModalOpen, setIsAddressFormModalOpen] = useState(false)
@@ -88,17 +87,6 @@ export const CartPage = () => {
         setSelectedWard("");
         closeModal();
     };
-
-    useEffect(() => {
-        dispatch(fetchAddressesThunk(user.id))
-            .then(response => {
-                if (response.payload && response.payload.data) {
-                    setAddresses(response.payload.data);
-                } else {
-                    console.error('Không có địa chỉ nào được trả về từ API');
-                }
-            })
-    }, [dispatch, user.id]);
 
     // Map options for react-select
     const provinceOptions = provinces.map(province => ({
@@ -626,7 +614,6 @@ export const CartPage = () => {
             <SavedAddressModal
                 isOpen={isModalOpen}
                 onClose={closeModal}
-                addresses={addresses}
                 onSelect={handleSelectAddress}
                 openAddressFormModal={openAddressFormModal}
             />

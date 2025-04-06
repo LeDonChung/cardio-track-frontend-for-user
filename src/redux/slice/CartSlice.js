@@ -46,6 +46,9 @@ export const addAddressThunk = createAsyncThunk(
       }
       return response.data;  // Trả về kết quả từ API
     } catch (error) {
+      // Nếu có lỗi xảy ra, trả về thông báo lỗi
+      showToast('Có lỗi xảy ra khi thêm địa chỉ', 'error');  // Hiển thị thông báo lỗi
+      console.error('Error adding address:', error);
       return rejectWithValue(error.response?.data || error.message);
     }
   }
