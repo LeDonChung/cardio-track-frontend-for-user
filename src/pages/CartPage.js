@@ -514,56 +514,6 @@ export const CartPage = () => {
                                     />
                                     <span>Thanh toán bằng chuyển khoản (QR Code)</span>
                                 </label>
-                                <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('')}/>
-                                    <img
-                                        src="/icon/ic_card.png"
-                                        alt="Thanh toán bằng thẻ ATM nội địa và tài khoản ngân hàng"
-                                        className="w-10 h-10 mr-2"
-                                    />
-                                    <span>Thanh toán bằng thẻ ATM nội địa và tài khoản ngân hàng</span>
-                                </label>
-                                <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('')}/>
-                                    <img
-                                        src="/icon/ic_vnpay_atm.png"
-                                        alt="Thanh toán bằng thẻ quốc tế Visa, Master, JCB, AMEX (GooglePay, ApplePay)"
-                                        className="w-10 h-10 mr-2"
-                                    />
-                                    <span>Thanh toán bằng thẻ quốc tế Visa, Master, JCB, AMEX (GooglePay, ApplePay)</span>
-                                </label>
-                                <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('')}/>
-                                    <img
-                                        src="/icon/ic_zalopay.png"
-                                        alt="Thanh toán bằng ví ZaloPay"
-                                        className="w-10 h-10 mr-2"
-                                    />
-                                    <span>Thanh toán bằng ví ZaloPay</span>
-                                </label>
-                                <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('')}/>
-                                    <img
-                                        src="/icon/ic_momo.png"
-                                        alt="Thanh toán bằng ví MoMo"
-                                        className="w-10 h-10 mr-2"
-                                    />
-                                    <span>Thanh toán bằng ví MoMo</span>
-                                </label>
-                                <label className="flex items-center">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('')}/>
-                                    <img
-                                        src="/icon/ic_vnpay.png"
-                                        alt="Thanh toán bằng ví VNPay"
-                                        className="w-10 h-10 mr-2"
-                                    />
-                                    <span>Thanh toán bằng ví VNPay</span>
-                                </label>
                             </div>
                         </div>
                     </div>
