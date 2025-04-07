@@ -20,6 +20,7 @@ export const HealthCheckDetail = () => {
   // Thêm vào state
 const [showResult, setShowResult] = useState(false);
 const [resultContent, setResultContent] = useState("");
+const [showDiagnosing, setShowDiagnosing] = useState(false);
 
 
   const test = healthTests.find((t) => t.id === parseInt(id));
@@ -58,9 +59,9 @@ const [resultContent, setResultContent] = useState("");
   
       try {
         // Bắt đầu hiển thị loading (nếu muốn)
+        setShowDiagnosing(true);
         setResultContent("Đang phân tích kết quả...");
-        setShowResult(true);
-  
+        setTimeout(async () => {
         // Gửi request
         const res = await dispatch(submitUserAnswers(answerPayload)).unwrap();
         const fullContent = res?.choices?.[0]?.message?.content || "";
@@ -73,9 +74,12 @@ const [resultContent, setResultContent] = useState("");
         advice: adviceMatch ? adviceMatch[1] : "",
         });
         setShowResult(true);
+        setShowDiagnosing(false);
+      }, 2000); 
       } catch (err) {
         setResultContent("Đã xảy ra lỗi khi gửi dữ liệu.");
         setShowResult(true);
+        setShowDiagnosing(false);
       }
     }
   };
@@ -154,7 +158,13 @@ const [resultContent, setResultContent] = useState("");
         )}
 
             {/* KẾT QUẢ */}
-        {showResult && (
+            {showDiagnosing && (
+          <div className="max-w-2xl mx-auto bg-white p-6 mt-10 rounded-lg shadow text-left">
+            <h3 className="text-lg font-bold mb-3">Hệ thống đang chuẩn đoán...</h3>
+          </div>
+        )}
+
+        {showResult &&!showDiagnosing && (
         <div className="max-w-2xl mx-auto bg-white p-6 mt-10 rounded-lg shadow text-left">
             <h3 className="text-lg font-bold mb-3">
             Kết quả: <span className="text-green-600 uppercase">{resultContent.result}</span>

@@ -10,7 +10,9 @@ import { getProminents } from "../redux/slice/CategorySlice";
 import { getObject } from "../redux/slice/TagSlice";
 import { TagByObject } from "../components/TagByObject";
 import { setIsChatOpen } from "../redux/slice/ChatSlice";
-
+import { fetchAllHealthTests } from "../redux/slice/HealthCheckSlice";
+import { fetchAllListPost} from "../redux/slice/PostSlice"; 
+import React from "react";
 
 
 const policiesInit = [
@@ -45,6 +47,25 @@ const policiesInit = [
 export const HomePage = () => {
     const navigate = useNavigate();
 
+    //thêm vào để sd 2 nút cuộn trái phải
+    const [scrollPosition, setScrollPosition] = useState(0); 
+    const containerRef = React.createRef(); 
+  
+    // Function to scroll to the left
+    const scrollLeft = () => {
+      if (containerRef.current) {
+        containerRef.current.scrollLeft -= 500; //tốc độc cuộn
+        setScrollPosition(containerRef.current.scrollLeft);
+      }
+    };
+  
+    // Function to scroll to the right
+    const scrollRight = () => {
+      if (containerRef.current) {
+        containerRef.current.scrollLeft += 500; 
+        setScrollPosition(containerRef.current.scrollLeft);
+      }
+    };
     const isChatOpen = useSelector(state => state.chat.isChatOpen);
     const menus = [
         {
@@ -92,6 +113,13 @@ export const HomePage = () => {
         await dispatch(getObject());
         setSelectedTag(tagsByObject[0]); 
     }
+    const posts  = useSelector(state => state.post.myPosts);
+    useEffect(() => {
+        dispatch(fetchAllListPost()); // Lấy tất cả bài viết khi trang được tải
+    }, [dispatch]);
+        // Sort posts by 'created_at' and limit to the 4 most recent
+        const sortedPosts = posts ? [...posts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 4) : [];
+
 
     const prominents = useSelector(state => state.category.prominents);
 
@@ -101,13 +129,14 @@ export const HomePage = () => {
 
     const [policies] = useState(policiesInit); 
 
-
+    const { healthTests } = useSelector((state) => state.healthcheck);
     useEffect(() => {
         initital();
+        dispatch(fetchAllHealthTests());
     }, [dispatch])
 
-    
 
+ 
     return (
         <div className="bg-[#EDF0F3] text-gray-900">
             <Header />
@@ -259,6 +288,146 @@ export const HomePage = () => {
                     })}
                 </div>
             </div>
+
+          {/* Health Tests - Horizontal Scroll */}
+      <div className="container mx-auto my-6">
+        <h2 className="text-2xl font-semibold mb-4">Các bài kiểm tra sức khỏe</h2>
+          {/* Background container */}
+        <div className="relative bg-cover bg-center bg-blue-500 p-4 rounded-lg" style={{ backgroundImage: "url('https://cdn.nhathuoclongchau.com.vn/unsafe/1440x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/Kiem_tra_suc_khoe_27634e751f.jpg')", height:"230px" }}>
+          <div
+            ref={containerRef}
+            className="flex overflow-x-auto space-x-6 pb-4"
+            style={{
+              scrollbarWidth: "none", // Firefox
+              msOverflowStyle: "none", // IE and Edge
+            }}
+          >
+            <style>
+              {`
+                div::-webkit-scrollbar {
+                  display: none;
+                }
+              `}
+            </style>
+
+            {healthTests.map((test) => (
+              <div key={test.id} className="bg-white p-4 rounded-lg shadow-md w-[250px] flex-shrink-0" >
+                <img
+                  src="https://cdn.nhathuoclongchau.com.vn/unsafe/96x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/ic_tien_dai_thao_duong_688b8d7cde.png"
+                  alt={test.testName}
+                  className="w-14 h-14 mb-3 mx-auto"
+                />
+                <h3 className="text-base font-semibold text-center">{test.testName}</h3>
+                <button
+                  onClick={() => navigate(`/health-check/${test.id}`)}
+                  className="text-blue-600 font-semibold hover:underline w-full text-center"
+                >
+                  Bắt đầu
+                </button>
+              </div>
+            ))}
+          </div>
+
+          {/* Left Arrow */}
+          <button
+            className="absolute top-1/2 left-0 transform -translate-y-1/2 text-3xl bg-gray-700 text-white p-2 rounded-full"
+            onClick={scrollLeft}
+          >
+            &#8249;
+          </button>
+
+          {/* Right Arrow */}
+          <button
+            className="absolute top-1/2 right-0 transform -translate-y-1/2 text-3xl bg-gray-700 text-white p-2 rounded-full"
+            onClick={scrollRight}
+          >
+            &#8250;
+          </button>
+        </div>
+      </div>
+
+
+         {/* DANH SÁCH CÁC BÀI POST */}
+         <div className="container mx-auto my-6">
+         <div className="flex items-center mb-4">
+        <img 
+            src="https://cdn.nhathuoclongchau.com.vn/unsafe/64x0/filters:quality(90)/https://cms-prod.s3-sgn09.fptcloud.com/smalls/goc_suc_khoe_77c4d4524f.png" 
+            alt="Góc sức khỏe Icon" 
+            className="w-8 h-8 mr-2" // Adjust the size of the icon
+        />
+        <h2 className="text-2xl font-semibold">Góc sức khỏe</h2>
+        <span className="mx-1"> |</span>
+        <a href="/news" className="ml-4 text-blue-600 hover:underline">Xem tất cả</a>
+        
+    </div>
+
+    <div className="relative bg-cover bg-center bg-blue-200 p-4 rounded-lg flex">
+        {/* Left Image Section */}
+        <div className="w-2/3 mr-10 ml-4">
+            <img
+                src="https://cdn.nhathuoclongchau.com.vn/unsafe/860x456/https://cms-prod.s3-sgn09.fptcloud.com/Mat_tien_1_0f879faa8d.jpg" // Replace with your desired image URL
+                alt="Health Section Image"
+                className="w-full h-auto rounded-lg shadow-md"
+            />
+            <h2 className="text-2xl font-semibold">NHÀ THUỐC Cardio Track TỰ HÀO TRIỂN KHAI MÔ HÌNH ĐẠI LÝ DỊCH VỤ CÔNG TRỰC TUYẾN TRÊN ĐỊA BÀN.....</h2>
+        </div>
+        
+        {/* Right Posts Section */}
+        <div className="w-1/4">
+    {sortedPosts && sortedPosts.length > 0 ? (
+        <div
+            ref={containerRef}
+            className="flex flex-col overflow-y-auto space-y-6 pb-4"
+            style={{
+                scrollbarWidth: "none", // Firefox
+                msOverflowStyle: "none", // IE and Edge
+                maxHeight: "500px", // Set max height for vertical scrolling
+            }}
+        >
+            <style>
+                {`
+                    div::-webkit-scrollbar {
+                        display: none;
+                    }
+                `}
+            </style>
+
+            {sortedPosts.map((post) => (
+                <div key={post.id} className="bg-white p-4 rounded-lg shadow-md w-full flex-shrink-0">
+                    {/* Left side: Image */}
+                    <div className="flex items-center mb-3">
+                        <img
+                            src={post.imgTitle}
+                            alt={post.title}
+                            className="w-25 h-20 mr-4" // Ensure margin to the right of the image
+                        />
+                        {/* Right side: Title */}
+                        <div>
+                            <h3 className="text-base font-semibold">{post.title}</h3>
+                            <button
+                                onClick={() => navigate(`/search/${post.title}`)}
+                                className="text-blue-600 font-semibold hover:underline"
+                            >
+                                Xem chi tiết
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            ))}
+        </div>
+    ) : (
+        <p>Không có bài viết nào.</p>
+    )}
+</div>
+
+    </div>
+</div>
+
+
+  
+      
+
+
 
             <Footer />
         </div>
