@@ -44,6 +44,17 @@ const recommendOrder = createAsyncThunk('product/recommendOrder', async (ids, { 
     }
 });
 
+const getProductByImage = createAsyncThunk('product/getProductByImage', async (imageUrl, { rejectWithValue }) => {
+    try {
+        const response = await axiosInstance.get('/api/v1/consult/search?file=' + imageUrl);
+        console.log("response: ", response.data);
+        
+        return response.data;
+    } catch (error) {
+        return rejectWithValue(error.response.data);
+    }
+})
+
 const ProductSlice = createSlice({
     name: 'product',
     initialState: inititalState,
@@ -86,9 +97,20 @@ const ProductSlice = createSlice({
         builder.addCase(recommendOrder.rejected, (state, action) => {
             state.recommendOrders = [];
         });
+
+        // getProductByImage
+        builder.addCase(getProductByImage.pending, (state, action) => {
+            state.products = [];
+        });
+        builder.addCase(getProductByImage.fulfilled, (state, action) => {
+            state.products = action.payload.data;
+        });
+        builder.addCase(getProductByImage.rejected, (state, action) => {
+            state.products = [];
+        });
     }
 });
 
 export const { } = ProductSlice.actions;
-export { getProductById, recommendProduct, recommendOrder };
+export { getProductById, recommendProduct, recommendOrder, getProductByImage };
 export default ProductSlice.reducer;

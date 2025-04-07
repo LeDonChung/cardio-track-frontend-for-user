@@ -67,7 +67,7 @@ export default function ChatBox() {
                 console.log("✅ WebSocket connected!");
                 client.subscribe("/topic/messages", (message) => {
                     const newMessage = JSON.parse(message.body);
-                    if (newMessage.receiverId === user.id) {
+                    if (newMessage.receiverId === user.id || newMessage.senderId === user.id) {
                         setMessageList(prev => [...(Array.isArray(prev) ? prev : []), newMessage]);
                     }
 
