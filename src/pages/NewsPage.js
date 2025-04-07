@@ -20,6 +20,19 @@ export const NewsPage = () => {
 
     const [currentPost, setCurrentPost] = useState(null); // Để lưu bài viết hiện tại đang bình luận
 
+        // Phân trang
+    const [currentPage, setCurrentPage] = useState(1); // Trang hiện tại
+    const postsPerPage = 5; // Số bài viết mỗi trang
+         // Sắp xếp bài viết theo thời gian mới nhất
+    // Sắp xếp bài viết theo thời gian mới nhất
+    const sortedPosts = [...posts].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    const indexOfLastPost = currentPage * postsPerPage;
+    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+    const currentPosts = sortedPosts.slice(indexOfFirstPost, indexOfLastPost);
+
+    const totalPages = Math.ceil(sortedPosts.length / postsPerPage); // Tổng số trang
+
     const openUpdateModal = (post) => {
         setSelectedPost(post);  // Lưu bài viết cần cập nhật
         setIsModalOpen(true);  // Mở modal
@@ -67,12 +80,20 @@ export const NewsPage = () => {
                     <h1 className="text-3xl font-bold mb-6 text-center text-blue-800">Tin tức và sự kiện</h1>
                     {loading ? (
                         <p>Đang tải bài viết...</p>
-                    ) : posts.length === 0 ? (
+                    ) : currentPosts.length === 0 ? (
                         <p>Không có bài viết nào.</p>
                     ) : (
                         <div className="space-y-4">
-                            {posts.map((post) => (
+                            {currentPosts.map((post) => (
                                 <div key={post.id} className="bg-white p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 mb-6">
+                                     {/* Hình ảnh của bài viết */}
+                                     {post.imgTitle && (
+                                        <img
+                                            src={post.imgTitle}  // Hình ảnh tiêu đề của bài viết
+                                            alt="Post title"
+                                            className="w-full h-64 object-cover rounded-lg mb-4"
+                                        />
+                                    )}
                                     <h2 className="text-xl font-semibold mb-2 text-blue-600">{post.title}</h2>
                                     <h3 className="text-sm text-gray-500 mb-4">Tác giả: <span className="font-normal">{post.fullName}</span></h3>
                                     <div className="text-lg text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: post.content }} />
@@ -97,10 +118,23 @@ export const NewsPage = () => {
                                     </button>
                                 </div>
                             ))}
-                        </div>
+                        </div>         
                     )}
+                                        {/* Pagination */}
+                                        <div className="flex justify-center space-x-2 mt-6">
+                        {Array.from({ length: totalPages }, (_, index) => (
+                            <button
+                                key={index + 1}
+                                onClick={() => setCurrentPage(index + 1)}
+                                className={`px-4 py-2 ${currentPage === index + 1 ? 'bg-blue-500 text-white' : 'bg-gray-200'} rounded-lg`}
+                            >
+                                {index + 1}
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
+      
                 {/* Hình ảnh bên phải */}
                 <div className="hidden md:block w-1/4 ml-4">
                     <img src="https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/05_b2be0c4e26.png" alt="Side image1" className="w-full h-auto rounded-lg shadow-md"/>

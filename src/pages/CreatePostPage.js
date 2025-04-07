@@ -94,7 +94,7 @@ const handleSubmit = async (e) => {
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" style={{ zIndex: 1000 }}>
-            <div className="bg-white p-6 rounded-lg shadow-lg" style={{ width: "90%", height: "90%" }}>
+            <div className="bg-white p-6 rounded-lg shadow-lg overflow-auto" style={{ width: "80%", maxHeight: "80vh", overflowY: "auto" }}>
                 <h1 className="text-2xl font-bold mb-4">Tạo Bài Viết</h1>
                 <form onSubmit={handleSubmit}>
                     <div className="mb-4">
@@ -117,7 +117,7 @@ const handleSubmit = async (e) => {
                                 minHeight: "300px", // Tăng chiều cao mặc định
                                 maxHeight: "600px", // Giới hạn chiều cao tối đa
                                 overflowY: "auto", // Thêm cuộn dọc nếu nội dung quá dài
-                                resize: "both", // Cho phép người dùng thay đổi kích thước
+                               
                             }}
                             placeholder="Nhập nội dung bài viết" 
                             modules={modules} // Sử dụng modules đã cấu hình

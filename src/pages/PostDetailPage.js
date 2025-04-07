@@ -14,6 +14,7 @@ export const PostDetailPage = () => {
     const userInfo = JSON.parse(localStorage.getItem("userInfo"));
     const [newComment, setNewComment] = useState("");
     const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+    const navigate = useNavigate(); // Hook for navigation
 
     // Fetch post by title when the component mounts
     useEffect(() => {
@@ -50,7 +51,25 @@ export const PostDetailPage = () => {
     return (
         <div className="bg-[#EDF0F3] text-gray-900 min-h-screen">
             <Header />
-            <div className="container mx-auto p-6 flex justify-center">
+           {/* Breadcrumb Navigation */}
+           <div className="text-blue-600" style={{ marginTop: "20px", marginLeft: "100px" }}>
+                    <button
+                        onClick={() => navigate("/")}
+                        className="text-blue-600 hover:underline"
+                    >
+                        Trang chủ
+                    </button>
+                    <span className="mx-2">/</span>
+                    <button
+                        className="text-blue-600 hover:underline"
+                    >
+                        Góc sức khỏe
+                    </button>
+                    <span className="mx-2">/</span>
+                    <span className="text-gray-500">Tin tức sức khỏe</span>
+                </div>
+            <div className="container mx-auto p-3 flex justify-center">
+                
                 {/* Left Image Section */}
                 <div className="hidden md:block w-1/6 mr-4">
                     <img src="https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/05_b2be0c4e26.png" alt="Side image" className="w-full h-auto rounded-lg shadow-md" />
@@ -65,7 +84,6 @@ export const PostDetailPage = () => {
                             <h2 className="text-3xl font-semibold text-blue-600 mb-4">{post.title}</h2>
                             <div className="text-lg text-gray-700 mb-4" dangerouslySetInnerHTML={{ __html: post.content }} />
                             <div className="text-sm text-gray-500 mb-4">Tác giả: {post.fullName}</div>
-                           
                             
                             {/* Comment button */}
                             <button
@@ -74,10 +92,23 @@ export const PostDetailPage = () => {
                             >
                                 Bình luận ({comments.length || 0})
                             </button>
+
+                            {/* Back to Home Button */}
+                            <button
+                                onClick={() => navigate("/")} // Navigate to home page
+                                className="mt-4 px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+                            >
+                                Quay lại trang chủ
+                            </button>
                         </div>
                     ) : (
                         <p>Đang tải bài viết...</p>
                     )}
+                </div>
+
+                {/* Right Image Section */}
+                <div className="hidden md:block w-1/6 ml-4">
+                    <img src="https://cdn.nhathuoclongchau.com.vn/unsafe/https://cms-prod.s3-sgn09.fptcloud.com/05_b2be0c4e26.png" alt="Side image" className="w-full h-auto rounded-lg shadow-md" />
                 </div>
             </div>
 
