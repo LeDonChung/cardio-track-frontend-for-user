@@ -9,6 +9,7 @@ import { faPlus, faMinus, faCircleQuestion, faAngleDown, faAngleUp } from "@fort
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { getProductById, recommendProduct } from "../redux/slice/ProductSlice";
 import { ProductRecommend } from "../components/ProductRecommend";
+import { addToCart } from '../redux/slice/CartSlice';
 
 
 
@@ -55,6 +56,15 @@ export const ProductDetailPage = () => {
     useEffect(() => {
         initital()
     }, []);
+
+    const handleAddToCart = () => {
+        const truncatedName = product.name.length > 30 ? product.name.substring(0, 30) + '...' : product.name;
+        console.log(product);
+        console.log(stateQuantity.quantity);
+        dispatch(addToCart({ ...product, quantity: stateQuantity.quantity })); // Thêm sản phẩm vào giỏ hàng
+        showToast(`${truncatedName} đã được thêm vào giỏ hàng!`, 'success'); // Hiển thị thông báo thành công
+    };
+
     return (
 
         product != null && (
@@ -123,7 +133,7 @@ export const ProductDetailPage = () => {
                                 <button className="w-[220px] h-[60px] items-center flex justify-center rounded-[30px] text-blue-600 bg-blue-100">
                                     <span className="font-semibold text-[18px]">Tìm nhà thuốc</span>
                                 </button>
-                                <button className="w-[220px] h-[60px] items-center flex justify-center rounded-[30px] text-white bg-blue-600">
+                                <button className="w-[220px] h-[60px] items-center flex justify-center rounded-[30px] text-white bg-blue-600" onClick={handleAddToCart}>
                                     <span className="font-semibold text-[18px]">Chọn mua</span>
                                 </button>
                             </div>

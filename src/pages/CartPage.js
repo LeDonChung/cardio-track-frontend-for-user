@@ -11,6 +11,7 @@ import '../css/CartPage.css';
 import Select from 'react-select';
 import showToast from "../utils/AppUtils";
 import SavedAddressModal from '../components/SavedAddressModal';
+import AddressFormModal from '../components/AddressFormModal';
 
 export const CartPage = () => {
     const dispatch = useDispatch();
@@ -39,11 +40,20 @@ export const CartPage = () => {
     const [street, setStreet] = useState('');
     const [note, setNote] = useState('');
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [addresses, setAddresses] = useState([]);
     const [selectedAddress, setSelectedAddress] = useState("");
     const [paymentMethod, setPaymentMethod] = useState('');
+    const [isAddressFormModalOpen, setIsAddressFormModalOpen] = useState(false)
 
+    // Hàm mở modal AddressFormModal
+    const openAddressFormModal = () => {
+        setIsModalOpen(false);  // Đóng modal SavedAddressModal
+        setIsAddressFormModalOpen(true);  // Mở modal AddressFormModal
+    };
 
+    // Hàm đóng AddressFormModal
+    const closeAddressFormModal = () => {
+        setIsAddressFormModalOpen(false);
+    };
 
     useEffect(() => {
         if (!localStorage.getItem("token")) {
@@ -77,17 +87,6 @@ export const CartPage = () => {
         setSelectedWard("");
         closeModal();
     };
-
-    useEffect(() => {
-        dispatch(fetchAddressesThunk(user.id))
-            .then(response => {
-                if (response.payload && response.payload.data) {
-                    setAddresses(response.payload.data);
-                } else {
-                    console.error('Không có địa chỉ nào được trả về từ API');
-                }
-            })
-    }, [dispatch, user.id]);
 
     // Map options for react-select
     const provinceOptions = provinces.map(province => ({
@@ -189,37 +188,37 @@ export const CartPage = () => {
     const token = localStorage.getItem('token');
     const handleSubmitOrder = async() => {
         if (!fullName) {
-            alert("Vui lòng nhập họ tên người nhận hàng");
+            showToast("Vui lòng nhập họ và tên người nhận hàng", "error");
             return;
         }
 
         if (!phoneNumber) {
-            alert("Vui lòng nhập số điện thoại người nhận hàng");
+            showToast("Vui lòng nhập số điện thoại", "error");
             return;
         }
 
         if (!selectedProvince && !selectedAddress.province) {
-            alert("Vui lòng chọn tỉnh/thành phố");
+            showToast("Vui lòng chọn tỉnh/thành phố", "error");
             return;
         }
 
         if (!selectedDistrict && !selectedAddress.district) {
-            alert("Vui lòng chọn quận/huyện");
+            showToast("Vui lòng chọn quận/huyện", "error");
             return;
         }
 
         if (!selectedWard && !selectedAddress.ward) {
-            alert("Vui lòng chọn phường/xã");
+            showToast("Vui lòng chọn phường/xã", "error");
             return;
         }
 
         if (!street) {
-            alert("Vui lòng nhập địa chỉ cụ thể");
+            showToast("Vui lòng nhập địa chỉ cụ thể", "error");
             return;
         }
 
         if(paymentMethod === '') {
-            alert("Vui lòng chọn phương thức thanh toán. Hiện tại chỉ hổ trợ tiền mặt và QR");
+            showToast("Vui lòng chọn phương thức thanh toán", "error");
             return;
         }
 
@@ -514,56 +513,6 @@ export const CartPage = () => {
                                     />
                                     <span>Thanh toán bằng chuyển khoản (QR Code)</span>
                                 </label>
-                                <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('')}/>
-                                    <img
-                                        src="/icon/ic_card.png"
-                                        alt="Thanh toán bằng thẻ ATM nội địa và tài khoản ngân hàng"
-                                        className="w-10 h-10 mr-2"
-                                    />
-                                    <span>Thanh toán bằng thẻ ATM nội địa và tài khoản ngân hàng</span>
-                                </label>
-                                <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('')}/>
-                                    <img
-                                        src="/icon/ic_vnpay_atm.png"
-                                        alt="Thanh toán bằng thẻ quốc tế Visa, Master, JCB, AMEX (GooglePay, ApplePay)"
-                                        className="w-10 h-10 mr-2"
-                                    />
-                                    <span>Thanh toán bằng thẻ quốc tế Visa, Master, JCB, AMEX (GooglePay, ApplePay)</span>
-                                </label>
-                                <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('')}/>
-                                    <img
-                                        src="/icon/ic_zalopay.png"
-                                        alt="Thanh toán bằng ví ZaloPay"
-                                        className="w-10 h-10 mr-2"
-                                    />
-                                    <span>Thanh toán bằng ví ZaloPay</span>
-                                </label>
-                                <label className="flex items-center mb-2 pb-2 border-b">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('')}/>
-                                    <img
-                                        src="/icon/ic_momo.png"
-                                        alt="Thanh toán bằng ví MoMo"
-                                        className="w-10 h-10 mr-2"
-                                    />
-                                    <span>Thanh toán bằng ví MoMo</span>
-                                </label>
-                                <label className="flex items-center">
-                                    <input type="radio" name="payment" className="mr-4 transform scale-150" 
-                                    onChange={()=>setPaymentMethod('')}/>
-                                    <img
-                                        src="/icon/ic_vnpay.png"
-                                        alt="Thanh toán bằng ví VNPay"
-                                        className="w-10 h-10 mr-2"
-                                    />
-                                    <span>Thanh toán bằng ví VNPay</span>
-                                </label>
                             </div>
                         </div>
                     </div>
@@ -665,8 +614,16 @@ export const CartPage = () => {
             <SavedAddressModal
                 isOpen={isModalOpen}
                 onClose={closeModal}
-                addresses={addresses}
                 onSelect={handleSelectAddress}
+                openAddressFormModal={openAddressFormModal}
+            />
+
+            <AddressFormModal
+                isOpen={isAddressFormModalOpen}
+                onClose={closeAddressFormModal}
+                provinces={provinceOptions}
+                districts={districtOptions}
+                wards={wardOptions}
             />
 
             <Footer />
