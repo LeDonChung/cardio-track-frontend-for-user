@@ -30,7 +30,7 @@ export default function ConsultBox() {
                 setMessageList(res.data);
             })
         }
-    }, [user]);
+    }, []);
 
 
     return (

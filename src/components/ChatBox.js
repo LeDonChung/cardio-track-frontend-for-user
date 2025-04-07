@@ -48,6 +48,10 @@ export default function ChatBox() {
         const getMessages = async () => {
             try {
                 const response = await axiosInstance.get(`http://localhost:9097/api/v1/messages/${user.id}`);
+                if(response.data === undefined || response.data === null|| response.data==='') {
+                    setMessageList([]);
+                    return;
+                }
                 setMessageList(response.data.messages);
             } catch (error) {
                 console.error("Lỗi lấy tin nhắn:", error);
@@ -56,6 +60,7 @@ export default function ChatBox() {
         };
         getMessages();
     }, [messageSend, user?.id]);
+
 
     useEffect(() => {
         const socket = new SockJS("http://localhost:9097/api/v1/chat/ws");
