@@ -1,6 +1,7 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { fetchAddresses, submitOrder } from '../../api/CartAPI';
+import { fetchAddresses, submitOrder, addAddress, updateAddress, deleteAddress } from '../../api/CartAPI';
 import { createAsyncThunk } from '@reduxjs/toolkit';
+import showToast from "../../utils/AppUtils";
 
 const loadCartFromLocalStorage = () => {
   // Kiểm tra xem có userId trong localStorage không
@@ -28,12 +29,80 @@ const saveCartToLocalStorage = (cart) => {
   }
 };
 
+// Thunk để thêm địa chỉ mới
+export const addAddressThunk = createAsyncThunk(
+  'cart/addAddress',
+  async ({ addressData }, { rejectWithValue }) => {
+    const userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
+    const token = localStorage.getItem('authToken');
+
+    try {
+      // Gọi API addAddress với addressData, userId và token
+      const response = await addAddress(addressData, userId, token);
+      if (response.status === 200) {
+        showToast('Thêm địa chỉ thành công', 'success');  // Hiển thị thông báo thành công
+      } else {
+        showToast('Thêm địa chỉ thất bại', 'error');  // Hiển thị thông báo thất bại
+      }
+      return response.data;  // Trả về kết quả từ API
+    } catch (error) {
+      // Nếu có lỗi xảy ra, trả về thông báo lỗi
+      showToast('Có lỗi xảy ra khi thêm địa chỉ', 'error');  // Hiển thị thông báo lỗi
+      console.error('Error adding address:', error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Thunk update address
+export const updateAddressThunk = createAsyncThunk(
+  'cart/updateAddress',
+  async ({ addressId, addressData }, { rejectWithValue }) => {
+    const token = localStorage.getItem('authToken');
+    try {
+      const response = await updateAddress(addressId, addressData, token);
+      if (response.status === 200) {
+        showToast('Cập nhật địa chỉ thành công', 'success');  // Hiển thị thông báo thành công
+      } else {
+        showToast('Cập nhật địa chỉ thất bại', 'error');  // Hiển thị thông báo thất bại
+      }
+      return response.data;  // Trả về kết quả từ API
+    } catch (error) {
+      showToast('Có lỗi xảy ra khi cập nhật địa chỉ', 'error');  // Hiển thị thông báo lỗi
+      console.error('Error updating address:', error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Thunk delete address
+export const deleteAddressThunk = createAsyncThunk(
+  'cart/deleteAddress',
+  async ({ addressId }, { rejectWithValue }) => {
+    const token = localStorage.getItem('authToken');
+    try {
+      const response = await deleteAddress(addressId, token);
+      if (response.status === 200) {
+        showToast('Xóa địa chỉ thành công', 'success');  // Hiển thị thông báo thành công
+      } else {
+        showToast('Xóa địa chỉ thất bại', 'error');  // Hiển thị thông báo thất bại
+      }
+      return response.data;  // Trả về kết quả từ API
+    } catch (error) {
+      showToast('Có lỗi xảy ra khi xóa địa chỉ', 'error');  // Hiển thị thông báo lỗi
+      console.error('Error deleting address:', error);
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 const initialState = {
   cart: loadCartFromLocalStorage(),  // Tải giỏ hàng từ LocalStorage nếu có
   addresses: [],
   loading: false,
   error: null,
   orderResponse: null,
+  addressResponse: null,
 };
 
 // Thunk để lấy danh sách địa chỉ
@@ -73,10 +142,10 @@ const cartSlice = createSlice({
       
       // Nếu sản phẩm đã có trong giỏ hàng, tăng số lượng lên 1
       if (existingProduct) {
-        existingProduct.quantity += 1;
+        existingProduct.quantity += product.quantity ? product.quantity : 1;
       } else {
         // Nếu chưa có trong giỏ, thêm sản phẩm mới vào giỏ
-        state.cart.push({ ...product, quantity: 1 });
+        state.cart.push({ ...product, quantity: product.quantity ? product.quantity : 1 });
       }
       saveCartToLocalStorage(state.cart);
     },
@@ -131,6 +200,39 @@ const cartSlice = createSlice({
       state.orderResponse = action.payload;
     });
     builder.addCase(submitOrderThunk.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(addAddressThunk.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(addAddressThunk.fulfilled, (state, action) => {
+      state.loading = false;
+      state.addressResponse = action.payload;  // Lưu kết quả trả về khi thêm địa chỉ
+    });
+    builder.addCase(addAddressThunk.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(updateAddressThunk.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(updateAddressThunk.fulfilled, (state, action) => {
+      state.loading = false;
+      state.addressResponse = action.payload;  // Lưu kết quả trả về khi cập nhật địa chỉ
+    });
+    builder.addCase(updateAddressThunk.rejected, (state, action) => {
+      state.loading = false;
+      state.error = action.payload;
+    });
+    builder.addCase(deleteAddressThunk.pending, (state) => {
+      state.loading = true;
+    });
+    builder.addCase(deleteAddressThunk.fulfilled, (state, action) => {
+      state.loading = false;
+      state.addressResponse = action.payload;  // Lưu kết quả trả về khi xóa địa chỉ
+    });
+    builder.addCase(deleteAddressThunk.rejected, (state, action) => {
       state.loading = false;
       state.error = action.payload;
     });
