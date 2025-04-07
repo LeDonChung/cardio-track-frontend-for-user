@@ -20,7 +20,7 @@ const inititalState = {
         sortBy: 'price',
         sortName: 'ASC'
     },
-    data: []
+    data: [],
 }
 
 
@@ -71,7 +71,7 @@ const FilterSlice = createSlice({
         },
         setPageData: (state, action) => {
             state.pageData = action.payload;
-        }
+        },
     },
     extraReducers: (builder) => {
         builder.addCase(getCategoryByLevelFilter.pending, (state, action) => {
@@ -128,6 +128,6 @@ const FilterSlice = createSlice({
 })
 
 
-export const { setFilter, setPageData } = FilterSlice.actions;
+export const { setFilter, setPageData, setIsOpenModalSearchByImage } = FilterSlice.actions;
 export { getTagByObjectFilter, getBrandFilter, getCategoryByLevelFilter, searchData };
 export default FilterSlice.reducer; 

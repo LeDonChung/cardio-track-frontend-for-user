@@ -1,7 +1,7 @@
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faMagnifyingGlass, faCartShopping } from '@fortawesome/free-solid-svg-icons';
 import { useNavigate } from 'react-router-dom';
-import { faAngleDown, faAngleUp } from '@fortawesome/free-solid-svg-icons';
+import { faAngleDown, faAngleUp, faFileImage } from '@fortawesome/free-solid-svg-icons';
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getCategories } from '../redux/slice/CategorySlice';
@@ -11,6 +11,8 @@ import { calculateSalePrice, formatPrice } from "../utils/AppUtils"
 
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
+import { setIsOpenModalSearchByImage } from '../redux/slice/FilterSlice';
+import SearchByImage from './SearchByImage';
 
 export const Header = () => {
     const [hoveredCategory, setHoveredCategory] = useState(null);
@@ -81,6 +83,8 @@ export const Header = () => {
                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                             <FontAwesomeIcon icon={faMagnifyingGlass} />
                         </span>
+
+                        <SearchByImage />
                     </div>
                 </div>
                 <div className="flex items-center">
