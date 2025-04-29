@@ -219,7 +219,7 @@ export default function ChatBox() {
 
                     {/* Cửa sổ chat */}
                     {isChatOpen && (
-                        <div className="w-[550px] h-[700px] bg-white shadow-lg rounded-lg p-4 border fixed bottom-16 right-4 z-50 flex flex-col">
+                        <div className="w-[770px] h-[700px] bg-white shadow-lg rounded-lg p-4 border fixed bottom-16 right-4 z-50 flex flex-col">
                             {/* Header */}
                             <div className="flex justify-between items-center border-b pb-2">
                                 <h2 className="text-lg font-semibold">Chat với Dược Sĩ</h2>
