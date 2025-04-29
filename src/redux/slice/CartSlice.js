@@ -5,7 +5,15 @@ import showToast from "../../utils/AppUtils";
 
 const loadCartFromLocalStorage = () => {
   // Kiểm tra xem có userId trong localStorage không
-  const userId = JSON.parse(localStorage.getItem('userInfo'))?.id;
+  const data = localStorage.getItem('userInfo')
+  if(data === 'undefined' || data === null) {
+    return [];
+  }
+  const userInfo = JSON.parse(data);
+  if(!userInfo) {
+    return [];
+  }
+  const userId = userInfo.id;
 
   if (userId) {
     // Nếu có userId, lấy giỏ hàng của người dùng từ localStorage

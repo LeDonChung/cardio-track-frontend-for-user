@@ -17,7 +17,11 @@ import ConsultBox from './components/ConsultBox.js';
 import { HealthCheckDetail } from './pages/HealthCheckDetail.js';
 import { PostDetailPage } from './pages/PostDetailPage.js';
 import { HealthCheck } from './pages/HealthCheck.js';
+import { useEffect } from 'react';
+import { useDispatch } from 'react-redux';
+import { fetchUserInfo } from './redux/slice/UserSlice.js';
 function App() {
+  
   return (
     <BrowserRouter
       future={{

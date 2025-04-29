@@ -13,6 +13,7 @@ import { setIsChatOpen } from "../redux/slice/ChatSlice";
 import { fetchAllHealthTests } from "../redux/slice/HealthCheckSlice";
 import { fetchAllListPost} from "../redux/slice/PostSlice"; 
 import React from "react";
+import { fetchUserInfo } from "../redux/slice/UserSlice";
 
 
 const policiesInit = [
@@ -51,6 +52,14 @@ export const HomePage = () => {
     const [scrollPosition, setScrollPosition] = useState(0); 
     const containerRef = React.createRef(); 
   
+    useEffect(() => {
+        dispatch(fetchUserInfo()).then((res) => {
+          if (res.payload) {
+            localStorage.setItem("userInfo", JSON.stringify(res.payload.data)); 
+          }
+        });
+      }, []);
+
     // Function to scroll to the left
     const scrollLeft = () => {
       if (containerRef.current) {

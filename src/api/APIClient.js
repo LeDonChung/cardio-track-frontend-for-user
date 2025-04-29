@@ -21,6 +21,7 @@ axiosInstance.interceptors.request.use(
     },
     (error) => {
         localStorage.removeItem('token');
+        localStorage.removeItem('userInfo');
         return Promise.reject(error);
     }
 );

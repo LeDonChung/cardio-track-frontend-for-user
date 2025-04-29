@@ -8,7 +8,7 @@ export default function ConsultBox() {
     const [message, setMessage] = useState("");
     const [messageList, setMessageList] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
-    const user = JSON.parse(localStorage.getItem('userInfo'));
+    const user = JSON.parse(localStorage.getItem('userInfo') === 'undefined' ? null : localStorage.getItem('userInfo'));
 
     const sendMessage = async () => {
         if (message) {

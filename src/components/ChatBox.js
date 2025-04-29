@@ -33,7 +33,7 @@ export default function ChatBox() {
     const [message, setMessage] = useState("");
     const [messageList, setMessageList] = useState([]);
     const [stompClient, setStompClient] = useState(null);
-    const user = JSON.parse(localStorage.getItem('userInfo'));
+    const user = JSON.parse(localStorage.getItem('userInfo') === 'undefined' ? null : localStorage.getItem('userInfo'));
     const [messageSend, setMessageSend] = useState(false);
     const imageInputRef = useRef(null);
 

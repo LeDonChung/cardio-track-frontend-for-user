@@ -23,11 +23,13 @@ export const LoginPage = () => {
                 await dispatch(fetchUserInfo());
                 navigate("/");
 
-            }).catch(err => showToast("Tài khoản hoặc mật khẩu không chính xác.", 'error'));
+            })
             
         } catch (error) {
             console.error("❌ Lỗi đăng nhập:", error);
-            showToast("Tài khoản hoặc mật khẩu không chính xác.", "error");
+            showToast(error.error, "error");
+            localStorage.removeItem("token");
+            localStorage.removeItem("userInfo");
         }
     };
     

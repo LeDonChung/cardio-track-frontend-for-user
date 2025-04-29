@@ -13,6 +13,7 @@ import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import { setIsOpenModalSearchByImage } from '../redux/slice/FilterSlice';
 import SearchByImage from './SearchByImage';
+import { fetchUserInfo } from '../redux/slice/UserSlice';
 
 export const Header = () => {
     const [hoveredCategory, setHoveredCategory] = useState(null);
@@ -20,16 +21,22 @@ export const Header = () => {
     const categories = useSelector((state) => state.category.categories);
     const cart = useSelector(state => state.cart.cart);
     const [isHovered, setIsHovered] = useState(false);
+    const dispatch = useDispatch();
 
-    const user = JSON.parse(localStorage.getItem('userInfo'));
+
+    const user = JSON.parse(localStorage.getItem('userInfo') === 'undefined' ? null : localStorage.getItem('userInfo'));
 
 
     const navigate = useNavigate();
-    const dispatch = useDispatch();
 
 
     const initital = async () => {
         await dispatch(getCategories())
+        const token = localStorage.getItem('token');
+        console.log(token);
+        if (token) {
+            await dispatch(fetchUserInfo());
+        }
     }
     useEffect(() => {
         initital()
@@ -89,7 +96,7 @@ export const Header = () => {
                 </div>
                 <div className="flex items-center">
                     {
-                        localStorage.getItem('token') ?
+                        (localStorage.getItem('token') && user) ?
                             (
 
                                 <a className="text-white flex justify-between items-center" href='/user'>

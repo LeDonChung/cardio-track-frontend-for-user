@@ -110,6 +110,7 @@ const login = createAsyncThunk('user/login', async (request, { rejectWithValue }
         const response = await axiosInstance.post('/api/v1/auth/login', request);
         return response.data;
     } catch (error) {
+        console.log(error)
         return rejectWithValue(error.response?.data || "Lỗi khi gọi API đăng nhập.");
     }
 });
@@ -187,7 +188,6 @@ const UserSlice = createSlice({
         });
         builder.addCase(fetchUserInfo.fulfilled, (state, action) => {
             localStorage.setItem("userInfo", JSON.stringify(action.payload.data));
-            login(action.payload.data);
             state.errorResponse = null;
         });
         builder.addCase(fetchUserInfo.rejected, (state, action) => {
