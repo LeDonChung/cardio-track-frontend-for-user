@@ -305,6 +305,7 @@ export const CartPage = () => {
                 }
             }
         } catch (error) {
+            console.log('Error submitting order:', error);
             showToast("Đặt hàng thất bại", "error");
         }
         

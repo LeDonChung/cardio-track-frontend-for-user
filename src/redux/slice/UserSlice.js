@@ -98,7 +98,9 @@ const deleteAddress = createAsyncThunk(
 
 const register = createAsyncThunk('user/register', async (request, { rejectWithValue }) => {
     try {
+        console.log("request", request)
         const response = await axiosInstance.post('/api/v1/auth/register', request);
+        
         return response.data;
     } catch (error) {
         return rejectWithValue(error.response.data);
