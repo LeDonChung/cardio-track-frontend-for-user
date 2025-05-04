@@ -45,6 +45,22 @@ const fetchCreatePost = createAsyncThunk('post/fetchCreatePost', async (formData
     }
 });
 
+//xóa post
+const fetchDeletePost = createAsyncThunk('post/fetchDeletePost', async (postId, { rejectWithValue }) => {
+    try {
+        const token = localStorage.getItem("token");
+
+        const response = await axiosInstance.delete(`/api/v1/post/delete/${postId}`, {
+            headers: {
+                Authorization: `${token}`
+            }
+        });
+        return { postId }; // Trả về postId để reducer xoá khỏi danh sách
+    } catch (error) {
+        return rejectWithValue(error.response?.data || "Lỗi khi xóa bài viết.");
+    }
+});
+
 
 //my list post 
     const fetchMyListPost = createAsyncThunk('post/fetchMyListPost', async (_, { rejectWithValue }) => {
@@ -220,12 +236,22 @@ const PostSlice = createSlice({
         builder.addCase(fetchSearchPost.rejected, (state, action) => {
             state.errorResponse = action.payload;
         });
-
+        //xóa post
+         builder.addCase(fetchDeletePost.pending, (state) => {
+            state.errorResponse = null;
+        });
+        builder.addCase(fetchDeletePost.fulfilled, (state, action) => {
+            state.errorResponse = null;
+            state.myPosts = state.myPosts.filter(post => post.id !== action.payload.postId);
+        });
+        builder.addCase(fetchDeletePost.rejected, (state, action) => {
+            state.errorResponse = action.payload;
+        });
         
 
     }
 });
 
 export const { } = PostSlice.actions;
-export { fetchCreatePost, fetchMyListPost,fetchUpdatePost,fetchAllListPost, fetchComments, addComment,uploadImage,fetchSearchPost };
+export { fetchCreatePost, fetchMyListPost,fetchUpdatePost,fetchAllListPost, fetchComments, addComment,uploadImage,fetchSearchPost,fetchDeletePost  };
 export default PostSlice.reducer;
