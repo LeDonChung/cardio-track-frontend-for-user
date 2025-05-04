@@ -7,7 +7,7 @@ import { CreatePostPage } from "./CreatePostPage";
 import UpdateUserModal from "./UpdateUserModal";
 import AddressModal from "./AddressModal";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchMyListPost, fetchComments } from "../redux/slice/PostSlice";
+import { fetchMyListPost, fetchComments,fetchDeletePost } from "../redux/slice/PostSlice";
 import { fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress, deleteAddress, fetchUserOrders } from "../redux/slice/UserSlice";
 import showToast from "../utils/AppUtils";
 import { Client } from "@stomp/stompjs";
@@ -230,6 +230,22 @@ export const UserInfoPage = () => {
     }
   };
   
+//hàm xóa post 
+const handleDeletePost = (postId) => {
+  if (window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
+    setLoadingMyPost(true); // Hiện loading khi bắt đầu
+    dispatch(fetchDeletePost(postId))
+      .then(() => {
+        return dispatch(fetchMyListPost()); // Gọi lại danh sách bài viết
+      })
+      .catch((error) => {
+        console.error("Xóa bài viết thất bại:", error);
+      })
+      .finally(() => {
+        setLoadingMyPost(false); // Tắt loading dù thành công hay thất bại
+      });
+  }
+};
 
 
 
@@ -555,6 +571,12 @@ export const UserInfoPage = () => {
                                 onClick={() => openCommentModal(post)}
                               >
                                 Xem bình luận
+                              </button>
+                              <button
+                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                onClick={() => handleDeletePost(post.id)}
+                              >
+                                Xoá
                               </button>
                             </div>
                           </div>
