@@ -37,7 +37,7 @@ export default function SearchByImage() {
         const formData = new FormData();
         formData.append("file", file);
         try {
-            const response = await axios.post("http://localhost:9097/api/v1/s3/upload-image", formData, {
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}:9097/api/v1/s3/upload-image`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }

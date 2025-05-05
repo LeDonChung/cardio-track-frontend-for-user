@@ -47,7 +47,7 @@ export default function ChatBox() {
 
         const getMessages = async () => {
             try {
-                const response = await axiosInstance.get(`http://localhost:9097/api/v1/messages/${user.id}`);
+                const response = await axiosInstance.get(`${process.env.REACT_APP_API_URL}:9097/api/v1/messages/${user.id}`);
                 if(response.data === undefined || response.data === null|| response.data==='') {
                     setMessageList([]);
                     return;
@@ -63,7 +63,7 @@ export default function ChatBox() {
 
 
     useEffect(() => {
-        const socket = new SockJS("http://localhost:9097/api/v1/chat/ws");
+        const socket = new SockJS(`${process.env.REACT_APP_API_URL}:9097/api/v1/chat/ws`);
         const client = new Client({
             webSocketFactory: () => socket,
             reconnectDelay: 5000,
@@ -129,7 +129,7 @@ export default function ChatBox() {
         formData.append("file", file);
 
         try {
-            const response = await axios.post("http://localhost:9097/api/v1/s3/upload-image", formData, {
+            const response = await axios.post(`${process.env.REACT_APP_API_URL}:9097/api/v1/s3/upload-image`, formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }

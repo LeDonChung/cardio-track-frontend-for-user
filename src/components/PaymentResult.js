@@ -31,7 +31,7 @@ export const PaymentResult = () => {
     
     const handlePaymentSuccess = async(orderCode) => {
         try{
-            const changeStatusResponse = await fetch(`http://localhost:8888/api/v1/order/change-status/${orderCode}?status=PAID`, {
+            const changeStatusResponse = await fetch(`${process.env.REACT_APP_API_URL}:8888/api/v1/order/change-status/${orderCode}?status=PAID`, {
                 method: 'PUT', 
                 headers: {
                     'Content-Type': 'application/json',
@@ -47,7 +47,7 @@ export const PaymentResult = () => {
     
     const handlePaymentCancel = async(orderCode) => {
         try {
-            const changeStatusResponse = await fetch(`http://localhost:8888/api/v1/order/change-status/${orderCode}?status=CANCELLED`, {
+            const changeStatusResponse = await fetch(`${process.env.REACT_APP_API_URL}:8888/api/v1/order/change-status/${orderCode}?status=CANCELLED`, {
                 method: 'PUT', 
                 headers: {
                     'Content-Type': 'application/json',
