@@ -274,7 +274,7 @@ export const CartPage = () => {
             } else if (paymentMethod === 'QR_CODE') {
                 try {
                     // Gọi API của PayOS để tạo payment link
-                    const response = await fetch('http://localhost:8888/api/v1/pay/create-payment-link', {
+                    const response = await fetch(`${process.env.REACT_APP_API_URL}:8888/api/v1/pay/create-payment-link`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -283,8 +283,8 @@ export const CartPage = () => {
                         body: JSON.stringify({
                             products: orderDetailsPayment,
                             description: 'Thanh toán',
-                            returnUrl: 'http://localhost:3000/payment-result',
-                            cancelUrl: 'http://localhost:3000/payment-result',
+                            returnUrl: `${process.env.REACT_APP_URL}/payment-result`,
+                            cancelUrl: `${process.env.REACT_APP_URL}/payment-result`,
                             amount: 10000,
                             orderCode: orderId,
                         }),
