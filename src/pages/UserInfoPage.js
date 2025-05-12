@@ -347,7 +347,7 @@ const handleDeletePost = (postId) => {
                     ? "bg-blue-400 text-white rounded-lg py-2 px-4"
                     : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
                     }`}
-                  onClick={() => handleNavigation("view-post")}
+                  onClick={() => navigate('/news')}
                 >
                   <i className="fas fa-newspaper mr-3"></i> Xem tin tức
                   <i className="fas fa-chevron-right ml-2"></i>
