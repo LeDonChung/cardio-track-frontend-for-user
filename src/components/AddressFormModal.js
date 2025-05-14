@@ -187,7 +187,7 @@ const AddressFormModal = ({ isOpen, onClose }) => {
                         options={provinceOptions}
                         onChange={handleProvinceChange}
                         value={selectedProvince || ''}
-                        placeholder="Chọn tỉnh/thành phố"
+                        placeholder="Tỉnh"
                         className="custom-select"
                         styles={customSelectStyles}
                     />
@@ -195,7 +195,7 @@ const AddressFormModal = ({ isOpen, onClose }) => {
                         options={districtOptions}
                         onChange={handleDistrictChange}
                         value={selectedDistrict || ''}
-                        placeholder="Chọn quận/huyện"
+                        placeholder="Quận/huyện"
                         className="custom-select"
                         isDisabled={!selectedProvince}
                         styles={customSelectStyles}
