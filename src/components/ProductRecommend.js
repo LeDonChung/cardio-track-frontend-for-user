@@ -9,22 +9,49 @@ export const ProductRecommend = ({ data }) => {
         slidesToShow: 6,
         arrows: true,
         infinite: false,
-        padding: 30,
         centerMode: false,
         centerPadding: '30px',
+        responsive: [
+            {
+                breakpoint: 1536, // >= 1536px
+                settings: {
+                    slidesToShow: 5,
+                },
+            },
+            {
+                breakpoint: 1280, // >= 1280px
+                settings: {
+                    slidesToShow: 4,
+                },
+            },
+            {
+                breakpoint: 1024, // >= 1024px
+                settings: {
+                    slidesToShow: 3,
+                },
+            },
+            {
+                breakpoint: 768, // >= 768px (tablet)
+                settings: {
+                    slidesToShow: 2,
+                },
+            },
+            {
+                breakpoint: 480, // < 480px (mobile)
+                settings: {
+                    slidesToShow: 2,
+                },
+            },
+        ],
     };
 
     return (
         <Slider {...settings}>
-            {
-                data.map(item => {
-                    return (
-                        <div key={item.id} style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                            <ProductPreview item={item} />
-                        </div>
-                    )
-                })
-            }
+            {data.map((item) => (
+                <div key={item.id} className="flex justify-start">
+                    <ProductPreview item={item} />
+                </div>
+            ))}
         </Slider>
     );
 };
