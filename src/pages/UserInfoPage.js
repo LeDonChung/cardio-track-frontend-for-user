@@ -7,8 +7,20 @@ import { CreatePostPage } from "./CreatePostPage";
 import UpdateUserModal from "./UpdateUserModal";
 import AddressModal from "./AddressModal";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchMyListPost, fetchComments,fetchDeletePost } from "../redux/slice/PostSlice";
-import { fetchUserInfo, fetchUserAddresses, updateUserInfo, addAddress, updateAddress, deleteAddress, fetchUserOrders } from "../redux/slice/UserSlice";
+import {
+  fetchMyListPost,
+  fetchComments,
+  fetchDeletePost,
+} from "../redux/slice/PostSlice";
+import {
+  fetchUserInfo,
+  fetchUserAddresses,
+  updateUserInfo,
+  addAddress,
+  updateAddress,
+  deleteAddress,
+  fetchUserOrders,
+} from "../redux/slice/UserSlice";
 import showToast from "../utils/AppUtils";
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
@@ -19,69 +31,59 @@ export const UserInfoPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  //const userAddresses = useSelector((state) => state.user.userAddresses);
-  const posts = useSelector((state) => state.post.myPosts) || []; // Lấy bài viết từ redux store và đảm bảo nó là một mảng
+  const posts = useSelector((state) => state.post.myPosts) || [];
   const [isModalOpenUpdate, setIsModalOpenUpdate] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
   const [loadingMyPost, setLoadingMyPost] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false); // For mobile sidebar toggle
+
   useEffect(() => {
-    // Gọi API lấy bài viết của người dùng
     dispatch(fetchMyListPost())
-      .then(() => {
-        setLoadingMyPost(false);
-      })
-      .catch(() => {
-        setLoadingMyPost(false);
-      });
+      .then(() => setLoadingMyPost(false))
+      .catch(() => setLoadingMyPost(false));
   }, [dispatch]);
 
-
-
-  // ✅ Lấy dữ liệu user từ localStorage khi load trang
+  // Initialize userInfo from localStorage or null
   const [userInfo, setUserInfo] = useState(() => {
     const storedUser = localStorage.getItem("userInfo");
-    // return storedUser !== null  || storedUser !== undefined ? JSON.parse(storedUser) : null;
+    return storedUser ? JSON.parse(storedUser) : null;
   });
 
-  //userInfo đã dc get fullfill rồi chỉ cần gọi ra là đc
   useEffect(() => {
     dispatch(fetchUserInfo()).then((res) => {
       if (res.payload) {
         setUserInfo(res.payload.data);
-        localStorage.setItem("userInfo", JSON.stringify(res.payload.data)); // Lưu lại nếu cần
+        localStorage.setItem("userInfo", JSON.stringify(res.payload.data));
       }
     });
   }, [dispatch]);
 
+  // Initialize userAddresses from localStorage or empty array
   const [userAddresses, setUserAddresses] = useState(() => {
-    const constuserAddresses = localStorage.getItem("userAddress");
-    // return storedUser !== null  || storedUser !== undefined ? JSON.parse(storedUser) : null;
+    const storedAddresses = localStorage.getItem("userAddress");
+    return storedAddresses ? JSON.parse(storedAddresses) : [];
   });
+
   useEffect(() => {
-    // Gọi fetchUserAddresses với userId từ userInfo
     dispatch(fetchUserAddresses()).then((res) => {
       if (res.payload) {
-        setUserAddresses(res.payload.data); // Cập nhật lại địa chỉ vào state
-        localStorage.setItem("userAddress", JSON.stringify(res.payload.data)); // Lưu lại nếu cần
+        setUserAddresses(res.payload.data);
+        localStorage.setItem("userAddress", JSON.stringify(res.payload.data));
       }
-    }
-    );
+    });
   }, [dispatch]);
 
   useEffect(() => {
-    // kiểm tra đã login chưa
     if (!localStorage.getItem("token")) {
       navigate("/login");
     } else {
       setIsLoading(true);
     }
-  }, []);
+  }, [navigate]);
 
-  // Hàm xử lý logout và gửi thông tin qua socket
   const handlerActionLogout = () => {
     if (!userInfo) {
-      // Nếu không có user (đề phòng), chỉ cần navigate về login
-      navigate('/login');
+      navigate("/login");
       return;
     }
 
@@ -89,79 +91,51 @@ export const UserInfoPage = () => {
     const client = new Client({
       webSocketFactory: () => socket,
       onConnect: () => {
-        console.log("📤 Gửi thông tin đăng xuất qua socket");
-
         client.publish({
           destination: "/app/user-disconnected",
           body: JSON.stringify({
-            sender: {
-              id: userInfo.id,
-              username: userInfo.fullName
-            }
-          })
+            sender: { id: userInfo.id, username: userInfo.fullName },
+          }),
         });
-
-        client.deactivate(); // Ngắt kết nối sau khi gửi xong
-
-        // Sau khi gửi socket thành công, xóa dữ liệu và navigate
-        localStorage.removeItem('token');
-        localStorage.removeItem('MyOrder');
-        localStorage.removeItem('userInfo');
-        navigate('/login');
+        client.deactivate();
+        localStorage.removeItem("token");
+        localStorage.removeItem("MyOrder");
+        localStorage.removeItem("userInfo");
+        navigate("/login");
       },
-      onStompError: (frame) => {
-        console.error('STOMP error', frame);
-
-        // Trường hợp socket lỗi vẫn đảm bảo logout
-        localStorage.removeItem('token');
-        localStorage.removeItem('userInfo');
-        navigate('/login');
-      }
+      onStompError: () => {
+        localStorage.removeItem("token");
+        localStorage.removeItem("userInfo");
+        navigate("/login");
+      },
     });
-
     client.activate();
-  }
+  };
 
-
-
-  //hàm cập nhật user theo id
-  const [isEditing, setIsEditing] = useState(false);  // Trạng thái để điều khiển việc hiển thị nút
-  const [editUserInfo, setEditUserInfo] = useState(userInfo);
   const [isModalOpenUpdateUser, setIsModalOpenUpdateUser] = useState(false);
 
-  const handleOpenModalUpdateUser = () => {
-    setIsModalOpenUpdateUser(true);
-  };
+  const handleOpenModalUpdateUser = () => setIsModalOpenUpdateUser(true);
+  const handleCloseModalUpdateUser = () => setIsModalOpenUpdateUser(false);
 
-  const handleCloseModalUpdateUser = () => {
-    setIsModalOpenUpdateUser(false);
-  };
   const handleSaveUserInfo = (updatedUserInfo) => {
-    // Gửi yêu cầu cập nhật thông tin người dùng
     dispatch(updateUserInfo(updatedUserInfo)).then(() => {
       showToast("Cập nhật thông tin thành công!", "success");
-      // Gọi lại API để lấy thông tin mới nhất của người dùng
       dispatch(fetchUserInfo()).then((res) => {
         if (res.payload) {
-          // Cập nhật lại thông tin người dùng vào state
           setUserInfo(res.payload.data);
-          localStorage.setItem("userInfo", JSON.stringify(res.payload.data)); // Lưu lại vào localStorage
-          setIsModalOpenUpdateUser(false); // Đóng modal
+          localStorage.setItem("userInfo", JSON.stringify(res.payload.data));
+          setIsModalOpenUpdateUser(false);
         }
       });
     });
   };
 
-
-  const [activeSection, setActiveSection] = useState("info");
+  const [activeSection, setActiveSection] = useState("info"); // Default to "info"
   const [searchTerm, setSearchTerm] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
-
-  // Kiểm tra roleName từ userInfo
   const isUser = userInfo?.roleNames?.includes("user");
 
-  // Xử lý các hành động khi người dùng có role là "user"
   const handleCreatePost = () => {
     if (isUser) {
       showToast("Bạn không có quyền tạo bài viết", "error");
@@ -170,410 +144,329 @@ export const UserInfoPage = () => {
     setIsModalOpen(true);
   };
 
-
   const handleUpdatePost = (post) => {
-    setSelectedPost(post); // Set the post to be updated
-    setIsModalOpenUpdate(true); // Open the update modal
+    setSelectedPost(post);
+    setIsModalOpenUpdate(true);
   };
 
-
-  //mở model add/update địa chỉ
-  const [addressToEdit, setAddressToEdit] = useState(null); // Địa chỉ đang chỉnh sửa
+  const [addressToEdit, setAddressToEdit] = useState(null);
 
   const handleAddAddress = () => {
-    setAddressToEdit(null); // Không có địa chỉ nào để chỉnh sửa
-    setIsAddressModalOpen(true); // Mở modal
+    setAddressToEdit(null);
+    setIsAddressModalOpen(true);
   };
 
   const handleEditAddress = (address) => {
-    setAddressToEdit(address); // Đặt địa chỉ cần chỉnh sửa
-    setIsAddressModalOpen(true); // Mở modal
-  };
-  const closeAddressModal = () => {
-    setIsAddressModalOpen(false);
+    setAddressToEdit(address);
+    setIsAddressModalOpen(true);
   };
 
   const handleSaveAddress = (newAddress) => {
     if (addressToEdit) {
-      // Truyền đúng đối tượng newAddress vào
-      newAddress.id = addressToEdit.id;  // Đảm bảo id được truyền
+      newAddress.id = addressToEdit.id;
       dispatch(updateAddress(newAddress)).then(() => {
-        // Cập nhật trực tiếp state userAddresses mà không cần gọi lại fetchUserAddresses
-        setUserAddresses((prevAddresses) =>
-          prevAddresses.map((address) =>
+        setUserAddresses((prev) =>
+          prev.map((address) =>
             address.id === addressToEdit.id ? { ...address, ...newAddress } : address
           )
         );
       });
     } else {
-      // Nếu là thêm mới địa chỉ
       dispatch(addAddress(newAddress)).then((res) => {
-        // Giả sử rằng response của addAddress trả về địa chỉ mới
         const addedAddress = res.payload.data;
-        // Cập nhật trực tiếp state userAddresses với địa chỉ mới
-        setUserAddresses((prevAddresses) => [...prevAddresses, addedAddress]);
+        setUserAddresses((prev) => [...prev, addedAddress]);
       });
     }
-    setIsAddressModalOpen(false); // Đóng modal
+    setIsAddressModalOpen(false);
   };
-  
 
   const handleDeleteAddress = (address) => {
-    // Xác nhận trước khi xóa
     if (window.confirm("Bạn có chắc chắn muốn xóa địa chỉ này?")) {
       dispatch(deleteAddress(address)).then(() => {
-        // Cập nhật ngay lập tức state userAddresses để xóa địa chỉ khỏi danh sách
-        setUserAddresses((prevAddresses) =>
-          prevAddresses.filter((addr) => addr.id !== address.id)
-        );
+        setUserAddresses((prev) => prev.filter((addr) => addr.id !== address.id));
       });
     }
   };
-  
-//hàm xóa post 
-const handleDeletePost = (postId) => {
-  if (window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
-    setLoadingMyPost(true); // Hiện loading khi bắt đầu
-    dispatch(fetchDeletePost(postId))
-      .then(() => {
-        return dispatch(fetchMyListPost()); // Gọi lại danh sách bài viết
-      })
-      .catch((error) => {
-        console.error("Xóa bài viết thất bại:", error);
-      })
-      .finally(() => {
-        setLoadingMyPost(false); // Tắt loading dù thành công hay thất bại
-      });
-  }
-};
 
+  const handleDeletePost = (postId) => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
+      setLoadingMyPost(true);
+      dispatch(fetchDeletePost(postId))
+        .then(() => dispatch(fetchMyListPost()))
+        .catch((error) => console.error("Xóa bài viết thất bại:", error))
+        .finally(() => setLoadingMyPost(false));
+    }
+  };
 
+  const orders = JSON.parse(localStorage.getItem("MyOrder")) || [];
 
-  const orders = JSON.parse(localStorage.getItem("MyOrder"));
-  //lấy thông tin đặt hàng thuốc của user
   useEffect(() => {
-    // Lấy danh sách đơn hàng của user sau khi đã lấy thông tin người dùng
     if (userInfo) {
       dispatch(fetchUserOrders());
     }
   }, [dispatch, userInfo]);
 
-
-
-  const filteredOrders = (orders || []).filter((order) => {
-    return (
+  const filteredOrders = orders.filter(
+    (order) =>
       (order.id && order.id.toString().includes(searchTerm)) ||
-      order.item.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  });
-
-
-  //mua lại sản phẩm
-
-
+      order.item?.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const handleNavigation = (section) => {
     setActiveSection(section);
+    setIsSidebarOpen(false); // Close sidebar on mobile after navigation
   };
 
   const comments = useSelector((state) => state.post.comments);
   const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+
   const openCommentModal = (post) => {
-    dispatch(fetchComments(post.id)); // Lấy danh sách bình luận của bài viết
-    setIsCommentModalOpen(true); // Mở modal bình luận
+    dispatch(fetchComments(post.id));
+    setIsCommentModalOpen(true);
   };
+
   return (
     <div className="bg-gray-100 min-h-screen">
       <Header />
-      {
-        isLoading && (
-          <div className="container mx-auto mt-8 flex gap-6">
-            <div className="w-1/4 bg-white p-6 rounded-lg shadow flex flex-col items-start justify-start">
-              <ul className="space-y-6 text-xl font-bold w-full">
-                <li
-                  className={`cursor-pointer ${activeSection === "info"
-                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
+      {isLoading && (
+        <div className="container mx-auto mt-4 sm:mt-8 px-4 sm:px-6 lg:px-8">
+          {/* Mobile Sidebar Toggle Button */}
+          <div className="lg:hidden flex justify-between items-center mb-4">
+            <h2 className="text-lg sm:text-xl font-bold">Menu</h2>
+            <button
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+              className="text-blue-500 text-2xl"
+            >
+              <i className={isSidebarOpen ? "fas fa-times" : "fas fa-bars"}></i>
+            </button>
+          </div>
+
+          <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+            {/* Sidebar */}
+            <div
+              className={`w-full lg:w-1/4 bg-white p-4 sm:p-6 rounded-lg shadow ${
+                isSidebarOpen ? "block" : "hidden lg:block"
+              }`}
+            >
+              <ul className="space-y-4 sm:space-y-6 text-base sm:text-xl font-bold">
+                {[
+                  { id: "info", label: "Thông tin cá nhân", icon: "fas fa-user" },
+                  { id: "orders", label: "Đơn thuốc của tôi", icon: "fas fa-box" },
+                  { id: "address", label: "Quản lý địa chỉ", icon: "fas fa-map-marker-alt" },
+                  { id: "create-post", label: "Tạo bài viết", icon: "fas fa-pencil-alt", action: handleCreatePost },
+                  { id: "my-post", label: "Bài viết của tôi", icon: "fas fa-file-alt" },
+                  { id: "view-post", label: "Xem tin tức", icon: "fas fa-newspaper" },
+                  { id: "logout", label: "Đăng xuất", icon: "fas fa-sign-out-alt", action: handlerActionLogout, color: "text-red-500" },
+                ].map((item) => (
+                  <li
+                    key={item.id}
+                    className={`cursor-pointer flex items-center ${
+                      activeSection === item.id
+                        ? "bg-blue-400 text-white rounded-lg py-2 px-4"
+                        : `hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4 ${item.color || ""}`
                     }`}
-                  onClick={() => handleNavigation("info")}
-                >
-                  <i className="fas fa-user mr-3"></i> Thông tin cá nhân
-                  <i className="fas fa-chevron-right ml-2"></i>
-                </li>
-  
-                <li
-                  className={`cursor-pointer ${activeSection === "orders"
-                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-                    }`}
-                  onClick={() => handleNavigation("orders")}
-                >
-                  <i className="fas fa-box mr-3"></i> Đơn thuốc của tôi
-                  <i className="fas fa-chevron-right ml-2"></i>
-                </li>
-                <li
-                  className={`cursor-pointer ${activeSection === "address"
-                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-                    }`}
-                  onClick={() => handleNavigation("address")}
-                >
-                  <i className="fas fa-map-marker-alt mr-3"></i> Quản lý địa chỉ
-                  <i className="fas fa-chevron-right ml-2"></i>
-                </li>
-  
-                <li
-                  className={`cursor-pointer ${activeSection === "create-post"
-                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-                    }`}
-                  onClick={handleCreatePost}
-                >
-                  <i className="fas fa-pencil-alt mr-3"></i> Tạo bài viết
-                  <i className="fas fa-chevron-right ml-2"></i>
-                </li>
-                <li
-                  className={`cursor-pointer ${activeSection === "my-post"
-                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-                    }`}
-                  onClick={() => handleNavigation("my-post")}
-                >
-                  <i className="fas fa-file-alt mr-3"></i> Bài viết của tôi
-                  <i className="fas fa-chevron-right ml-2"></i>
-                </li>
-                <li
-                  className={`cursor-pointer ${activeSection === "view-post"
-                    ? "bg-blue-400 text-white rounded-lg py-2 px-4"
-                    : "hover:bg-blue-400 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-                    }`}
-                  onClick={() => handleNavigation("view-post")}
-                >
-                  <i className="fas fa-newspaper mr-3"></i> Xem tin tức
-                  <i className="fas fa-chevron-right ml-2"></i>
-                </li>
-                <li
-                  className={`cursor-pointer text-red-500 ${activeSection === "logout"
-                    ? "bg-blue-500 text-white"
-                    : "hover:bg-blue-500 hover:text-white hover:rounded-lg hover:py-2 hover:px-4"
-                    }`}
-                  onClick={() => {
-                    handlerActionLogout();
-                  }}
-                >
-                  <i className="fas fa-sign-out-alt mr-3"></i> Đăng xuất
-                  <i className="fas fa-chevron-right ml-2"></i>
-                </li>
+                    onClick={() => (item.action ? item.action() : handleNavigation(item.id))}
+                  >
+                    <i className={`${item.icon} mr-2 sm:mr-3`}></i>
+                    <span className="text-sm sm:text-base">{item.label}</span>
+                    <i className="fas fa-chevron-right ml-auto"></i>
+                  </li>
+                ))}
               </ul>
             </div>
-  
-            <div className="flex-1 bg-white p-6 rounded-lg shadow">
+
+            {/* Main Content */}
+            <div className="w-full lg:flex-1 bg-white p-4 sm:p-6 rounded-lg shadow">
               {activeSection === "info" && (
-                <div className="flex items-center justify-center border-b pb-4 mb-4">
-                  <div className="flex items-center space-x-4 flex-col">
+                <div>
+                  <div className="flex items-center justify-center border-b pb-4 mb-4">
                     <img
                       src="./UserInfo/userinfo.png"
                       alt="Avatar"
-                      className="w-30 h-30 rounded-full border border-gray-300"
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-full border border-gray-300"
                     />
                   </div>
-                </div>
-              )}
-              <div className="flex-1 bg-white p-1 rounded-lg shadow">
-                {activeSection === "info" && (
-                  userInfo ? (
-                    <div className="space-y-4 w-3/4 mx-auto">
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="font-medium">Họ và tên</span>
-                        <span>{userInfo.fullName || "Chưa có thông tin"}</span>
-                      </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="font-medium">Số điện thoại</span>
-                        <span>{userInfo.username || "Chưa có thông tin"}</span>
-                      </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="font-medium">Giới tính</span>
-                        <span>{userInfo.gender || "Chưa có thông tin"}</span>
-                      </div>
-                      <div className="flex justify-between border-b pb-2">
-                        <span className="font-medium">Ngày sinh</span>
-                        <span>{userInfo.dob || "Chưa có thông tin"}</span>
-                      </div>
-  
-                      {/* Nút Chỉnh sửa sẽ mở Modal */}
+                  {userInfo ? (
+                    <div className="space-y-4 w-full sm:w-3/4 mx-auto">
+                      {[
+                        { label: "Họ và tên", value: userInfo.fullName },
+                        { label: "Số điện thoại", value: userInfo.username },
+                        { label: "Giới tính", value: userInfo.gender },
+                        { label: "Ngày sinh", value: userInfo.dob },
+                      ].map((field, index) => (
+                        <div key={index} className="flex justify-between border-b pb-2 text-sm sm:text-base">
+                          <span className="font-medium">{field.label}</span>
+                          <span>{field.value || "Chưa có thông tin"}</span>
+                        </div>
+                      ))}
                       <button
-                        onClick={() => handleOpenModalUpdateUser(true)}  // Mở modal chỉnh sửa
-                        className="px-6 py-2 bg-blue-500 font-semibold text-white rounded-xl w-full hover:bg-blue-600 mt-4"
+                        onClick={handleOpenModalUpdateUser}
+                        className="w-full px-4 sm:px-6 py-2 bg-blue-500 text-white rounded-xl hover:bg-blue-600 text-sm sm:text-base"
                       >
                         Chỉnh sửa thông tin
                       </button>
                     </div>
                   ) : (
-                    <p style={{ paddingTop: "20px", fontSize: "16px", textAlign: "center" }}>
+                    <p className="text-center text-sm sm:text-base pt-4">
                       Đang tải thông tin người dùng...
                     </p>
-                  )
-                )}
-              </div>
-  
+                  )}
+                </div>
+              )}
+
               {/* Modal Update User Info */}
               <UpdateUserModal
                 isOpen={isModalOpenUpdateUser}
-                onClose={() => setIsModalOpenUpdateUser(false)}
+                onClose={handleCloseModalUpdateUser}
                 userInfo={userInfo}
                 onSave={handleSaveUserInfo}
               />
-  
+
               {activeSection === "orders" && (
                 <div>
-                  <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg text-center">
-                    <h3 className="text-2xl font-bold">Đơn thuốc của tôi</h3>
+                  <div className="-mx-4 sm:-mx-6 -mt-4 sm:-mt-6 bg-blue-500 text-white p-4 rounded-t-lg text-center">
+                    <h3 className="text-lg sm:text-2xl font-bold">Đơn thuốc của tôi</h3>
                   </div>
-  
-                  {/* Tìm kiếm */}
-                  <div className="flex gap-4 mb-4 items-center">
+                  <div className="flex gap-2 sm:gap-4 mb-4 items-center">
                     <input
                       type="text"
                       placeholder="Tìm theo mã đơn, tên sản phẩm..."
-                      className="border p-3 rounded-lg w-full text-lg"
+                      className="border p-2 sm:p-3 rounded-lg w-full text-sm sm:text-base"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <i className="fas fa-search text-gray-500 ml-2"></i>
+                    <i className="fas fa-search text-gray-500 text-lg sm:text-xl"></i>
                   </div>
-  
-                  {/* Filter buttons */}
-                  <div className="flex gap-4 mb-4">
-                    <button className="px-6 py-3 bg-blue-500 text-white rounded-lg flex items-center text-lg">
-                      <i className="fas fa-box mr-2"></i> Tất cả
-                    </button>
-                    <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
-                      <i className="fas fa-truck mr-2"></i> Đang giao
-                    </button>
-                    <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
-                      <i className="fas fa-check mr-2"></i> Đã giao
-                    </button>
-                    <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
-                      <i className="fas fa-trash-alt mr-2"></i> Đã hủy
-                    </button>
-                    <button className="px-6 py-3 bg-gray-200 rounded-lg flex items-center text-lg">
-                      <i className="fas fa-undo mr-2"></i> Trả hàng
-                    </button>
+                  <div className="flex flex-wrap gap-2 sm:gap-4 mb-4">
+                    {[
+                      { label: "Tất cả", icon: "fas fa-box", active: true },
+                      { label: "Đang giao", icon: "fas fa-truck" },
+                      { label: "Đã giao", icon: "fas fa-check" },
+                      { label: "Đã hủy", icon: "fas fa-trash-alt" },
+                      { label: "Trả hàng", icon: "fas fa-undo" },
+                    ].map((filter, index) => (
+                      <button
+                        key={index}
+                        className={`px-3 sm:px-6 py-2 sm:py-3 rounded-lg flex items-center text-sm sm:text-base ${
+                          filter.active ? "bg-blue-500 text-white" : "bg-gray-200"
+                        }`}
+                      >
+                        <i className={`${filter.icon} mr-1 sm:mr-2`}></i> {filter.label}
+                      </button>
+                    ))}
                   </div>
-  
-                  {/* Danh sách đơn hàng */}
                   <div className="overflow-y-auto max-h-[500px]">
-                    {orders && orders.length > 0 ? (
-                      orders
-                        .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))  // Sắp xếp theo ngày tạo đơn hàng mới nhất
+                    {filteredOrders.length > 0 ? (
+                      filteredOrders
+                        .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
                         .map((order) => (
-                          <div key={order.id} className="flex flex-col border-b pb-4 mb-6">
-                            {/* Đơn hàng thông tin */}
-                            <div className="flex justify-between mb-4">
-                              <span className="text-lg font-medium">Đơn đặt ngày: {format(new Date(order.orderDate), "dd/MM/yyyy")}</span>
-                              <span className="text-gray-500 text-lg" style={{ position: 'relative', right: '50px' }}>Mã đơn: {order.id}</span>
+                          <div key={order.id} className="border-b pb-4 mb-6">
+                            <div className="flex flex-col sm:flex-row justify-between mb-4 text-sm sm:text-base">
+                              <span className="font-medium">
+                                Đơn đặt ngày: {format(new Date(order.orderDate), "dd/MM/yyyy")}
+                              </span>
+                              <span className="text-gray-500">Mã đơn: {order.id}</span>
                             </div>
-  
-                            {/* Lặp qua các sản phẩm trong đơn hàng */}
-                            {order.orderDetails.map((orderDetail, index) => (
-                              <div key={index} className="flex items-center gap-6 mb-6">
-                                {/* Ảnh sản phẩm */}
+                            {order.orderDetails?.map((orderDetail, index) => (
+                              <div
+                                key={index}
+                                className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-4"
+                              >
                                 <img
                                   src={order.imageUrl || "/default-image.jpg"}
                                   alt="Product"
-                                  className="w-24 h-24 object-cover rounded-lg"
+                                  className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-lg"
                                 />
-  
-                                {/* Thông tin sản phẩm */}
-                                <div className="flex flex-col w-full">
-                                  <div className="text-blue-600 font-medium text-lg">{order.nameProduct}</div>
-                                  <div className="text-black-500 text-lg w-2/4">Giá: {orderDetail.price.toLocaleString()} VND</div>
-                                  <div className="text-black-600 text-lg">{orderDetail.quantity} {order.init}</div>
+                                <div className="flex flex-col flex-1">
+                                  <div className="text-blue-600 font-medium text-sm sm:text-base">
+                                    {order.nameProduct}
+                                  </div>
+                                  <div className="text-sm sm:text-base">
+                                    Giá: {orderDetail.price?.toLocaleString()} VND
+                                  </div>
+                                  <div className="text-sm sm:text-base">
+                                    {orderDetail.quantity} {order.init}
+                                  </div>
                                 </div>
-  
-                                {/* Thành tiền */}
-                                <div className="flex justify-between items-center w-full text-xl">
-                                  <span className="font-medium" style={{ position: 'relative', left: '220px', top: '20px' }}>
-                                    Thành tiền: {orderDetail.price * orderDetail.quantity > 0 ? (orderDetail.price * orderDetail.quantity).toLocaleString() : '0'} VND
+                                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center w-full sm:w-auto">
+                                  <span className="font-medium text-sm sm:text-base">
+                                    Thành tiền:{" "}
+                                    {(orderDetail.price * orderDetail.quantity || 0).toLocaleString()} VND
                                   </span>
                                   <button
-                                    className="bg-blue-500 text-white px-6 py-3 rounded-lg text-lg"
-                                    style={{ position: 'relative', top: '70px' }}
-                                    onClick={() => {
-                                      // Chuyển hướng đến trang sản phẩm
-                                      navigate(`/product/${order.productId}`);
-                                    }}
+                                    className="bg-blue-500 text-white px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base mt-2 sm:mt-0"
+                                    onClick={() => navigate(`/product/${order.productId}`)}
                                   >
                                     Mua lại
                                   </button>
                                 </div>
                               </div>
                             ))}
-  
-                            {/* Địa chỉ nhận hàng */}
-                            <div className="text-gray-600 mt-2 text-lg">
-                              Địa chỉ nhận hàng: {order.addressDetail.street}, {order.addressDetail.ward}, {order.addressDetail.district}, {order.addressDetail.province}
+                            <div className="text-gray-600 text-sm sm:text-base mt-2">
+                              Địa chỉ nhận hàng: {order.addressDetail?.street}, {order.addressDetail?.ward},{" "}
+                              {order.addressDetail?.district}, {order.addressDetail?.province}
                             </div>
-  
-                            {/* Trạng thái đơn hàng */}
-                            <div className="mt-2 text-gray-600 text-lg">
+                            <div className="text-gray-600 text-sm sm:text-base mt-2">
                               Trạng thái: <span className="font-semibold">{order.status}</span>
                             </div>
                           </div>
                         ))
                     ) : (
-                      <p className="text-center text-gray-500" style={{ fontSize: "17px" }}>Bạn chưa có đơn hàng nào.</p>
+                      <p className="text-center text-gray-500 text-sm sm:text-base">
+                        Bạn chưa có đơn hàng nào.
+                      </p>
                     )}
                   </div>
                 </div>
               )}
-  
-  
-              {/* hiển thị tất cả bài viết của tôi */}
+
               {activeSection === "my-post" && !isUser && (
-                <div className="text-center">
-                  <div className="-mx-6 -mt-6 bg-blue-500 text-white p-4 rounded-t-lg">
-                    <h3 className="text-xl font-bold">Bài viết của tôi</h3>
+                <div>
+                  <div className="-mx-4 sm:-mx-6 -mt-4 sm:-mt-6 bg-blue-500 text-white p-4 rounded-t-lg text-center">
+                    <h3 className="text-lg sm:text-xl font-bold">Bài viết của tôi</h3>
                   </div>
                   {loadingMyPost ? (
-                    <p>Đang tải...</p>
+                    <p className="text-center text-sm sm:text-base">Đang tải...</p>
                   ) : posts.length === 0 ? (
-                    <p>Không có bài viết nào.</p>
+                    <p className="text-center text-sm sm:text-base">Không có bài viết nào.</p>
                   ) : (
                     <div className="space-y-4 mt-4">
-                      <div className="post-container" style={{ maxHeight: '500px', overflowY: 'auto' }}> {/* Thêm thanh cuộn */}
+                      <div className="max-h-[500px] overflow-y-auto">
                         {posts.map((post) => (
-                          <div key={post.id} className="border-b pb-4 mb-4 flex justify-between items-center">
-                            <div>
-                              <h2 className="text-xl font-semibold text-left">
+                          <div
+                            key={post.id}
+                            className="border-b pb-4 mb-4 flex flex-col sm:flex-row justify-between items-start sm:items-center"
+                          >
+                            <div className="flex-1">
+                              <h2 className="text-base sm:text-xl font-semibold text-left">
                                 Tác giả: <span className="font-normal">{post.fullName}</span>
                               </h2>
-                              <h2 className="text-xl font-semibold text-left">
+                              <h2 className="text-base sm:text-xl font-semibold text-left">
                                 Tiêu đề: <span className="font-normal">{post.title}</span>
                               </h2>
                               <div
-                                className="ql-editor"
-                                dangerouslySetInnerHTML={{ __html: post.content }} // Đảm bảo nội dung hiển thị đúng định dạng HTML
+                                className="ql-editor text-sm sm:text-base"
+                                dangerouslySetInnerHTML={{ __html: post.content }}
                               />
-                              <div className="text-sm text-gray-500 text-left">
+                              <div className="text-xs sm:text-sm text-gray-500 text-left">
                                 Ngày tạo: {format(new Date(post.createdAt), "HH:mm dd/MM/yyyy")}
                               </div>
                             </div>
-                            <div className="flex space-x-2">
+                            <div className="flex flex-wrap gap-2 sm:gap-3 mt-2 sm:mt-0">
                               <button
-                                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                                className="px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm sm:text-base"
                                 onClick={() => handleUpdatePost(post)}
                               >
                                 Cập nhật
                               </button>
                               <button
-                                className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600"
+                                className="px-3 sm:px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 text-sm sm:text-base"
                                 onClick={() => openCommentModal(post)}
                               >
                                 Xem bình luận
                               </button>
                               <button
-                                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                                className="px-3 sm:px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 text-sm sm:text-base"
                                 onClick={() => handleDeletePost(post.id)}
                               >
                                 Xoá
@@ -585,156 +478,126 @@ const handleDeletePost = (postId) => {
                     </div>
                   )}
                   <button
-                    className="mt-4 px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600"
+                    className="mt-4 px-4 sm:px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 text-sm sm:text-base"
                     onClick={handleCreatePost}
                   >
                     Tạo bài viết mới
                   </button>
                 </div>
               )}
-  
-              {/* Thông báo lỗi nếu là người dùng với role 'user' */}
-              {/* {isUser && ( 
-                <div className="alert alert-warning">
-                  <p>Chức năng chỉ dành cho nhân viên.</p>
-                </div>
-              )} */}
-  
-              {/* Modal for updating the post */}
+
               {isModalOpenUpdate && selectedPost && (
                 <UpdatePostPage
                   setIsModalOpen={setIsModalOpenUpdate}
                   postToEdit={selectedPost}
                 />
               )}
+
               {isCommentModalOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                  <div className="bg-white p-6 rounded-lg w-1/2">
+                  <div className="bg-white p-4 sm:p-6 rounded-lg w-full sm:w-1/2 max-h-[80vh] overflow-y-auto">
                     <div className="flex justify-between">
+                      <h4 className="font-semibold text-sm sm:text-base">Danh sách bình luận:</h4>
                       <button
                         onClick={() => setIsCommentModalOpen(false)}
-                        className="bg-gray-500 text-white px-4 py-2 rounded-lg"
+                        className="bg-gray-500 text-white px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base"
                       >
                         Thoát
                       </button>
                     </div>
-                    <div className="mt-4">
-                      <h4 className="font-semibold">Danh sách bình luận:</h4>
-                      <div className="space-y-4 mt-4 max-h-60 overflow-y-auto">
-                        {comments && comments.length > 0 ? (
-                          comments.map((comment) => (
-                            <div key={comment.id} className="p-3 border-b border-gray-200">
-                              <p><strong>{comment.fullName}</strong>: {comment.content}</p>
-                              <p className="text-sm text-gray-500">{format(new Date(comment.createdAt), "dd/MM/yyyy HH:mm")}</p>
-                            </div>
-                          ))
-                        ) : (
-                          <p>Chưa có bình luận nào.</p>
-                        )}
-                      </div>
+                    <div className="mt-4 space-y-4">
+                      {comments && comments.length > 0 ? (
+                        comments.map((comment) => (
+                          <div key={comment.id} className="p-3 border-b border-gray-200 text-sm sm:text-base">
+                            <p>
+                              <strong>{comment.fullName}</strong>: {comment.content}
+                            </p>
+                            <p className="text-xs sm:text-sm text-gray-500">
+                              {format(new Date(comment.createdAt), "dd/MM/yyyy HH:mm")}
+                            </p>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-sm sm:text-base">Chưa có bình luận nào.</p>
+                      )}
                     </div>
                   </div>
                 </div>
               )}
-  
-  
-  
-  
-  
-  
-  
-  
-  
-              {activeSection === "qr" && (
-                <div className="text-center">
-                  <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg">
-                    <h3 className="text-xl font-bold">Mã QR của tôi</h3>
-                  </div>
-                  <img
-                    src="./UserInfo/QR.jpg"
-                    alt="QR"
-                    className="w-65 h-60 mx-auto mt-4"
-                  />
-                </div>
-              )}
-  
+
               {activeSection === "address" && (
                 <div className="flex flex-col justify-between h-full">
-                  <div>
-                    <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
-                      <h3 className="text-xl font-bold">Quản lý địa chỉ</h3>
-                    </div>
-                    {Array.isArray(userAddresses) && userAddresses.length > 0 ? (
-                      userAddresses.map((address) => (
-                        <div
-                          key={address.id}
-                          className="flex items-center justify-between mb-4"
-                        >
-                          <div style={{ margin: "10px" }}>
-                            <p style={{ fontWeight: "bold", fontSize: 22 }}>
-                              {address.fullName}
-                            </p>
-                            <p style={{ fontSize: 17 }}>
-                              {address.phoneNumber} | {address.street}, {address.ward}
-                              , {address.district}, {address.province}
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-4">
-                            <button
-                              className="text-blue-500 font-semibold"
-                              style={{ fontSize: 20 }}
-                              onClick={() => handleEditAddress(address)} // Mở modal chỉnh sửa
-                            >
-                              Sửa
-                            </button>
-                            <button
-                              className="text-red-500 font-semibold"
-                              style={{ fontSize: 20 }}
-                              onClick={() => handleDeleteAddress(address)} // Mở modal xóa
-                            >
-                              Xóa
-                            </button>
-                          </div>
-                        </div>
-                      ))) : (
-                      <p>Không có địa chỉ nào.</p>
-                    )}
+                  <div className="-mx-4 sm:-mx-6 -mt-4 sm:-mt-6 bg-blue-500 text-white p-4 rounded-t-lg text-center">
+                    <h3 className="text-lg sm:text-xl font-bold">Quản lý địa chỉ</h3>
                   </div>
-                  <div className="flex justify-center mt-auto mb-4">
+                  {Array.isArray(userAddresses) && userAddresses.length > 0 ? (
+                    userAddresses.map((address) => (
+                      <div
+                        key={address.id}
+                        className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 p-2 sm:p-4"
+                      >
+                        <div>
+                          <p className="font-bold text-base sm:text-lg">{address.fullName}</p>
+                          <p className="text-sm sm:text-base">
+                            {address.phoneNumber} | {address.street}, {address.ward},{" "}
+                            {address.district}, {address.province}
+                          </p>
+                        </div>
+                        <div className="flex items-center space-x-2 sm:space-x-4 mt-2 sm:mt-0">
+                          <button
+                            className="text-blue-500 font-semibold text-sm sm:text-base"
+                            onClick={() => handleEditAddress(address)}
+                          >
+                            Sửa
+                          </button>
+                          <button
+                            className="text-red-500 font-semibold text-sm sm:text-base"
+                            onClick={() => handleDeleteAddress(address)}
+                          >
+                            Xóa
+                          </button>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-center text-sm sm:text-base">Không có địa chỉ nào.</p>
+                  )}
+                  <div className="flex justify-center mt-4">
                     <button
-                      className="bg-blue-500 text-white px-4 py-2 rounded-lg"
-                      onClick={handleAddAddress} // Mở modal thêm mới địa chỉ
+                      className="bg-blue-500 text-white px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base"
+                      onClick={handleAddAddress}
                     >
                       Thêm địa chỉ mới
                     </button>
                   </div>
                 </div>
-              )}{/* Modal Add/Edit Address */}
+              )}
+
               <AddressModal
                 isOpen={isAddressModalOpen}
                 onClose={() => setIsAddressModalOpen(false)}
                 addressToEdit={addressToEdit}
                 onSave={handleSaveAddress}
               />
-  
-              {activeSection === "payment" && (
-                <div className="text-center flex flex-col justify-between h-full">
-                  <div className="-mx-6 -mt-6 bg-blue-500 text-white p-2 rounded-t-lg text-center">
-                    <h3 className="text-xl font-bold">Quản lý thanh toán</h3>
+
+              {activeSection === "qr" && (
+                <div className="text-center">
+                  <div className="-mx-4 sm:-mx-6 -mt-4 sm:-mt-6 bg-blue-500 text-white p-4 rounded-t-lg">
+                    <h3 className="text-lg sm:text-xl font-bold">Mã QR của tôi</h3>
                   </div>
-                  <div className="flex justify-center mt-auto mb-4">
-                    <button className="bg-blue-500 text-white px-4 py-2 mt-4 rounded-lg">
-                      Cập nhật thông tin thanh toán
-                    </button>
-                  </div>
+                  <img
+                    src="./UserInfo/QR.jpg"
+                    alt="QR"
+                    className="w-40 h-40 sm:w-60 sm:h-60 mx-auto mt-4"
+                  />
                 </div>
               )}
-  
+
               {isModalOpen && <CreatePostPage setIsModalOpen={setIsModalOpen} />}
             </div>
           </div>
-        )
-      }
+        </div>
+      )}
       <Footer />
     </div>
   );

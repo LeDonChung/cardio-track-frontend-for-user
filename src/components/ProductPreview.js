@@ -23,7 +23,7 @@ export const ProductPreview = ({ item }) => {
     return (
         <div
 
-            key={item.id} className="flex flex-col h-[450px] px-4 bg-white overflow-hidden rounded-3xl hover:cursor-pointer hover:border hover:border-[#2563eb]">
+            key={item.id} className="flex flex-col h-[450px] mx-4 px-4 bg-white overflow-hidden rounded-3xl hover:cursor-pointer hover:border hover:border-[#2563eb]">
             <div  onClick={handlerGoDetailClick}>
                 <img src={item.primaryImage} alt={item.name} className="w-full h-40 object-contain py-2" />
                 <div>

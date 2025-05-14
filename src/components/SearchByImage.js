@@ -69,7 +69,6 @@ export default function SearchByImage() {
         }
     }
 
-    console.log(productList)
     return (
         <>
             {/* Icon camera để mở modal */}

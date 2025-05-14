@@ -21,7 +21,7 @@ import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { fetchUserInfo } from './redux/slice/UserSlice.js';
 function App() {
-  
+
   return (
     <BrowserRouter
       future={{
@@ -29,8 +29,10 @@ function App() {
         v7_relativeSplatPath: true,
       }}
     >
-      <ChatBox />
-      <ConsultBox />
+      <div className='fixed bottom-4 right-4 z-50'>
+        <ChatBox />
+        <ConsultBox />
+      </div>
       <Routes>
         {/* Login Page */}
         <Route path="/login" element={<LoginPage />} />

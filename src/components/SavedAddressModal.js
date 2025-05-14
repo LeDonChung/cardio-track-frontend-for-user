@@ -57,8 +57,8 @@ const SavedAddressModal = ({ isOpen, onClose, onSelect, openAddressFormModal }) 
     };
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg w-96 shadow-lg overflow-auto max-h-[90vh] min-w-[600px]">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50 px-5">
+            <div className="bg-white p-6 rounded-lg w-full sm:w-96 md:w-1/2 lg:w-1/3 shadow-lg overflow-auto max-h-[90vh]">
                 <div className="flex justify-between items-center mb-4">
                     <h3 className="text-xl font-bold text-center flex-grow">Địa chỉ đã lưu</h3>
                     <button 
@@ -126,7 +126,7 @@ const SavedAddressModal = ({ isOpen, onClose, onSelect, openAddressFormModal }) 
             {/* Modal xác nhận xóa */}
             {isDeleteConfirmOpen && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-                    <div className="bg-white p-6 rounded-lg w-96 shadow-lg">
+                    <div className="bg-white p-6 rounded-lg w-full sm:w-96 md:w-1/2 shadow-lg">
                         <h3 className="text-xl font-bold text-center mb-4">Xác nhận xóa địa chỉ</h3>
                         <p className="text-center mb-4">Bạn có chắc chắn muốn xóa địa chỉ này?</p>
                         <div className="flex justify-center space-x-4">
