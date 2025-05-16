@@ -408,7 +408,7 @@ export const UserInfoPage = () => {
                             </div>
                             <div className="text-gray-600 text-sm sm:text-base mt-2">
                               Trạng thái: <span className="font-semibold">
-                                 {order.status === 'PENDING' ? 'Đang xử lý' : order.status === 'PAID' ? 'Đã thanh toán' : order.status === 'CANCELLED' ? 'Đã hủy' : order.status}
+                                 {order.status === 'PENDING' ? 'Đang xử lý' : order.status === 'PAID' ? 'Đã thanh toán' : order.status === 'CANCELLED' ? 'Đã hủy đơn' : order.status}
                                 </span>
                             </div>
                           </div>
