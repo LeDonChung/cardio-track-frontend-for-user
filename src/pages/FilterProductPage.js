@@ -150,8 +150,8 @@ export const FilterProductPage = () => {
             <FontAwesomeIcon icon={faCircleDot} color="#2563eb" className="mr-2" />
             <p className="font-bold text-lg sm:text-xl">Sản phẩm</p>
           </div>
-          <p className="font-medium text-sm sm:text-base">
-            Tìm thấy {data?.length || 0} sản phẩm
+          <p className="font-normal text-sm sm:text-base">
+            Tìm thấy {data?.length || 0} sản phẩm với từ khóa <span className="font-bold">{key}</span>
           </p>
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
