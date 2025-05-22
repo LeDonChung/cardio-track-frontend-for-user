@@ -23,98 +23,99 @@ const initialMessages = {
 };
 
 export default function ChatBox() {
-  const isChatOpen = useSelector((state) => state.chat.isChatOpen);
+  const isChatOpen = useSelector(state => state.chat.isChatOpen);
   const [message, setMessage] = useState("");
   const [messageList, setMessageList] = useState([]);
   const [stompClient, setStompClient] = useState(null);
+  const user = JSON.parse(localStorage.getItem('userInfo') === 'undefined' ? null : localStorage.getItem('userInfo'));
   const [messageSend, setMessageSend] = useState(false);
   const imageInputRef = useRef(null);
+
   const bottomRef = useRef(null);
-  const dispatch = useDispatch();
 
-  // Safely parse userInfo from localStorage
-  const user = (() => {
-    try {
-      const storedUser = localStorage.getItem("userInfo");
-      return storedUser && storedUser !== "undefined" ? JSON.parse(storedUser) : null;
-    } catch {
-      return null;
-    }
-  })();
-
-  // Auto-scroll to the latest message
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messageList]);
 
-  // Fetch messages from the server
   useEffect(() => {
+
     const getMessages = async () => {
       try {
-        const response = await axiosInstance.get(
-          `${process.env.REACT_APP_API_URL}:9097/api/v1/messages/${user.id}`
-        );
-        setMessageList(response.data?.messages || []);
+        const response = await axiosInstance.get(`${process.env.REACT_APP_API_URL}/chat/api/v1/messages/${user.id}`);
+        if (response.data === undefined || response.data === null || response.data === '') {
+          setMessageList([]);
+          return;
+        }
+        setMessageList(response.data.messages);
       } catch (error) {
-        console.error("Error fetching messages:", error);
+        console.error("Lỗi lấy tin nhắn:", error);
         setMessageList([]);
       }
     };
-    if (user?.id) {
-      getMessages();
-    }
+    getMessages();
   }, [messageSend, user?.id]);
 
-  // WebSocket connection
+
   useEffect(() => {
-    const socket = new SockJS(`${process.env.REACT_APP_API_URL}:9097/api/v1/chat/ws`);
+    const socket = new SockJS(`${process.env.REACT_APP_API_URL}/chat/api/v1/chat/ws`);
     const client = new Client({
       webSocketFactory: () => socket,
       reconnectDelay: 5000,
+
       onConnect: () => {
         console.log("✅ WebSocket connected!");
         client.subscribe("/topic/messages", (message) => {
           const newMessage = JSON.parse(message.body);
           if (newMessage.receiverId === user.id || newMessage.senderId === user.id) {
-            setMessageList((prev) => [...(Array.isArray(prev) ? prev : []), newMessage]);
+            setMessageList(prev => [...(Array.isArray(prev) ? prev : []), newMessage]);
           }
+
         });
 
-        const connectMessage = {
-          sender: { id: user.id, username: user.fullName },
+
+        const message = {
+          "sender": {
+            "id": user.id,
+            "username": user.fullName
+          },
         };
+
+        // thông báo đến server rằng người dùng đã kết nối
         client.publish({
-          destination: "/app/user-connected",
-          body: JSON.stringify(connectMessage),
+          destination: "/app/user-connected", // Địa chỉ gửi khi người dùng kết nối
+          body: JSON.stringify(message) // Gửi senderId thay vì sender
         });
 
-        setStompClient(client);
+        setStompClient(client);  // Cập nhật trạng thái client sau khi kết nối
       },
+
       onStompError: (frame) => {
-        console.error("❌ STOMP Error:", frame.headers["message"]);
+        console.error("❌ STOMP Error:", frame.headers['message']);
       },
+
       onWebSocketError: (error) => {
         console.error("🚨 WebSocket Error:", error);
       },
+
       onDisconnect: () => {
         console.log("🔴 WebSocket disconnected!");
-      },
+      }
     });
 
     client.activate();
+
     return () => {
       client.deactivate();
     };
-  }, [user?.id, user?.fullName]);
+  }, []);
 
-  // Handle image/video upload
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
-    const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/gif", "video/mp4"];
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'video/mp4'];
     if (!allowedTypes.includes(file.type)) {
-      alert("Only PNG, JPEG, JPG, GIF, or MP4 files are allowed.");
+      alert('Chỉ chấp nhận file ảnh (PNG, JPEG, GIF, MP4)');
       return;
     }
 
@@ -122,61 +123,79 @@ export default function ChatBox() {
     formData.append("file", file);
 
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}:9097/api/v1/s3/upload-image`,
-        formData,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/chat/api/v1/s3/upload-image`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
 
-      const imageUrl = response.data;
+      const image = response.data;
       const newMessage = {
-        sender: { id: user.id, username: user.fullName },
-        receiver: { id: 0 },
-        imageUrl,
-        timestamp: new Date().toISOString(),
+        sender: {
+          id: user.id,
+          username: user.fullName
+        },
+        receiver: {
+          id: 0,
+        },
+        imageUrl: image,
+        timestamp: new Date().toISOString()
       };
 
       if (!stompClient || !stompClient.connected) {
-        alert("Cannot send message! WebSocket is not connected.");
+        console.error("🚨 Không thể gửi tin nhắn! WebSocket chưa kết nối.");
         return;
       }
 
       stompClient.publish({
         destination: "/app/chat",
-        body: JSON.stringify(newMessage),
+        body: JSON.stringify(newMessage)
       });
 
-      setMessageList((prev) => [...(Array.isArray(prev) ? prev : []), newMessage]);
-      setMessageSend(!messageSend);
-    } catch (error) {
-      console.error("Upload failed:", error);
-      alert("Failed to upload file.");
-    }
-  };
 
-  // Send text message
+      // ✅ Thêm luôn tin nhắn vào messageList để hiển thị ngay (instant update)
+      setMessageList(prev => [...(Array.isArray(prev) ? prev : []), newMessage]);
+      setMessageSend(!messageSend);
+
+    } catch (error) {
+      console.error("❌ Upload failed:", error);
+      alert("Lỗi upload");
+    }
+  }
+
   const sendMessage = () => {
     if (!message.trim() || !stompClient || !stompClient.connected) {
-      alert("Cannot send message! WebSocket is not connected or message is empty.");
+      console.error("🚨 Không thể gửi tin nhắn! WebSocket chưa kết nối.");
       return;
     }
 
     const newMessage = {
-      sender: { id: user.id, username: user.fullName },
-      receiver: { id: 0 },
-      content: message,
-      timestamp: new Date().toISOString(),
+      sender: {
+        id: user.id,
+        username: user.fullName
+      },
+      receiver: {
+        id: 0,
+      },
+      content: message
     };
+
+    console.log("🚀 Gửi tin nhắn:", newMessage);
+
 
     stompClient.publish({
       destination: "/app/chat",
-      body: JSON.stringify(newMessage),
+      body: JSON.stringify(newMessage)
     });
 
-    setMessageList((prev) => [...(Array.isArray(prev) ? prev : []), newMessage]);
+
+    // ✅ Thêm luôn tin nhắn vào messageList để hiển thị ngay (instant update)
+    setMessageList(prev => [...(Array.isArray(prev) ? prev : []), newMessage]);
     setMessageSend(!messageSend);
     setMessage("");
   };
+
+  const dispatch = useDispatch();
 
   return (
     <>
@@ -228,18 +247,16 @@ export default function ChatBox() {
                   return (
                     <div
                       key={index}
-                      className={`flex ${
-                        msg.senderId === user.id ? "justify-end" : "justify-start"
-                      } mb-2 animate-fadeInMessage`}
+                      className={`flex ${msg.senderId === user.id ? "justify-end" : "justify-start"
+                        } mb-2 animate-fadeInMessage`}
                     >
                       <div
-                        className={`max-w-[80%] sm:max-w-[70%] lg:max-w-[500px] px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base ${
-                          msg.imageUrl
+                        className={`max-w-[80%] sm:max-w-[70%] lg:max-w-[500px] px-3 sm:px-4 py-2 rounded-lg text-sm sm:text-base ${msg.imageUrl
                             ? "bg-transparent"
                             : msg.senderId === user.id
-                            ? "bg-blue-600 text-white"
-                            : "bg-gray-200 text-gray-800"
-                        }`}
+                              ? "bg-blue-600 text-white"
+                              : "bg-gray-200 text-gray-800"
+                          }`}
                       >
                         {msg.content && <p>{msg.content}</p>}
                         {msg.imageUrl && (
@@ -262,13 +279,12 @@ export default function ChatBox() {
                         )}
                         {isLastMessageInMinute && (
                           <span
-                            className={`block text-xs mt-1 ${
-                              msg.imageUrl
+                            className={`block text-xs mt-1 ${msg.imageUrl
                                 ? "text-gray-500"
                                 : msg.senderId === user.id
-                                ? "text-blue-100"
-                                : "text-gray-500"
-                            }`}
+                                  ? "text-blue-100"
+                                  : "text-gray-500"
+                              }`}
                           >
                             {currentMessageTime.toLocaleString("en-US", {
                               year: "numeric",
