@@ -65,7 +65,7 @@ export const Header = () => {
                         <span className="text-white text-sm font-bold ml-1">
                             NHÀ THUỐC
                             <br />
-                            THERA CARE
+                            CARDIO TRACK
                         </span>
                     </div>
                     <button
