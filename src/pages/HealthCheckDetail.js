@@ -5,6 +5,7 @@ import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
 import { fetchAllHealthTests,submitUserAnswers  } from "../redux/slice/HealthCheckSlice";
 import { useNavigate } from "react-router-dom";
+import ReactMarkdown from "react-markdown";
 
 
 export const HealthCheckDetail = () => {
@@ -67,11 +68,12 @@ const [showDiagnosing, setShowDiagnosing] = useState(false);
         const fullContent = res?.choices?.[0]?.message?.content || "";
 
         const resultMatch = fullContent.match(/\*\*Kết quả:\*\*\s*(.+)/);
-        const adviceMatch = fullContent.match(/\*\*Lời khuyên:\*\*\s*(.+)/);
+        const adviceMatch = fullContent.match(/\*\*Lời khuyên:\*\*\s*([\s\S]*)/);
+
 
         setResultContent({
         result: resultMatch ? resultMatch[1] : "Không rõ kết quả",
-        advice: adviceMatch ? adviceMatch[1] : "",
+        advice: adviceMatch ? adviceMatch[1].trim() : "",
         });
         setShowResult(true);
         setShowDiagnosing(false);
@@ -169,7 +171,10 @@ const [showDiagnosing, setShowDiagnosing] = useState(false);
             <h3 className="text-lg font-bold mb-3">
             Kết quả: <span className="text-green-600 uppercase">{resultContent.result}</span>
             </h3>
-            <p className="text-gray-800 mb-4">{resultContent.advice}</p>
+           <div className="prose prose-sm text-gray-800 mb-4">
+              <ReactMarkdown>{resultContent.advice}</ReactMarkdown>
+          </div>
+
             <div className="flex justify-center">
             <img
                 src="https://nhathuoclongchau.com.vn/static/images/survey/diabetes-low.png"
