@@ -264,6 +264,7 @@ export const CartPage = () => {
                 orderId = result.payload.data.id;
             } else {
                 console.log('Không có dữ liệu đơn hàng');
+                return;
             }
 
             showToast("Đặt hàng thành công", "success");
