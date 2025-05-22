@@ -134,7 +134,14 @@ export const submitOrderThunk = createAsyncThunk(
       const response = await submitOrder(orderData, token);  // Gọi API để gửi đơn hàng
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || error.message);
+      console.error('Error submitting order:', error.response.data.message);
+      if (error.response.status === 429) {
+        showToast('Server hiện đang quá tải vui lòng thử lại sau!', 'error');  // Hiển thị thông báo lỗi
+      }
+      if (error.response.status === 400) {
+        showToast('Có lỗi xảy ra khi gửi đơn hàng vui lòng thử lại sau', 'error');  // Hiển thị thông báo lỗi
+      }
+      return rejectWithValue(error.response.message);
     }
   }
 );
