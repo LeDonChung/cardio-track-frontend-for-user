@@ -179,7 +179,7 @@ export const Header = () => {
                     <span className="text-white text-lg font-bold ml-2">
                         NHÀ THUỐC
                         <br />
-                        THERA CARE
+                        CARDIO TRACK
                     </span>
                 </div>
                 <div className="flex items-center space-x-4">
